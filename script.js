@@ -76,17 +76,39 @@ function createSeats() {
 
 // Drag & drop handling
 let currentDrag = null;
-function dragStart(e){ currentDrag = e.target; }
-function dragEnd(e) {
+let offsetX = 0;
+let offsetY = 0;
+function dragStart(e) {
+    // Check if seat was clicked
+    if (e.target.classList.contains('seat')) {
+        currentDrag = e.target;
+
+        // Remember offset inside the seat
+        const rect = currentDrag.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+
+        // Bind pointer events
+        document.addEventListener('pointermove', dragMove);
+        document.addEventListener('pointerup', dragEnd);
+
+        e.preventDefault();
+    }
+}
+
+function dragMove(e) {
+    // Exit if nothing is dragged
+    if (!currentDrag) return;
+
     const canvas = document.getElementById('canvas');
     const rect = canvas.getBoundingClientRect();
 
     const seatWidth = currentDrag.offsetWidth;
     const seatHeight = currentDrag.offsetHeight;
 
-    // Calculate new position
-    let newX = e.clientX - rect.left - seatWidth / 2;
-    let newY = e.clientY - rect.top - seatHeight / 2;
+    // Calculate new position relative to canvas
+    let newX = e.clientX - rect.left - offsetX;
+    let newY = e.clientY - rect.top - offsetY;
 
     // Keep inside canvas
     if (newX < 0) newX = 0;
@@ -94,15 +116,23 @@ function dragEnd(e) {
     if (newX + seatWidth > canvas.clientWidth) newX = canvas.clientWidth - seatWidth;
     if (newY + seatHeight > canvas.clientHeight) newY = canvas.clientHeight - seatHeight;
 
-    // Snap to grid
+    // Snap to grid (10px)
     const gridSize = 10;
     newX = Math.round(newX / gridSize) * gridSize;
     newY = Math.round(newY / gridSize) * gridSize;
 
+    // Apply new position
     currentDrag.style.left = newX + 'px';
     currentDrag.style.top = newY + 'px';
+}
 
+function dragEnd() {
+    // Reset drag state
     currentDrag = null;
+
+    // Unbind pointer events
+    document.removeEventListener('pointermove', dragMove);
+    document.removeEventListener('pointerup', dragEnd);
 }
 
 // Save seats to localStorage
