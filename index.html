@@ -19,16 +19,20 @@
         </div>
         <div class="controls primary">
             <button onclick="assignNames()">Auslosen</button>
+            <button id="exportBtn">Exportieren</button>
         </div>
     </div>
 
     <div id="canvas"></div>
-
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="script.js"></script>
+    <script src="export.js"></script>
     <script>
-        // Daten direkt beim Laden der Seite einlesen
         document.addEventListener('DOMContentLoaded', () => {
             loadData();
+            document.getElementById('exportBtn').addEventListener('click', openExportPopup);
         });
     </script>
 </body>
