@@ -33,7 +33,7 @@ function openExportPopup() {
   popup.style.boxShadow = "0 5px 15px rgba(0,0,0,0.3)";
 
   popup.innerHTML = `
-        <h3>Export PDF</h3>
+        <h3>PDF Export</h3>
         <label>Name der Klasse:<br><input type="text" id="className" style="width:100%"></label><br><br>
         <label>Stand:<br><input type="date" id="dateFrom" style="width:100%" value="${
           new Date().toISOString().split("T")[0]

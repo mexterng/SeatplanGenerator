@@ -178,7 +178,7 @@ function loadData() {
 }
 
 // Assign random names to seats
-function assignNames() {
+function assignNames(shuffle = true) {
     const nameList = document.getElementById('namesInput').value.split(',').map(n => n.trim());
     if(nameList[0] === "" || seats.length === 0){
         alert('Keine Namen oder Sitzplätze zum Zuordnen!');
@@ -202,7 +202,10 @@ function assignNames() {
         fullNameList.push(''); // leere Namen für freie Sitzplätze
     }
 
-    const shuffledNames = [...fullNameList].sort(() => Math.random() - 0.5);
+    let shuffledNames = fullNameList;
+    if (shuffle) {
+        shuffledNames = [...fullNameList].sort(() => Math.random() - 0.5);
+    }
     seats.forEach((s, i) => {
         const nameDiv = s.element.querySelector('.seat-name');
         nameDiv.textContent = shuffledNames[i];
