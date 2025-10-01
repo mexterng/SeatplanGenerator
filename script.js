@@ -1,7 +1,7 @@
 let seats = [];
 
+// Get seat size from CSS
 function getSeatSize() {
-    // Temporäres Sitzplatz-Element erstellen, um CSS-Größe auszulesen
     const tempSeat = document.createElement('div');
     tempSeat.className = 'seat';
     tempSeat.style.position = 'absolute';
@@ -11,12 +11,11 @@ function getSeatSize() {
     const width = tempSeat.offsetWidth;
     const height = tempSeat.offsetHeight;
 
-    document.body.removeChild(tempSeat); // wieder entfernen
-
+    document.body.removeChild(tempSeat);
     return { width, height };
 }
 
-// Einzelnen Sitzplatz erstellen
+// Create single seat element
 function createSeatElement(x, y, canvas, seatCountElement) {
     const seat = document.createElement('div');
     seat.className = 'seat';
@@ -24,7 +23,7 @@ function createSeatElement(x, y, canvas, seatCountElement) {
     seat.style.top = y + 'px';
     seat.draggable = true;
 
-    // X zum Löschen
+    // Delete button
     const delSpan = document.createElement('span');
     delSpan.className = 'del';
     delSpan.textContent = '×';
@@ -35,12 +34,14 @@ function createSeatElement(x, y, canvas, seatCountElement) {
         seatCountElement.value = seatCountElement.value - 1;
     });
     seat.appendChild(delSpan);
+
+    // Name container
     const nameDiv = document.createElement('div');
     nameDiv.className = 'seat-name';
-    nameDiv.style.pointerEvents = 'none'; // verhindert Drag-Konflikte
+    nameDiv.style.pointerEvents = 'none';
     seat.appendChild(nameDiv);
 
-    // Drag & Drop Events
+    // Drag events
     seat.addEventListener('dragstart', dragStart);
     seat.addEventListener('dragend', dragEnd);
 
@@ -48,7 +49,7 @@ function createSeatElement(x, y, canvas, seatCountElement) {
     seats.push({ element: seat, x: x, y: y });
 }
 
-// Sitzplätze erstellen
+// Create multiple seats
 function createSeats() {
     const canvas = document.getElementById('canvas');
     const seatCountElement = document.getElementById('seatCount');
@@ -73,7 +74,7 @@ function createSeats() {
     }
 }
 
-// Drag & Drop
+// Drag & drop handling
 let currentDrag = null;
 function dragStart(e){ currentDrag = e.target; }
 function dragEnd(e) {
@@ -83,29 +84,28 @@ function dragEnd(e) {
     const seatWidth = currentDrag.offsetWidth;
     const seatHeight = currentDrag.offsetHeight;
 
-    // Neue Position relativ zum Canvas
+    // Calculate new position
     let newX = e.clientX - rect.left - seatWidth / 2;
     let newY = e.clientY - rect.top - seatHeight / 2;
 
-    // Grenzen prüfen
+    // Keep inside canvas
     if (newX < 0) newX = 0;
     if (newY < 0) newY = 0;
     if (newX + seatWidth > canvas.clientWidth) newX = canvas.clientWidth - seatWidth;
     if (newY + seatHeight > canvas.clientHeight) newY = canvas.clientHeight - seatHeight;
 
-    // Snap-to-Grid: auf 10px runden
+    // Snap to grid
     const gridSize = 10;
     newX = Math.round(newX / gridSize) * gridSize;
     newY = Math.round(newY / gridSize) * gridSize;
 
-    // Position setzen
     currentDrag.style.left = newX + 'px';
     currentDrag.style.top = newY + 'px';
 
     currentDrag = null;
 }
 
-// Sitzplätze speichern
+// Save seats to localStorage
 function saveSeats(alertmessage = true) {
     const seatData = seats.map(t => ({x: parseInt(t.element.style.left), y: parseInt(t.element.style.top)}));
     localStorage.setItem('seats', JSON.stringify(seatData));
@@ -114,7 +114,7 @@ function saveSeats(alertmessage = true) {
     }
 }
 
-// Namen speichern
+// Save names to localStorage
 function saveNames(alertmessage = true) {
     const nameList = document.getElementById('namesInput').value.split(',').map(n => n.trim());
     localStorage.setItem('names', JSON.stringify(nameList));
@@ -123,7 +123,7 @@ function saveNames(alertmessage = true) {
     }
 }
 
-// Daten laden
+// Load seats and names from localStorage
 function loadData() {
     const seatData = JSON.parse(localStorage.getItem('seats'));
     const nameList = JSON.parse(localStorage.getItem('names'));
@@ -147,7 +147,7 @@ function loadData() {
     }
 }
 
-// Namen zu Sitzplätzen zuweisen
+// Assign random names to seats
 function assignNames() {
     const nameList = document.getElementById('namesInput').value.split(',').map(n => n.trim());
     if(nameList[0] === "" || seats.length === 0){
