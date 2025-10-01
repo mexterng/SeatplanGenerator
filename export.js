@@ -155,15 +155,11 @@ function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName) {
   });
 
   // Footer
-  // Get current domain and ensure it starts with "www."
-    let domain = window.location.hostname;
-    if (!domain.startsWith("www.")) {
-        domain = "www." + domain;
-    }
+  // Add footer text dynamically with full URL of current page
   pdf.setFontSize(6);
   pdf.setTextColor(125, 125, 125);
   pdf.text(
-    "Erstellt mit " + domain,
+    "Erstellt mit " + window.location.href,
     pdfWidth - margin_right,
     pdfHeight - margin_bottom,
     { align: "right" }
