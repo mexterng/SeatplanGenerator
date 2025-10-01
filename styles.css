@@ -34,8 +34,8 @@ html, body {
    Seat Elements
    =============================== */
 .seat {
-    width: 160px;
-    height: 60px;
+    width: 159px;
+    height: 59px;
     background-color: var(--color-seat-bg);
     position: absolute;
     cursor: move;
@@ -44,6 +44,7 @@ html, body {
     align-items: center;
     border-radius: 5px;
     border: 1px solid black;
+    touch-action: none;
 }
 
 .seat-name {
