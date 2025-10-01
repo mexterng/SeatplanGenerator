@@ -25,21 +25,20 @@ function createSeatElement(x, y, canvas, seatCountElement) {
     seat.draggable = true;
 
     // X zum Löschen
-    const del = document.createElement('span');
-    del.textContent = '×';
-    del.style.position = 'absolute';
-    del.style.right = '3px';
-    del.style.top = '0px';
-    del.style.cursor = 'pointer';
-    del.style.fontWeight = 'bold';
-    del.style.color = 'red';
-    del.addEventListener('click', (e) => {
+    const delSpan = document.createElement('span');
+    delSpan.className = 'del';
+    delSpan.textContent = '×';
+    delSpan.addEventListener('click', (e) => {
         e.stopPropagation();
         canvas.removeChild(seat);
         seats = seats.filter(t => t.element !== seat);
         seatCountElement.value = seatCountElement.value - 1;
     });
-    seat.appendChild(del);
+    seat.appendChild(delSpan);
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'seat-name';
+    nameDiv.style.pointerEvents = 'none'; // verhindert Drag-Konflikte
+    seat.appendChild(nameDiv);
 
     // Drag & Drop Events
     seat.addEventListener('dragstart', dragStart);
@@ -151,12 +150,10 @@ function loadData() {
 // Namen zu Sitzplätzen zuweisen
 function assignNames() {
     const nameList = document.getElementById('namesInput').value.split(',').map(n => n.trim());
-    if(nameList.length === 0 || seats.length === 0){
+    if(nameList[0] === "" || seats.length === 0){
         alert('Keine Namen oder Sitzplätze zum Zuordnen!');
         return;
     }
-    console.log("names: " + nameList.length);
-    console.log("seats: " + seats.length);
     if (nameList.length < seats.length) {
         const proceed = confirm(
             `Achtung: Es werden nicht alle Sitzplätze besetzt werden. Es gibt ${seats.length} Sitzplätze, aber nur ${nameList.length} Personen. Fortfahren?`
@@ -177,6 +174,7 @@ function assignNames() {
 
     const shuffledNames = [...fullNameList].sort(() => Math.random() - 0.5);
     seats.forEach((s, i) => {
-        s.element.textContent = shuffledNames[i];
+        const nameDiv = s.element.querySelector('.seat-name');
+        nameDiv.textContent = shuffledNames[i];
     });
 }
