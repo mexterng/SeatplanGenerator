@@ -27,6 +27,8 @@ html, body {
     flex: 1 auto;
     border: 1px solid #ccc;
     width: 100%;
+    min-width: 1800px;
+    min-height: 800 px;
     position: relative;
 }
 
