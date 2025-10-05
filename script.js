@@ -57,7 +57,7 @@ function createSeats() {
     canvas.innerHTML = '';
     seats = [];
     const count = parseInt(seatCountElement.value);
-    const gap = 20;
+    const gap = 10;
 
     const { width: seatWidth, height: seatHeight } = getSeatSize();
 
@@ -65,7 +65,7 @@ function createSeats() {
     let y = gap;
 
     for (let i = 0; i < count; i++) {
-        if (x + seatWidth > canvasWidth) {
+        if (x + seatWidth > canvasWidth || (i > 1 && i % 10 === 0)) {
             x = gap;
             y += seatHeight + gap;
         }

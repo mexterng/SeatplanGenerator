@@ -145,12 +145,21 @@ function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName) {
     pdf.rect(seatX, seatY, seatWidth, seatHeight, "FD");
 
     // Center name text
-    pdf.setFontSize(12);
+    pdf.setFontSize(9);
     pdf.setTextColor(0, 0, 0);
     const text = nameDiv.textContent || "";
-    pdf.text(text, seatX + seatWidth / 2, seatY + seatHeight / 2, {
-      align: "center",
-      baseline: "middle",
+
+    // Split text to fit the seat width
+    const lines = pdf.splitTextToSize(text, seatWidth - 2); // 2mm padding
+    const lineHeight = 4;
+
+    const startY = seatY + (seatHeight - lines.length * lineHeight) / 2 + lineHeight / 2;
+
+    lines.forEach((line, idx) => {
+        pdf.text(line, seatX + seatWidth / 2, startY + idx * lineHeight, {
+            align: "center",
+            baseline: "middle",
+        });
     });
   });
 

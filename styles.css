@@ -27,8 +27,8 @@ html, body {
     flex: 1 auto;
     border: 1px solid #ccc;
     width: 100%;
-    min-width: 1800px;
-    min-height: 800 px;
+    min-width: 1220px;
+    min-height: 520px;
     position: relative;
 }
 
@@ -36,8 +36,8 @@ html, body {
    Seat Elements
    =============================== */
 .seat {
-    width: 158px;
-    height: 58px;
+    width: 108px;
+    height: 48px;
     background-color: var(--color-seat-bg);
     position: absolute;
     cursor: move;
@@ -47,6 +47,7 @@ html, body {
     border-radius: 5px;
     border: 1px solid black;
     touch-action: none;
+    font-size: small;
 }
 
 .seat-name {
