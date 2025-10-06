@@ -20,6 +20,10 @@ html, body {
     flex-direction: column;
 }
 
+a, a:visited {
+    color: black;
+}
+
 /* ===============================
    Canvas / Seating Area
    =============================== */
@@ -89,6 +93,15 @@ html, body {
 .icon {
     height: 1.5rem;
     color: var(--color-primary-dark);
+}
+
+/* ===============================
+   Footer
+   =============================== */
+#footer{
+  padding: 1rem 0 1rem 0;
+  font-size: x-small;
+  align-self: center;
 }
 
 /* ===============================
