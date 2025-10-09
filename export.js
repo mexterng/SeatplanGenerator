@@ -157,20 +157,22 @@ function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName) {
 
     const centerX = seatX + seatWidth / 2;
     const centerY = seatY + seatHeight / 2;
+
+    const style = { align: "center", baseline: "middle" };
     
     if (lastname === "") {
       pdf.setFontSize(firstnameFontSizePt);
-      pdf.text(firstname, centerX, centerY + firstnameFontSizePt / 8, { align: "center" });
+      pdf.text(firstname, centerX, centerY, style);
     }
     else if (firstname === "") {
       pdf.setFontSize(lastnameFontSizePt);
-      pdf.text(lastname, centerX, centerY + lastnameFontSizePt / 8, { align: "center" });
+      pdf.text(lastname, centerX, centerY, style);
     }
     else{
       pdf.setFontSize(firstnameFontSizePt);
-      pdf.text(firstname, centerX, centerY - firstnameFontSizePt / 8, { align: "center" });
+      pdf.text(firstname, centerX, centerY - 2.5, style);
       pdf.setFontSize(lastnameFontSizePt);
-      pdf.text(lastname, centerX, centerY + lastnameFontSizePt / 2 - lastnameFontSizePt / 10, { align: "center" });
+      pdf.text(lastname, centerX, centerY + 2.5, style);
     }
   });
 
