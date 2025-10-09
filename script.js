@@ -189,16 +189,26 @@ function loadData() {
 
 // Split fullname to lastname, firstname
 function getNames(fullname) {
-    const [lastname = "", firstname = fullname] = fullname.includes(nameDelimiter)
+    const [lastname, firstname] = fullname.includes(nameDelimiter)
         ? fullname.split(nameDelimiter).map(n => n.trim())
         : ["", fullname];
     
     return { lastname, firstname };
 }
 
+// Parse input string of names
+function parseNames(namesInput) {
+    let nameList = [];
+    const inputSplit = namesInput.split(personDelimiter).map(n => n.trim()).filter(Boolean);
+    inputSplit.forEach((item) => {
+        nameList.push(getNames(item));
+    });
+    return nameList;
+}
+
 // Assign random names to seats
 function assignNames(shuffle = true) {
-    const nameList = document.getElementById('namesInput').value.split(personDelimiter).map(n => n.trim()).filter(Boolean);
+    const nameList = parseNames(document.getElementById('namesInput').value);
     if(nameList[0] === "" || seats.length === 0){
         alert('Keine Namen oder Sitzplätze zum Zuordnen!');
         return;
@@ -211,14 +221,14 @@ function assignNames(shuffle = true) {
     }
 
     if (nameList.length > seats.length) {
-        const extra = nameList.length - seats.length; // Anzahl der Personen, die keinen Sitzplatz bekommen
+        const extra = nameList.length - seats.length;
         alert(`Achtung: Es fehlen ${extra} Sitzplätze.`);
         return;
     }
 
     const fullNameList = [...nameList];
     while (fullNameList.length < seats.length) {
-        fullNameList.push(''); // leere Namen für freie Sitzplätze
+        fullNameList.push(getNames('')); // empty names for free seats
     }
 
     let shuffledNames = fullNameList;
@@ -226,10 +236,7 @@ function assignNames(shuffle = true) {
         shuffledNames = [...fullNameList].sort(() => Math.random() - 0.5);
     }
     seats.forEach((s, i) => {
-        const { lastname, firstname } = getNames(shuffledNames[i]);
-        const firstnameDiv = s.element.querySelector('.seat-firstname');
-        firstnameDiv.textContent = firstname;
-        const lastnameDiv = s.element.querySelector('.seat-lastname');
-        lastnameDiv.textContent = lastname;
+        s.element.querySelector('.seat-firstname').textContent = shuffledNames[i]['firstname'];
+        s.element.querySelector('.seat-lastname').textContent = shuffledNames[i]['lastname'];
     });
 }
