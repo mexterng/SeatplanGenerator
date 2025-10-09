@@ -1,4 +1,6 @@
 let seats = [];
+const personDelimiter = ";"
+const nameDelimiter = ","
 
 // Get seat size from CSS
 function getSeatSize() {
@@ -40,6 +42,14 @@ function createSeatElement(x, y, canvas, seatCountElement) {
     nameDiv.className = 'seat-name';
     nameDiv.style.pointerEvents = 'none';
     seat.appendChild(nameDiv);
+    const firstNameDiv = document.createElement('div');
+    firstNameDiv.className = 'seat-firstname';
+    firstNameDiv.style.pointerEvents = 'none';
+    nameDiv.appendChild(firstNameDiv);
+    const lastNameDiv = document.createElement('div');
+    lastNameDiv.className = 'seat-lastname';
+    lastNameDiv.style.pointerEvents = 'none';
+    nameDiv.appendChild(lastNameDiv);
 
     // Drag events
     seat.addEventListener('dragstart', dragStart);
@@ -146,7 +156,7 @@ function saveSeats(alertmessage = true) {
 
 // Save names to localStorage
 function saveNames(alertmessage = true) {
-    const nameList = document.getElementById('namesInput').value.split(',').map(n => n.trim());
+    const nameList = document.getElementById('namesInput').value.split(personDelimiter).map(n => n.trim());
     localStorage.setItem('names', JSON.stringify(nameList));
     if (alertmessage){
         alert('Namen gespeichert!');
@@ -173,13 +183,21 @@ function loadData() {
     }
 
     if (nameList) {
-        document.getElementById('namesInput').value = nameList.join(', ');
+        document.getElementById('namesInput').value = nameList.join(personDelimiter + ' ');
     }
+}
+
+function getNames(fullname) {
+    const [lastname = "", firstname = fullname] = fullname.includes(nameDelimiter)
+        ? fullname.split(nameDelimiter).map(n => n.trim())
+        : ["", fullname];
+    
+    return { lastname, firstname };
 }
 
 // Assign random names to seats
 function assignNames(shuffle = true) {
-    const nameList = document.getElementById('namesInput').value.split(',').map(n => n.trim());
+    const nameList = document.getElementById('namesInput').value.split(personDelimiter).map(n => n.trim());
     if(nameList[0] === "" || seats.length === 0){
         alert('Keine Namen oder Sitzplätze zum Zuordnen!');
         return;
@@ -207,7 +225,10 @@ function assignNames(shuffle = true) {
         shuffledNames = [...fullNameList].sort(() => Math.random() - 0.5);
     }
     seats.forEach((s, i) => {
-        const nameDiv = s.element.querySelector('.seat-name');
-        nameDiv.textContent = shuffledNames[i];
+        const { lastname, firstname } = getNames(shuffledNames[i]);
+        const firstnameDiv = s.element.querySelector('.seat-firstname');
+        firstnameDiv.textContent = firstname;
+        const lastnameDiv = s.element.querySelector('.seat-lastname');
+        lastnameDiv.textContent = lastname;
     });
 }
