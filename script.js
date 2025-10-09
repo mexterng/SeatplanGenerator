@@ -206,6 +206,15 @@ function parseNames(namesInput) {
     return nameList;
 }
 
+function shuffleArray(array) {
+    const result = [...array];
+    for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]]; // swap elements
+    }
+    return result;
+}
+
 // Assign random names to seats
 function assignNames(shuffle = true) {
     const nameList = parseNames(document.getElementById('namesInput').value);
@@ -233,7 +242,7 @@ function assignNames(shuffle = true) {
 
     let shuffledNames = fullNameList;
     if (shuffle) {
-        shuffledNames = [...fullNameList].sort(() => Math.random() - 0.5);
+        shuffledNames = shuffleArray(fullNameList);
     }
     seats.forEach((s, i) => {
         s.element.querySelector('.seat-firstname').textContent = shuffledNames[i]['firstname'];
