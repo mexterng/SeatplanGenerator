@@ -198,7 +198,7 @@ function getNames(fullname) {
 
 // Assign random names to seats
 function assignNames(shuffle = true) {
-    const nameList = document.getElementById('namesInput').value.split(personDelimiter).map(n => n.trim());
+    const nameList = document.getElementById('namesInput').value.split(personDelimiter).map(n => n.trim()).filter(Boolean);
     if(nameList[0] === "" || seats.length === 0){
         alert('Keine Namen oder Sitzplätze zum Zuordnen!');
         return;
