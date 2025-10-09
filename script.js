@@ -187,6 +187,7 @@ function loadData() {
     }
 }
 
+// Split fullname to lastname, firstname
 function getNames(fullname) {
     const [lastname = "", firstname = fullname] = fullname.includes(nameDelimiter)
         ? fullname.split(nameDelimiter).map(n => n.trim())
