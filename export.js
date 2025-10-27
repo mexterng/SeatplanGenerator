@@ -79,18 +79,21 @@ function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName) {
     alert("Keine Sitzplätze vorhanden!");
     return;
   }
-
-  const { jsPDF } = window.jspdf;
-
+  
   // DIN A4 Landscape in mm
-  const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const pdf = new window.jspdf.jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const pdfWidth = pdf.internal.pageSize.getWidth();
   const pdfHeight = pdf.internal.pageSize.getHeight();
-
+  
   // Header
+  registerCustomFont(pdf, "NotoSans");
   pdf.setFontSize(12);
   const margin_step = 7;
-  pdf.text(`Klasse: ${className}`, margin_left, margin_top + margin_step * 0);
+  pdf.text(
+    `Klasse: ${className}`, 
+    margin_left, 
+    margin_top + margin_step * 0
+  );
   pdf.text(
     `Lehrkraft: ${teacherName}`,
     margin_left,
@@ -152,8 +155,8 @@ function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName) {
     const lastname = lastnameDiv.textContent.trim() || "";
 
     // Get font size
-    const firstnameFontSizePt = parseFloat(window.getComputedStyle(firstnameDiv).fontSize) * 0.753 * (scale / 0.25);
-    const lastnameFontSizePt = parseFloat(window.getComputedStyle(lastnameDiv).fontSize) * 0.753 * (scale / 0.25);
+    const firstnameFontSizePt = parseFloat(window.getComputedStyle(firstnameDiv).fontSize) * 0.753 * (scale / 0.285);
+    const lastnameFontSizePt = parseFloat(window.getComputedStyle(lastnameDiv).fontSize) * 0.753 * (scale / 0.285);
 
     const centerX = seatX + seatWidth / 2;
     const centerY = seatY + seatHeight / 2;
@@ -169,10 +172,11 @@ function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName) {
       pdf.text(lastname, centerX, centerY, style);
     }
     else{
+      const lastnameHeight = lastnameFontSizePt * 25.4 / 72 * 1.5;
       pdf.setFontSize(firstnameFontSizePt);
-      pdf.text(firstname, centerX, centerY - 2.5, style);
+      pdf.text(firstname, centerX, centerY - 3 * lastnameHeight / 8, style);
       pdf.setFontSize(lastnameFontSizePt);
-      pdf.text(lastname, centerX, centerY + 2.5, style);
+      pdf.text(lastname, centerX, centerY + 5 * lastnameHeight / 8, style);
     }
   });
 
