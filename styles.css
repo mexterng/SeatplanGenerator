@@ -41,11 +41,12 @@ a, a:visited {
    =============================== */
 .seat {
     width: 108px;
-    height: 48px;
+    height: 58px;
     background-color: var(--color-seat-bg);
     position: absolute;
     cursor: move;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     border-radius: 5px;
@@ -60,6 +61,17 @@ a, a:visited {
     left: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.seat-firstname {
+    font-size: large;
+}
+
+.seat-lastname {
+    font-size: small;
 }
 
 .del {
