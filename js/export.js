@@ -72,7 +72,7 @@ function formatDateToDDMMYYYY(dateString) {
 }
 
 // Export seats as vector PDF
-function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName) {
+async function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName) {
   const dateFrom_str = formatDateToDDMMYYYY(dateFrom);
   const dateTo_str = formatDateToDDMMYYYY(dateTo);
   if (!seats || seats.length === 0) {
@@ -86,7 +86,7 @@ function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName) {
   const pdfHeight = pdf.internal.pageSize.getHeight();
   
   // Header
-  registerCustomFont(pdf, "NotoSans");
+  await registerCustomFont(pdf, "./../assets/fonts/NotoSans-Regular-normal_base64.txt" ,"NotoSans");
   pdf.setFontSize(12);
   const margin_step = 7;
   pdf.text(
@@ -224,4 +224,12 @@ function getSeatsBoundingBox(seats) {
     width: maxX - minX,
     height: maxY - minY,
   };
+}
+
+async function registerCustomFont(doc, base64Filepath, fontName = "CustomFont") {
+  const response = await fetch(base64Filepath);
+  const fontBase64 = await response.text();
+  doc.addFileToVFS(`${fontName}.ttf`, fontBase64);
+  doc.addFont(`${fontName}.ttf`, fontName, "normal");
+  doc.setFont(fontName);
 }
