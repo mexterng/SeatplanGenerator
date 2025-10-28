@@ -8,48 +8,25 @@ const margin_right = 15;
 const margin_bottom = 10;
 const margin_left = 15;
 
+// Close popup
+function closeExportPopup() {
+  document.getElementById("exportOverlay").style.display = "none";
+}
+
 // Open popup to collect export data
 function openExportPopup() {
-  // Create overlay
-  const overlay = document.createElement("div");
-  overlay.id = "exportOverlay";
-  overlay.style.position = "fixed";
-  overlay.style.top = "0";
-  overlay.style.left = "0";
-  overlay.style.width = "100%";
-  overlay.style.height = "100%";
-  overlay.style.backgroundColor = "rgba(0,0,0,0.5)";
-  overlay.style.display = "flex";
-  overlay.style.justifyContent = "center";
-  overlay.style.alignItems = "center";
-  overlay.style.zIndex = "1000";
-
-  // Create popup
-  const popup = document.createElement("div");
-  popup.style.backgroundColor = "white";
-  popup.style.padding = "20px";
-  popup.style.borderRadius = "10px";
-  popup.style.width = "300px";
-  popup.style.boxShadow = "0 5px 15px rgba(0,0,0,0.3)";
-
-  popup.innerHTML = `
-        <h3>PDF Export</h3>
-        <label>Name der Klasse:<br><input type="text" id="className" style="width:100%"></label><br><br>
-        <label>Stand:<br><input type="date" id="dateFrom" style="width:100%" value="${
-          new Date().toISOString().split("T")[0]
-        }"></label><br><br>
-        <label>Gültig bis:<br><input type="date" id="dateTo" style="width:100%"></label><br><br>
-        <label>Name der Lehrkraft:<br><input type="text" id="teacherName" style="width:100%"></label><br><br>
-        <button id="exportPdfBtn">Exportieren</button>
-        <button id="cancelExportBtn" style="margin-left:10px;">Abbrechen</button>
-    `;
-
-  overlay.appendChild(popup);
-  document.body.appendChild(overlay);
+  // show and focus first input field
+  document.getElementById("exportOverlay").style.display = "flex";
+  document.getElementById("className").focus();
 
   // Cancel button
-  document.getElementById("cancelExportBtn").addEventListener("click", () => {
-    document.body.removeChild(overlay);
+  document.getElementById("cancelExportBtn").addEventListener("click", closeExportPopup);
+
+  // ESC-key
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && document.getElementById("exportOverlay").style.display !== "none") {
+      closeExportPopup();
+    }
   });
 
   // Export button
@@ -60,7 +37,7 @@ function openExportPopup() {
     const teacherName = document.getElementById("teacherName").value;
 
     exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName);
-    document.body.removeChild(overlay);
+    closeExportPopup();
   });
 }
 

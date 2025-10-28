@@ -36,6 +36,38 @@
 
     <div id="canvas"></div>
 
+    <div id="exportOverlay" class="export-overlay" style="display: none;">
+        <div class="export-popup">
+            <h3 class="export-popup-header">PDF Export</h3>
+
+            <label>
+            Name der Klasse:<br>
+            <input type="text" id="className" class="export-input">
+            </label><br><br>
+
+            <label>
+            Stand:<br>
+            <input type="date" id="dateFrom" class="export-input">
+            </label><br><br>
+
+            <label>
+            Gültig bis:<br>
+            <input type="date" id="dateTo" class="export-input">
+            </label><br><br>
+
+            <label>
+            Name der Lehrkraft:<br>
+            <input type="text" id="teacherName" class="export-input">
+            </label><br><br>
+
+            <div class="export-button-section">
+                <button id="exportPdfBtn" class="export-btn">Exportieren</button>
+                <button id="cancelExportBtn" class="export-btn cancel">Abbrechen</button>
+            </div>
+
+        </div>
+    </div>
+
     <div id="footer">
         <a href="./impressum.html">Impressum</a> & <a href="./datenschutz.html">Datenschutzerklärung</a>  & <a href="https://github.com/mexterng/SeatplanGenerator">Quellcode</a>
     </div>
