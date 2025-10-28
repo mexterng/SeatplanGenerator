@@ -8,6 +8,11 @@ const margin_right = 15;
 const margin_bottom = 10;
 const margin_left = 15;
 
+document.addEventListener('DOMContentLoaded', () => {
+    loadData();
+    document.getElementById('exportBtn').addEventListener('click', openExportPopup);
+});
+
 // Close popup
 function closeExportPopup() {
   document.getElementById("exportOverlay").style.display = "none";
