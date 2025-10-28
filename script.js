@@ -1,4 +1,6 @@
 let seats = [];
+const personDelimiter = ";"
+const nameDelimiter = ","
 
 // Get seat size from CSS
 function getSeatSize() {
@@ -40,6 +42,14 @@ function createSeatElement(x, y, canvas, seatCountElement) {
     nameDiv.className = 'seat-name';
     nameDiv.style.pointerEvents = 'none';
     seat.appendChild(nameDiv);
+    const firstNameDiv = document.createElement('div');
+    firstNameDiv.className = 'seat-firstname';
+    firstNameDiv.style.pointerEvents = 'none';
+    nameDiv.appendChild(firstNameDiv);
+    const lastNameDiv = document.createElement('div');
+    lastNameDiv.className = 'seat-lastname';
+    lastNameDiv.style.pointerEvents = 'none';
+    nameDiv.appendChild(lastNameDiv);
 
     // Drag events
     seat.addEventListener('dragstart', dragStart);
@@ -146,7 +156,7 @@ function saveSeats(alertmessage = true) {
 
 // Save names to localStorage
 function saveNames(alertmessage = true) {
-    const nameList = document.getElementById('namesInput').value.split(',').map(n => n.trim());
+    const nameList = document.getElementById('namesInput').value.split(personDelimiter).map(n => n.trim());
     localStorage.setItem('names', JSON.stringify(nameList));
     if (alertmessage){
         alert('Namen gespeichert!');
@@ -173,13 +183,41 @@ function loadData() {
     }
 
     if (nameList) {
-        document.getElementById('namesInput').value = nameList.join(', ');
+        document.getElementById('namesInput').value = nameList.join(personDelimiter + ' ');
     }
+}
+
+// Split fullname to lastname, firstname
+function getNames(fullname) {
+    const [lastname, firstname] = fullname.includes(nameDelimiter)
+        ? fullname.split(nameDelimiter).map(n => n.trim())
+        : ["", fullname];
+    
+    return { lastname, firstname };
+}
+
+// Parse input string of names
+function parseNames(namesInput) {
+    let nameList = [];
+    const inputSplit = namesInput.split(personDelimiter).map(n => n.trim()).filter(Boolean);
+    inputSplit.forEach((item) => {
+        nameList.push(getNames(item));
+    });
+    return nameList;
+}
+
+function shuffleArray(array) {
+    const result = [...array];
+    for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]]; // swap elements
+    }
+    return result;
 }
 
 // Assign random names to seats
 function assignNames(shuffle = true) {
-    const nameList = document.getElementById('namesInput').value.split(',').map(n => n.trim());
+    const nameList = parseNames(document.getElementById('namesInput').value);
     if(nameList[0] === "" || seats.length === 0){
         alert('Keine Namen oder Sitzplätze zum Zuordnen!');
         return;
@@ -192,22 +230,22 @@ function assignNames(shuffle = true) {
     }
 
     if (nameList.length > seats.length) {
-        const extra = nameList.length - seats.length; // Anzahl der Personen, die keinen Sitzplatz bekommen
+        const extra = nameList.length - seats.length;
         alert(`Achtung: Es fehlen ${extra} Sitzplätze.`);
         return;
     }
 
     const fullNameList = [...nameList];
     while (fullNameList.length < seats.length) {
-        fullNameList.push(''); // leere Namen für freie Sitzplätze
+        fullNameList.push(getNames('')); // empty names for free seats
     }
 
     let shuffledNames = fullNameList;
     if (shuffle) {
-        shuffledNames = [...fullNameList].sort(() => Math.random() - 0.5);
+        shuffledNames = shuffleArray(fullNameList);
     }
     seats.forEach((s, i) => {
-        const nameDiv = s.element.querySelector('.seat-name');
-        nameDiv.textContent = shuffledNames[i];
+        s.element.querySelector('.seat-firstname').textContent = shuffledNames[i]['firstname'];
+        s.element.querySelector('.seat-lastname').textContent = shuffledNames[i]['lastname'];
     });
 }

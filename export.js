@@ -79,18 +79,21 @@ function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName) {
     alert("Keine Sitzplätze vorhanden!");
     return;
   }
-
-  const { jsPDF } = window.jspdf;
-
+  
   // DIN A4 Landscape in mm
-  const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const pdf = new window.jspdf.jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const pdfWidth = pdf.internal.pageSize.getWidth();
   const pdfHeight = pdf.internal.pageSize.getHeight();
-
+  
   // Header
+  registerCustomFont(pdf, "NotoSans");
   pdf.setFontSize(12);
   const margin_step = 7;
-  pdf.text(`Klasse: ${className}`, margin_left, margin_top + margin_step * 0);
+  pdf.text(
+    `Klasse: ${className}`, 
+    margin_left, 
+    margin_top + margin_step * 0
+  );
   pdf.text(
     `Lehrkraft: ${teacherName}`,
     margin_left,
@@ -132,7 +135,6 @@ function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName) {
   // Draw each seat
   seats.forEach((s) => {
     const el = s.element;
-    const nameDiv = el.querySelector(".seat-name");
 
     const seatX = (parseFloat(el.style.left) - bbox.minX) * scale + margin_left;
     const seatY = (parseFloat(el.style.top) - bbox.minY) * scale + yOffset;
@@ -147,20 +149,35 @@ function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName) {
     // Center name text
     pdf.setFontSize(9);
     pdf.setTextColor(0, 0, 0);
-    const text = nameDiv.textContent || "";
+    const firstnameDiv = el.querySelector('.seat-firstname');
+    const lastnameDiv = el.querySelector('.seat-lastname');
+    const firstname = firstnameDiv.textContent.trim() || "";
+    const lastname = lastnameDiv.textContent.trim() || "";
 
-    // Split text to fit the seat width
-    const lines = pdf.splitTextToSize(text, seatWidth - 2); // 2mm padding
-    const lineHeight = 4;
+    // Get font size
+    const firstnameFontSizePt = parseFloat(window.getComputedStyle(firstnameDiv).fontSize) * 0.753 * (scale / 0.285);
+    const lastnameFontSizePt = parseFloat(window.getComputedStyle(lastnameDiv).fontSize) * 0.753 * (scale / 0.285);
 
-    const startY = seatY + (seatHeight - lines.length * lineHeight) / 2 + lineHeight / 2;
+    const centerX = seatX + seatWidth / 2;
+    const centerY = seatY + seatHeight / 2;
 
-    lines.forEach((line, idx) => {
-        pdf.text(line, seatX + seatWidth / 2, startY + idx * lineHeight, {
-            align: "center",
-            baseline: "middle",
-        });
-    });
+    const style = { align: "center", baseline: "middle" };
+    
+    if (lastname === "") {
+      pdf.setFontSize(firstnameFontSizePt);
+      pdf.text(firstname, centerX, centerY, style);
+    }
+    else if (firstname === "") {
+      pdf.setFontSize(lastnameFontSizePt);
+      pdf.text(lastname, centerX, centerY, style);
+    }
+    else{
+      const lastnameHeight = lastnameFontSizePt * 25.4 / 72 * 1.5;
+      pdf.setFontSize(firstnameFontSizePt);
+      pdf.text(firstname, centerX, centerY - 3 * lastnameHeight / 8, style);
+      pdf.setFontSize(lastnameFontSizePt);
+      pdf.text(lastname, centerX, centerY + 5 * lastnameHeight / 8, style);
+    }
   });
 
   // Footer
