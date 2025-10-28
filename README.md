@@ -24,13 +24,16 @@ Ein interaktiver **Sitzplan-Generator** für Klassen, Veranstaltungen oder Meeti
 ## Nutzung
 
 1. Anzahl der Sitzplätze eingeben und auf **„Sitzplätze neu zeichnen“** klicken.
-2. Namen kommagetrennt in das Eingabefeld **„Namen (kommagetrennt)“** eintragen.
-3. Sitzplätze bei Bedarf per Drag & Drop verschieben.
-4. Namen zuweisen:
+2. Namen kommagetrennt in das Eingabefeld **„Namen (semikolon-getrennt)“** eintragen:
+   `Nachname, Vorname; nur_Nachname,; nur_Vorname`
+4. Sitzplätze bei Bedarf per Drag & Drop verschieben.
+5. Namen zuweisen:
    - **„Namen übertragen“** → Reihenfolge der Eingabe.
    - **„Sitzplätze auslosen“** → zufällige Verteilung.
-5. Sitzplätze und Namen speichern.
-6. PDF-Export über **„PDF Export“** nutzen.
+6. Sitzplätze und Namen speichern.
+7. PDF-Export über **„PDF Export“** nutzen.
+
+[Ausführliche Anleitung](help.html)
 
 ## Dateien
 
