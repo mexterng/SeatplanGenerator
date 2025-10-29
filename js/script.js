@@ -44,11 +44,27 @@ async function getSeatSize() {
     return { width, height };
 }
 
+function guaranteeCanvasBoundaries(x, y, elementWidth, elementHeight, canvas) {
+  // Get canvas boundaries
+  const canvasWidth = canvas.clientWidth;
+  const canvasHeight = canvas.clientHeight;
+
+  // Clamp the coordinates so they stay within the canvas area
+  x = Math.max(0, Math.min(x, canvasWidth - elementWidth));
+  y = Math.max(0, Math.min(y, canvasHeight - elementHeight));
+
+  return { x, y };
+}
+
 // Create single seat element
 async function createSeatElement(x, y, canvas, seatCountElement) {
     await loadSeatTemplateFiles();
     // Clone the template for a new seat
     const seat = window.seatTemplate.cloneNode(true);
+
+    // Clamp coordinates to stay inside the canvas
+    const { width: seatWidth, height: seatHeight } = await getSeatSize();
+    ({x, y} = guaranteeCanvasBoundaries(x, y, seatWidth, seatHeight, canvas));
 
     // Set initial position
     seat.style.left = x + 'px';
@@ -60,6 +76,18 @@ async function createSeatElement(x, y, canvas, seatCountElement) {
         canvas.removeChild(seat);
         seats = seats.filter(t => t.element !== seat);
         seatCountElement.value = seatCountElement.value - 1;
+    });
+
+    // Add button event
+    seat.querySelector(".add").addEventListener("click", async e => {
+        e.stopPropagation();
+        const rect = seat.getBoundingClientRect();
+        const parentRect = canvas.getBoundingClientRect();
+        const currentX = rect.left - parentRect.left;
+        const currentY = rect.top - parentRect.top;
+            await createSeatElement(currentX + 19.1, currentY + 19.1, canvas, seatCountElement);
+        seats.push({ element: seat, x: x, y: y });
+        seatCountElement.value = Number(seatCountElement.value) + 1;
     });
 
     // Drag events

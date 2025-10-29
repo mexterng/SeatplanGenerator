@@ -44,7 +44,6 @@
 .del {
     position : absolute;
     right : 4px;
-    top : 0px;
     cursor : pointer;
     font-weight : bold;
     color : rgba(255, 0, 0, 0.3);
@@ -52,6 +51,27 @@
 
 .del:hover {
     color : rgba(255, 0, 0, 1)
+}
+
+.add {
+    position : absolute;
+    left : 4px;
+    cursor : pointer;
+    font-weight : bold;
+    color : rgba(34, 155, 0, 0.3);
+}
+
+.add:hover {
+    color : rgb(34, 155, 0, 1)
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .del {
+        color : rgba(255, 0, 0, 0.7);
+    }
+    .add {
+        color : rgba(34, 155, 0, 0.7);
+    }
 }
 
 .seat-tools {
