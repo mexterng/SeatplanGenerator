@@ -37,57 +37,6 @@ a, a:visited {
 }
 
 /* ===============================
-   Seat Elements
-   =============================== */
-.seat {
-    width: 108px;
-    height: 58px;
-    background-color: var(--color-seat-bg);
-    position: absolute;
-    cursor: move;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border-radius: 5px;
-    border: 1px solid black;
-    touch-action: none;
-    font-size: small;
-}
-
-.seat-name {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    align-items: center;
-    display: flex;
-    flex-direction: column;
-}
-
-.seat-firstname {
-    font-size: large;
-}
-
-.seat-lastname {
-    font-size: small;
-}
-
-.del {
-    position : absolute;
-    right : 3px;
-    top : 0px;
-    cursor : pointer;
-    font-weight : bold;
-    color : rgba(255, 0, 0, 0.3);
-}
-
-.del:hover {
-    color : rgba(255, 0, 0, 1)
-}
-
-/* ===============================
    Header / Controls
    =============================== */
 #header {

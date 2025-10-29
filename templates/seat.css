@@ -1,31 +1,62 @@
 .seat {
+    width: 108px;
+    height: 58px;
+    background-color: var(--color-seat-bg);
     position: absolute;
-    width: 60px;
-    height: 60px;
-    background: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    cursor: grab;
+    cursor: move;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-}
-
-.seat .del {
-    position: absolute;
-    top: 2px;
-    right: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    color: red;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    touch-action: none;
+    font-size: small;
 }
 
 .seat-name {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
     text-align: center;
     font-size: 12px;
 }
 
+.seat-firstname {
+    font-size: large;
+}
+
+.seat-lastname {
+    font-size: small;
+}
+
+
 .seat-firstname,
 .seat-lastname {
     pointer-events: none;
+}
+
+.del {
+    position : absolute;
+    right : 4px;
+    top : 0px;
+    cursor : pointer;
+    font-weight : bold;
+    color : rgba(255, 0, 0, 0.3);
+}
+
+.del:hover {
+    color : rgba(255, 0, 0, 1)
+}
+
+.seat-tools {
+    position: absolute;
+    top: 2px;
+    width: 100%;
+    cursor: pointer;
 }

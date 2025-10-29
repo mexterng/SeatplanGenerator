@@ -9,7 +9,7 @@ function getSeatSize() {
         const seat = seats[0].element;
         return { width: seat.offsetWidth, height: seat.offsetHeight };
     }
-    
+
     // Create a temporary seat to measure
     const tempSeat = document.createElement('div');
     tempSeat.className = 'seat';
@@ -26,6 +26,15 @@ function getSeatSize() {
 
 // Create single seat element
 async function createSeatElement(x, y, canvas, seatCountElement) {
+    // Load CSS once
+    if (!document.getElementById("seatCSS")) {
+        const cssHref = "./../templates/seat.css";
+        const link = document.createElement("link");
+        link.id = "seatCSS";
+        link.rel = "stylesheet";
+        link.href = cssHref;
+        document.head.appendChild(link);
+    }
     // Load template once (only on first call)
     if (!window.seatTemplate) {
         const html = await fetch("./../templates/seat.html").then(r => r.text());
