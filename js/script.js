@@ -2,8 +2,27 @@ let seats = [];
 const personDelimiter = ";"
 const nameDelimiter = ","
 
+async function loadSeatTemplateFiles() {
+    // Load CSS once
+    if (!document.getElementById("seatCSS")) {
+        const cssHref = "./../templates/seat.css";
+        const link = document.createElement("link");
+        link.id = "seatCSS";
+        link.rel = "stylesheet";
+        link.href = cssHref;
+        document.head.appendChild(link);
+    }
+    // Load template once
+    if (!window.seatTemplate) {
+        const html = await fetch("./../templates/seat.html").then(r => r.text());
+        const templateDiv = document.createElement("div");
+        templateDiv.innerHTML = html.trim();
+        window.seatTemplate = templateDiv.firstElementChild;
+    }
+}
+
 // Get seat size from CSS
-function getSeatSize() {
+async function getSeatSize() {
     // Seat already exist
     if (seats && seats.length > 0) {
         const seat = seats[0].element;
@@ -11,6 +30,7 @@ function getSeatSize() {
     }
 
     // Create a temporary seat to measure
+    await loadSeatTemplateFiles();
     const tempSeat = document.createElement('div');
     tempSeat.className = 'seat';
     tempSeat.style.position = 'absolute';
@@ -26,23 +46,7 @@ function getSeatSize() {
 
 // Create single seat element
 async function createSeatElement(x, y, canvas, seatCountElement) {
-    // Load CSS once
-    if (!document.getElementById("seatCSS")) {
-        const cssHref = "./../templates/seat.css";
-        const link = document.createElement("link");
-        link.id = "seatCSS";
-        link.rel = "stylesheet";
-        link.href = cssHref;
-        document.head.appendChild(link);
-    }
-    // Load template once (only on first call)
-    if (!window.seatTemplate) {
-        const html = await fetch("./../templates/seat.html").then(r => r.text());
-        const templateDiv = document.createElement("div");
-        templateDiv.innerHTML = html.trim();
-        window.seatTemplate = templateDiv.firstElementChild;
-    }
-
+    await loadSeatTemplateFiles();
     // Clone the template for a new seat
     const seat = window.seatTemplate.cloneNode(true);
 
@@ -72,12 +76,11 @@ async function createSeats() {
     const canvas = document.getElementById('canvas');
     const seatCountElement = document.getElementById('seatCount');
     const canvasWidth = canvas.clientWidth;
+    const { width: seatWidth, height: seatHeight } = await getSeatSize();
     canvas.innerHTML = '';
     seats = [];
     const count = parseInt(seatCountElement.value);
     const gap = 10;
-
-    const { width: seatWidth, height: seatHeight } = getSeatSize();
 
     let x = gap;
     let y = gap;
