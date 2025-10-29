@@ -90,6 +90,22 @@ async function createSeatElement(x, y, canvas, seatCountElement) {
         seatCountElement.value = Number(seatCountElement.value) + 1;
     });
 
+    // Rotate button event
+    seat.querySelector(".rot.left").addEventListener("click", async e => {
+        e.stopPropagation();
+        const currentTransform = seat.style.transform || "rotate(0deg)";
+        const currentAngle = parseFloat(currentTransform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
+        const newAngle = currentAngle + 15;
+        seat.style.transform = `rotate(${newAngle}deg)`;
+    });
+    seat.querySelector(".rot.right").addEventListener("click", async e => {
+        e.stopPropagation();
+        const currentTransform = seat.style.transform || "rotate(0deg)";
+        const currentAngle = parseFloat(currentTransform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
+        const newAngle = currentAngle - 15;
+        seat.style.transform = `rotate(${newAngle}deg)`;
+    });
+
     // Drag events
     seat.addEventListener('dragstart', dragStart);
     seat.addEventListener('dragend', dragEnd);
