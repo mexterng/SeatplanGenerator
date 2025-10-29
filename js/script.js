@@ -44,11 +44,27 @@ async function getSeatSize() {
     return { width, height };
 }
 
+function guaranteeCanvasBoundaries(x, y, elementWidth, elementHeight, canvas) {
+  // Get canvas boundaries
+  const canvasWidth = canvas.clientWidth;
+  const canvasHeight = canvas.clientHeight;
+
+  // Clamp the coordinates so they stay within the canvas area
+  x = Math.max(0, Math.min(x, canvasWidth - elementWidth));
+  y = Math.max(0, Math.min(y, canvasHeight - elementHeight));
+
+  return { x, y };
+}
+
 // Create single seat element
 async function createSeatElement(x, y, canvas, seatCountElement) {
     await loadSeatTemplateFiles();
     // Clone the template for a new seat
     const seat = window.seatTemplate.cloneNode(true);
+
+    // Clamp coordinates to stay inside the canvas
+    const { width: seatWidth, height: seatHeight } = await getSeatSize();
+    ({x, y} = guaranteeCanvasBoundaries(x, y, seatWidth, seatHeight, canvas));
 
     // Set initial position
     seat.style.left = x + 'px';
