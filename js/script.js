@@ -4,6 +4,13 @@ const nameDelimiter = ","
 
 // Get seat size from CSS
 function getSeatSize() {
+    // Seat already exist
+    if (seats && seats.length > 0) {
+        const seat = seats[0].element;
+        return { width: seat.offsetWidth, height: seat.offsetHeight };
+    }
+    
+    // Create a temporary seat to measure
     const tempSeat = document.createElement('div');
     tempSeat.className = 'seat';
     tempSeat.style.position = 'absolute';
@@ -18,49 +25,41 @@ function getSeatSize() {
 }
 
 // Create single seat element
-function createSeatElement(x, y, canvas, seatCountElement) {
-    const seat = document.createElement('div');
-    seat.className = 'seat';
+async function createSeatElement(x, y, canvas, seatCountElement) {
+    // Load template once (only on first call)
+    if (!window.seatTemplate) {
+        const html = await fetch("./../templates/seat.html").then(r => r.text());
+        const templateDiv = document.createElement("div");
+        templateDiv.innerHTML = html.trim();
+        window.seatTemplate = templateDiv.firstElementChild;
+    }
+
+    // Clone the template for a new seat
+    const seat = window.seatTemplate.cloneNode(true);
+
+    // Set initial position
     seat.style.left = x + 'px';
     seat.style.top = y + 'px';
-    seat.draggable = true;
 
-    // Delete button
-    const delSpan = document.createElement('span');
-    delSpan.className = 'del';
-    delSpan.textContent = '×';
-    delSpan.addEventListener('click', (e) => {
+    // Delete button event
+    seat.querySelector(".del").addEventListener("click", e => {
         e.stopPropagation();
         canvas.removeChild(seat);
         seats = seats.filter(t => t.element !== seat);
         seatCountElement.value = seatCountElement.value - 1;
     });
-    seat.appendChild(delSpan);
-
-    // Name container
-    const nameDiv = document.createElement('div');
-    nameDiv.className = 'seat-name';
-    nameDiv.style.pointerEvents = 'none';
-    seat.appendChild(nameDiv);
-    const firstNameDiv = document.createElement('div');
-    firstNameDiv.className = 'seat-firstname';
-    firstNameDiv.style.pointerEvents = 'none';
-    nameDiv.appendChild(firstNameDiv);
-    const lastNameDiv = document.createElement('div');
-    lastNameDiv.className = 'seat-lastname';
-    lastNameDiv.style.pointerEvents = 'none';
-    nameDiv.appendChild(lastNameDiv);
 
     // Drag events
     seat.addEventListener('dragstart', dragStart);
     seat.addEventListener('dragend', dragEnd);
 
+    // Append seat to canvas and register it
     canvas.appendChild(seat);
     seats.push({ element: seat, x: x, y: y });
 }
 
 // Create multiple seats
-function createSeats() {
+async function createSeats() {
     const canvas = document.getElementById('canvas');
     const seatCountElement = document.getElementById('seatCount');
     const canvasWidth = canvas.clientWidth;
@@ -79,7 +78,7 @@ function createSeats() {
             x = gap;
             y += seatHeight + gap;
         }
-        createSeatElement(x, y, canvas, seatCountElement);
+        await createSeatElement(x, y, canvas, seatCountElement);
         x += seatWidth + gap;
     }
 }
@@ -164,7 +163,7 @@ function saveNames(alertmessage = true) {
 }
 
 // Load seats and names from localStorage
-function loadData() {
+async function loadData() {
     const seatData = JSON.parse(localStorage.getItem('seats'));
     const nameList = JSON.parse(localStorage.getItem('names'));
     const canvas = document.getElementById('canvas');
@@ -177,9 +176,9 @@ function loadData() {
     if (seatData) {
         canvas.innerHTML = '';
         seats = [];
-        seatData.forEach(t => {
-            createSeatElement(t.x, t.y, canvas, seatCountElement);
-        });
+        for(const t of seatData) {
+            await createSeatElement(t.x, t.y, canvas, seatCountElement);
+        };
     }
 
     if (nameList) {
