@@ -62,6 +62,18 @@ async function createSeatElement(x, y, canvas, seatCountElement) {
         seatCountElement.value = seatCountElement.value - 1;
     });
 
+    // Add button event
+    seat.querySelector(".add").addEventListener("click", async e => {
+        e.stopPropagation();
+        const rect = seat.getBoundingClientRect();
+        const parentRect = canvas.getBoundingClientRect();
+        const currentX = rect.left - parentRect.left;
+        const currentY = rect.top - parentRect.top;
+            await createSeatElement(currentX + 19.1, currentY + 19.1, canvas, seatCountElement);
+        seats.push({ element: seat, x: x, y: y });
+        seatCountElement.value = Number(seatCountElement.value) + 1;
+    });
+
     // Drag events
     seat.addEventListener('dragstart', dragStart);
     seat.addEventListener('dragend', dragEnd);
