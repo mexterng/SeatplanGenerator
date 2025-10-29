@@ -85,7 +85,7 @@ async function createSeatElement(x, y, canvas, seatCountElement) {
         const parentRect = canvas.getBoundingClientRect();
         const currentX = rect.left - parentRect.left;
         const currentY = rect.top - parentRect.top;
-            await createSeatElement(currentX + 19.1, currentY + 19.1, canvas, seatCountElement);
+        await createSeatElement(currentX + 19.1, currentY + 19.1, canvas, seatCountElement);
         seats.push({ element: seat, x: x, y: y });
         seatCountElement.value = Number(seatCountElement.value) + 1;
     });
@@ -141,8 +141,11 @@ async function createSeats() {
 
 // Drag & drop handling
 let currentDrag = null;
+let startX = 0;
+let startY = 0;
 let offsetX = 0;
 let offsetY = 0;
+
 function dragStart(e) {
     // Check if seat was clicked
     if (e.target.classList.contains('seat')) {
@@ -150,8 +153,12 @@ function dragStart(e) {
 
         // Remember offset inside the seat
         const rect = currentDrag.getBoundingClientRect();
+        const canvasRect = document.getElementById('canvas').getBoundingClientRect();
         offsetX = e.clientX - rect.left;
         offsetY = e.clientY - rect.top;
+
+        startX = e.clientX;
+        startY = e.clientY;
 
         // Bind pointer events
         document.addEventListener('pointermove', dragMove);
@@ -161,34 +168,81 @@ function dragStart(e) {
     }
 }
 
+function keepInsideCanvas(currentDrag, newX, newY, canvas) {
+    const rect = canvas.getBoundingClientRect();
+    const seatWidth = currentDrag.offsetWidth;
+    const seatHeight = currentDrag.offsetHeight;
+
+    // Current rotation angle (in radians)
+    const transform = window.getComputedStyle(currentDrag).transform;
+    let angle = 0;
+    if (transform && transform !== 'none') {
+        const matrix = new DOMMatrix(transform);
+        angle = Math.atan2(matrix.b, matrix.a); // in Radiant
+    }
+
+    // Corner points relative to the top-left corner
+    const corners = [
+        { x: 0, y: 0 },
+        { x: seatWidth, y: 0 },
+        { x: 0, y: seatHeight },
+        { x: seatWidth, y: seatHeight },
+    ];
+
+    // Apply rotation
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const rotated = corners.map(c => ({
+        x: newX + (c.x * cos - c.y * sin),
+        y: newY + (c.x * sin + c.y * cos)
+    }));
+
+    // Find min/max values
+    const minX = Math.min(...rotated.map(p => p.x));
+    const maxX = Math.max(...rotated.map(p => p.x));
+    const minY = Math.min(...rotated.map(p => p.y));
+    const maxY = Math.max(...rotated.map(p => p.y));
+
+    // Constraint: all corners must remain inside the canvas
+    const canvasW = canvas.clientWidth;
+    const canvasH = canvas.clientHeight;
+
+    // Correction if beyond boundary
+    let correctedX = newX;
+    let correctedY = newY;
+
+    if (minX < 0) correctedX += -minX;
+    if (minY < 0) correctedY += -minY;
+    if (maxX > canvasW) correctedX -= (maxX - canvasW);
+    if (maxY > canvasH) correctedY -= (maxY - canvasH);
+
+    return { x: correctedX, y: correctedY };
+}
+
 function dragMove(e) {
     // Exit if nothing is dragged
     if (!currentDrag) return;
 
     const canvas = document.getElementById('canvas');
-    const rect = canvas.getBoundingClientRect();
-
+    const canvasRect = canvas.getBoundingClientRect();
     const seatWidth = currentDrag.offsetWidth;
     const seatHeight = currentDrag.offsetHeight;
 
     // Calculate new position relative to canvas
-    let newX = e.clientX - rect.left - offsetX;
-    let newY = e.clientY - rect.top - offsetY;
+    let newX = e.clientX - canvasRect.left - offsetX;
+    let newY = e.clientY - canvasRect.top - offsetY;
 
-    // Keep inside canvas
-    if (newX < 0) newX = 0;
-    if (newY < 0) newY = 0;
-    if (newX + seatWidth > canvas.clientWidth) newX = canvas.clientWidth - seatWidth;
-    if (newY + seatHeight > canvas.clientHeight) newY = canvas.clientHeight - seatHeight;
+    let { x: correctedX, y: correctedY } = keepInsideCanvas(currentDrag, newX, newY, canvas);
 
-    // Snap to grid (10px)
-    const gridSize = 10;
-    newX = Math.round(newX / gridSize) * gridSize;
-    newY = Math.round(newY / gridSize) * gridSize;
+
+    // Snap to grid (5px)
+    const gridSize = 5;
+    correctedX = Math.round(correctedX / gridSize) * gridSize;
+    correctedY = Math.round(correctedY / gridSize) * gridSize;
 
     // Apply new position
-    currentDrag.style.left = newX + 'px';
-    currentDrag.style.top = newY + 'px';
+    currentDrag.style.left = correctedX + 'px';
+    currentDrag.style.top = correctedY + 'px';
 }
 
 function dragEnd() {
