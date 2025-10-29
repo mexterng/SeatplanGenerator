@@ -5,7 +5,7 @@ const nameDelimiter = ","
 async function loadSeatTemplateFiles() {
     // Load CSS once
     if (!document.getElementById("seatCSS")) {
-        const cssHref = "./../templates/seat.css";
+        const cssHref = "templates/seat.css";
         const link = document.createElement("link");
         link.id = "seatCSS";
         link.rel = "stylesheet";
@@ -14,7 +14,7 @@ async function loadSeatTemplateFiles() {
     }
     // Load template once
     if (!window.seatTemplate) {
-        const html = await fetch("./../templates/seat.html").then(r => r.text());
+        const html = await fetch("templates/seat.html").then(r => r.text());
         const templateDiv = document.createElement("div");
         templateDiv.innerHTML = html.trim();
         window.seatTemplate = templateDiv.firstElementChild;

@@ -68,7 +68,7 @@ async function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName) {
   const pdfHeight = pdf.internal.pageSize.getHeight();
   
   // Header
-  await registerCustomFont(pdf, "./../assets/fonts/NotoSans-Regular-normal_base64.txt" ,"NotoSans");
+  await registerCustomFont(pdf, "assets/fonts/NotoSans-Regular-normal_base64.txt" ,"NotoSans");
   pdf.setFontSize(12);
   const margin_step = 7;
   pdf.text(
