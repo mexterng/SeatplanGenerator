@@ -56,6 +56,24 @@ function guaranteeCanvasBoundaries(x, y, elementWidth, elementHeight, canvas) {
   return { x, y };
 }
 
+function rotateSeat(seat, rotationAngle) {
+    const canvas = document.getElementById('canvas');
+    const currentTransform = seat.style.transform || "rotate(0deg)";
+    const currentAngle = parseFloat(currentTransform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
+    const newAngle = currentAngle + rotationAngle;
+    seat.style.transform = `rotate(${newAngle}deg)`;
+
+    // Ensure seat stays fully inside canvas
+    const rect = seat.getBoundingClientRect();
+    const parentRect = canvas.getBoundingClientRect();
+    const newX = rect.left - parentRect.left;
+    const newY = rect.top - parentRect.top;
+
+    const { x: correctedX, y: correctedY } = keepInsideCanvas(seat, newX, newY, canvas);
+    seat.style.left = correctedX + "px";
+    seat.style.top = correctedY + "px";
+}
+
 // Create single seat element
 async function createSeatElement(x, y, rotate, canvas, seatCountElement) {
     await loadSeatTemplateFiles();
@@ -93,19 +111,15 @@ async function createSeatElement(x, y, rotate, canvas, seatCountElement) {
     });
 
     // Rotate button event
-    seat.querySelector(".rot.left").addEventListener("click", async e => {
+    rotationAngle = 15;
+    seat.querySelector(".rot.left").addEventListener("click", e => {
         e.stopPropagation();
-        const currentTransform = seat.style.transform || "rotate(0deg)";
-        const currentAngle = parseFloat(currentTransform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
-        const newAngle = currentAngle + 15;
-        seat.style.transform = `rotate(${newAngle}deg)`;
+        rotateSeat(seat, rotationAngle);
     });
-    seat.querySelector(".rot.right").addEventListener("click", async e => {
+
+    seat.querySelector(".rot.right").addEventListener("click", e => {
         e.stopPropagation();
-        const currentTransform = seat.style.transform || "rotate(0deg)";
-        const currentAngle = parseFloat(currentTransform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
-        const newAngle = currentAngle - 15;
-        seat.style.transform = `rotate(${newAngle}deg)`;
+        rotateSeat(seat, -rotationAngle);
     });
 
     // Drag events
