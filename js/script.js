@@ -155,7 +155,6 @@ function dragStart(e) {
 
         // Remember offset inside the seat
         const rect = currentDrag.getBoundingClientRect();
-        const canvasRect = document.getElementById('canvas').getBoundingClientRect();
         offsetX = e.clientX - rect.left;
         offsetY = e.clientY - rect.top;
 
@@ -171,7 +170,6 @@ function dragStart(e) {
 }
 
 function keepInsideCanvas(currentDrag, newX, newY, canvas) {
-    const rect = canvas.getBoundingClientRect();
     const seatWidth = currentDrag.offsetWidth;
     const seatHeight = currentDrag.offsetHeight;
 
@@ -229,8 +227,6 @@ function dragMove(e) {
 
     const canvas = document.getElementById('canvas');
     const canvasRect = canvas.getBoundingClientRect();
-    const seatWidth = currentDrag.offsetWidth;
-    const seatHeight = currentDrag.offsetHeight;
 
     // Calculate new position relative to canvas
     let newX = e.clientX - canvasRect.left - offsetX;
