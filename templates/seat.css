@@ -12,7 +12,7 @@
     border: 1px solid #ccc;
     touch-action: none;
     font-size: small;
-    transform-origin: top left;
+    transform-origin: center center;
 }
 
 .seat-name {

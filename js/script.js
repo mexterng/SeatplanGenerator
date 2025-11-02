@@ -181,20 +181,22 @@ function keepInsideCanvas(currentDrag, newX, newY, canvas) {
         angle = Math.atan2(matrix.b, matrix.a); // in Radiant
     }
 
-    // Corner points relative to the top-left corner
+    // Corner points relative to the center
+    const cx = seatWidth / 2;
+    const cy = seatHeight / 2;
     const corners = [
-        { x: 0, y: 0 },
-        { x: seatWidth, y: 0 },
-        { x: 0, y: seatHeight },
-        { x: seatWidth, y: seatHeight },
+        { x: -cx, y: -cy },
+        { x:  cx, y: -cy },
+        { x: -cx, y:  cy },
+        { x:  cx, y:  cy },
     ];
 
     // Apply rotation
     const cos = Math.cos(angle);
     const sin = Math.sin(angle);
     const rotated = corners.map(c => ({
-        x: newX + (c.x * cos - c.y * sin),
-        y: newY + (c.x * sin + c.y * cos)
+        x: newX + cx + (c.x * cos - c.y * sin),
+        y: newY + cy + (c.x * sin + c.y * cos)
     }));
 
     // Find min/max values
