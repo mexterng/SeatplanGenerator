@@ -22,6 +22,7 @@ function closeExportPopup() {
 function openExportPopup() {
   // show and focus first input field
   document.getElementById("exportOverlay").style.display = "flex";
+  document.getElementById("dateFrom").value = new Date().toLocaleDateString('en-CA');
   document.getElementById("className").focus();
 
   // Cancel button
