@@ -63,17 +63,21 @@ function rotatePoint(x, y, cx, cy, angleDeg) {
   return { x: nx, y: ny };
 }
 
-// Draw rotated rectangle as polygon
-function drawRotatedRect(pdf, x, y, width, height, angle, fillStyle, strokeStyle) {
+function getRotatedCorners(x, y, width, height, rotationDeg) {
   const cx = x + width / 2;
   const cy = y + height / 2;
-  const corners = [
-    rotatePoint(x, y, cx, cy, angle),
-    rotatePoint(x + width, y, cx, cy, angle),
-    rotatePoint(x + width, y + height, cx, cy, angle),
-    rotatePoint(x, y + height, cx, cy, angle)
+  
+  return [
+    rotatePoint(x, y, cx, cy, rotationDeg), // top-left
+    rotatePoint(x + width, y, cx, cy, rotationDeg), // top-right
+    rotatePoint(x + width, y + height, cx, cy, rotationDeg), // bottom-right
+    rotatePoint(x, y + height, cx, cy, rotationDeg) // bottom-left
   ];
+}
 
+// Draw rotated rectangle as polygon
+function drawRotatedRect(pdf, x, y, width, height, rotationDeg, fillStyle, strokeStyle) {
+  const corners = getRotatedCorners(x, y, width, height, rotationDeg);
   pdf.setFillColor(...fillStyle);
   pdf.setDrawColor(...strokeStyle);
 
@@ -233,8 +237,8 @@ async function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName) {
   pdf.text(
     "Erstellt mit " + window.location.href,
     pdfWidth - margin_right,
-    pdfHeight - margin_bottom,
-    { align: "right" }
+    pdfHeight - margin_bottom + 1,
+    { baseline: "top", align: "right"}
   );
 
   pdf.save(`Sitzplan_${className}_${dateFrom}.pdf`);
@@ -255,11 +259,16 @@ function getSeatsBoundingBox(seats) {
     const y = parseFloat(el.style.top);
     const w = el.offsetWidth;
     const h = el.offsetHeight;
+    const rotation = parseFloat(el.style.transform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
 
-    minX = Math.min(minX, x);
-    minY = Math.min(minY, y);
-    maxX = Math.max(maxX, x + w);
-    maxY = Math.max(maxY, y + h);
+    const corners = getRotatedCorners(x, y, w, h, rotation);
+
+    corners.forEach(corner => {
+      minX = Math.min(minX, corner.x);
+      minY = Math.min(minY, corner.y);
+      maxX = Math.max(maxX, corner.x);
+      maxY = Math.max(maxY, corner.y);
+    });
   });
 
   return {
