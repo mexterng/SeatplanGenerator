@@ -64,12 +64,7 @@ function rotateSeat(seat, rotationAngle) {
     seat.style.transform = `rotate(${newAngle}deg)`;
 
     // Ensure seat stays fully inside canvas
-    const rect = seat.getBoundingClientRect();
-    const parentRect = canvas.getBoundingClientRect();
-    const newX = rect.left - parentRect.left;
-    const newY = rect.top - parentRect.top;
-
-    const { x: correctedX, y: correctedY } = keepInsideCanvas(seat, newX, newY, canvas);
+    const { x: correctedX, y: correctedY } = keepInsideCanvas(seat, parseFloat(seat.style.left), parseFloat(seat.style.top), canvas);
     seat.style.left = correctedX + "px";
     seat.style.top = correctedY + "px";
 }
@@ -231,7 +226,7 @@ function keepInsideCanvas(currentDrag, newX, newY, canvas) {
     if (minY < 0) correctedY += -minY;
     if (maxX > canvasW) correctedX -= (maxX - canvasW);
     if (maxY > canvasH) correctedY -= (maxY - canvasH);
-
+    
     return { x: correctedX, y: correctedY };
 }
 
