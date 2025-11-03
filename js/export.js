@@ -53,6 +53,81 @@ function formatDateToDDMMYYYY(dateString) {
   return `${day}.${month}.${year}`;
 }
 
+// Rotate a point around center
+function rotatePoint(x, y, cx, cy, angleDeg) {
+  const rad = (angleDeg * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  const nx = cos * (x - cx) - sin * (y - cy) + cx;
+  const ny = sin * (x - cx) + cos * (y - cy) + cy;
+  return { x: nx, y: ny };
+}
+
+// Draw rotated rectangle as polygon
+function drawRotatedRect(pdf, x, y, width, height, angle, fillStyle, strokeStyle) {
+  const cx = x + width / 2;
+  const cy = y + height / 2;
+  const corners = [
+    rotatePoint(x, y, cx, cy, angle),
+    rotatePoint(x + width, y, cx, cy, angle),
+    rotatePoint(x + width, y + height, cx, cy, angle),
+    rotatePoint(x, y + height, cx, cy, angle)
+  ];
+
+  pdf.setFillColor(...fillStyle);
+  pdf.setDrawColor(...strokeStyle);
+
+  pdf.lines(
+    [
+      [corners[1].x - corners[0].x, corners[1].y - corners[0].y],
+      [corners[2].x - corners[1].x, corners[2].y - corners[1].y],
+      [corners[3].x - corners[2].x, corners[3].y - corners[2].y],
+      [corners[0].x - corners[3].x, corners[0].y - corners[3].y],
+    ],
+    corners[0].x,
+    corners[0].y,
+    [1,1],
+    "FD"
+  );
+}
+
+function drawTextRotated(pdf, text, textX, textY, angleDeg, fontSize, originX, originY) {
+  pdf.setFontSize(fontSize);
+  const angle = -angleDeg * Math.PI / 180;
+  const textWidth = pdf.getTextWidth(text);
+  const textHeight = fontSize * 0.285;
+
+  const leftCorner = {
+    x: textX - textWidth / 2, 
+    y: textY + textHeight / 2
+  };
+  
+  // Translate to origin
+  const translated = {
+    x: leftCorner.x - originX, 
+    y: leftCorner.y - originY
+  };
+
+  // Apply rotation
+  const cos = Math.cos(-angle);
+  const sin = Math.sin(-angle);
+  const rotated = {
+    x: translated.x * cos - translated.y * sin, 
+    y: translated.x * sin + translated.y * cos
+  };
+  // Translate back and adjust to text center
+  const finalPos = {
+    x: rotated.x + originX + textWidth / 2, 
+    y: rotated.y + originY - textHeight / 2
+  };
+
+  pdf.text(text, finalPos.x, finalPos.y, { 
+      align: "center", 
+      baseline: "middle",
+      angle: -angleDeg
+  });
+}
+
 // Export seats as vector PDF
 async function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName) {
   const dateFrom_str = formatDateToDDMMYYYY(dateFrom);
@@ -120,45 +195,34 @@ async function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName) {
 
     const seatX = (parseFloat(el.style.left) - bbox.minX) * scale + margin_left;
     const seatY = (parseFloat(el.style.top) - bbox.minY) * scale + yOffset;
+    const angle = parseFloat(el.style.transform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
     const seatWidth = el.offsetWidth * scale;
     const seatHeight = el.offsetHeight * scale;
+    const centerX = seatX + seatWidth / 2;
+    const centerY = seatY + seatHeight / 2;
 
-    // Draw rectangle
-    pdf.setFillColor(238, 238, 238);
-    pdf.setDrawColor(0, 0, 0);
-    pdf.rect(seatX, seatY, seatWidth, seatHeight, "FD");
+    // Draw rotated rectangle
+    drawRotatedRect(pdf, seatX, seatY, seatWidth, seatHeight, angle, [238,238,238], [0,0,0]);
 
-    // Center name text
-    pdf.setFontSize(9);
-    pdf.setTextColor(0, 0, 0);
+    // Draw rotated text
     const firstnameDiv = el.querySelector('.seat-firstname');
     const lastnameDiv = el.querySelector('.seat-lastname');
     const firstname = firstnameDiv.textContent.trim() || "";
     const lastname = lastnameDiv.textContent.trim() || "";
 
-    // Get font size
     const firstnameFontSizePt = parseFloat(window.getComputedStyle(firstnameDiv).fontSize) * 0.753 * (scale / 0.285);
     const lastnameFontSizePt = parseFloat(window.getComputedStyle(lastnameDiv).fontSize) * 0.753 * (scale / 0.285);
-
-    const centerX = seatX + seatWidth / 2;
-    const centerY = seatY + seatHeight / 2;
-
-    const style = { align: "center", baseline: "middle" };
     
     if (lastname === "") {
-      pdf.setFontSize(firstnameFontSizePt);
-      pdf.text(firstname, centerX, centerY, style);
+      drawTextRotated(pdf, firstname, centerX, centerY, angle, firstnameFontSizePt, centerX, centerY);
     }
     else if (firstname === "") {
-      pdf.setFontSize(lastnameFontSizePt);
-      pdf.text(lastname, centerX, centerY, style);
+      drawTextRotated(pdf, lastname, centerX, centerY, angle, lastnameFontSizePt, centerX, centerY);
     }
     else{
       const lastnameHeight = lastnameFontSizePt * 25.4 / 72 * 1.5;
-      pdf.setFontSize(firstnameFontSizePt);
-      pdf.text(firstname, centerX, centerY - 3 * lastnameHeight / 8, style);
-      pdf.setFontSize(lastnameFontSizePt);
-      pdf.text(lastname, centerX, centerY + 5 * lastnameHeight / 8, style);
+      drawTextRotated(pdf, firstname, centerX, centerY - 3 * lastnameHeight / 8, angle, firstnameFontSizePt, centerX, centerY);
+      drawTextRotated(pdf, lastname, centerX, centerY + 5 * lastnameHeight / 8, angle, lastnameFontSizePt, centerX, centerY);
     }
   });
 
