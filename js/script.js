@@ -56,8 +56,21 @@ function guaranteeCanvasBoundaries(x, y, elementWidth, elementHeight, canvas) {
   return { x, y };
 }
 
+function rotateSeat(seat, rotationAngle) {
+    const canvas = document.getElementById('canvas');
+    const currentTransform = seat.style.transform || "rotate(0deg)";
+    const currentAngle = parseFloat(currentTransform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
+    const newAngle = currentAngle + rotationAngle;
+    seat.style.transform = `rotate(${newAngle}deg)`;
+
+    // Ensure seat stays fully inside canvas
+    const { x: correctedX, y: correctedY } = keepInsideCanvas(seat, parseFloat(seat.style.left), parseFloat(seat.style.top), canvas);
+    seat.style.left = correctedX + "px";
+    seat.style.top = correctedY + "px";
+}
+
 // Create single seat element
-async function createSeatElement(x, y, canvas, seatCountElement) {
+async function createSeatElement(x, y, rotate, canvas, seatCountElement) {
     await loadSeatTemplateFiles();
     // Clone the template for a new seat
     const seat = window.seatTemplate.cloneNode(true);
@@ -69,6 +82,7 @@ async function createSeatElement(x, y, canvas, seatCountElement) {
     // Set initial position
     seat.style.left = x + 'px';
     seat.style.top = y + 'px';
+    seat.style.transform = `rotate(${rotate}deg)`;
 
     // Delete button event
     seat.querySelector(".del").addEventListener("click", e => {
@@ -85,9 +99,22 @@ async function createSeatElement(x, y, canvas, seatCountElement) {
         const parentRect = canvas.getBoundingClientRect();
         const currentX = rect.left - parentRect.left;
         const currentY = rect.top - parentRect.top;
-            await createSeatElement(currentX + 19.1, currentY + 19.1, canvas, seatCountElement);
-        seats.push({ element: seat, x: x, y: y });
+        const currentTransform = seat.style.transform || "rotate(0deg)";
+        const currentAngle = parseFloat(currentTransform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
+        await createSeatElement(currentX + 19.1, currentY + 19.1, currentAngle, canvas, seatCountElement);
         seatCountElement.value = Number(seatCountElement.value) + 1;
+    });
+
+    // Rotate button event
+    rotationAngle = 15;
+    seat.querySelector(".rot.left").addEventListener("click", e => {
+        e.stopPropagation();
+        rotateSeat(seat, rotationAngle);
+    });
+
+    seat.querySelector(".rot.right").addEventListener("click", e => {
+        e.stopPropagation();
+        rotateSeat(seat, -rotationAngle);
     });
 
     // Drag events
@@ -96,7 +123,7 @@ async function createSeatElement(x, y, canvas, seatCountElement) {
 
     // Append seat to canvas and register it
     canvas.appendChild(seat);
-    seats.push({ element: seat, x: x, y: y });
+    seats.push({ element: seat, x: x, y: y, rotate: rotate });
 }
 
 // Create multiple seats
@@ -118,31 +145,98 @@ async function createSeats() {
             x = gap;
             y += seatHeight + gap;
         }
-        await createSeatElement(x, y, canvas, seatCountElement);
+        await createSeatElement(x, y, 0, canvas, seatCountElement);
         x += seatWidth + gap;
     }
 }
 
 // Drag & drop handling
 let currentDrag = null;
+let startX = 0;
+let startY = 0;
 let offsetX = 0;
 let offsetY = 0;
+
 function dragStart(e) {
-    // Check if seat was clicked
-    if (e.target.classList.contains('seat')) {
-        currentDrag = e.target;
+    const seat = e.target.closest('.seat');
+    if (!seat) return;
 
-        // Remember offset inside the seat
-        const rect = currentDrag.getBoundingClientRect();
-        offsetX = e.clientX - rect.left;
-        offsetY = e.clientY - rect.top;
+    currentDrag = seat;
+    const canvas = document.getElementById('canvas');
+    const canvasRect = canvas.getBoundingClientRect();
 
-        // Bind pointer events
-        document.addEventListener('pointermove', dragMove);
-        document.addEventListener('pointerup', dragEnd);
+    const style = window.getComputedStyle(seat);
+    const matrix = new DOMMatrix(style.transform);
 
-        e.preventDefault();
+    const translateX = matrix.m41;
+    const translateY = matrix.m42;
+
+    const mouseX = e.clientX - canvasRect.left;
+    const mouseY = e.clientY - canvasRect.top;
+
+    offsetX = mouseX - (seat.offsetLeft + translateX);
+    offsetY = mouseY - (seat.offsetTop + translateY);
+
+    startX = e.clientX;
+    startY = e.clientY;
+
+    // Bind pointer events
+    document.addEventListener('pointermove', dragMove);
+    document.addEventListener('pointerup', dragEnd);
+
+    e.preventDefault();
+}
+
+function keepInsideCanvas(currentDrag, newX, newY, canvas) {
+    const seatWidth = currentDrag.offsetWidth;
+    const seatHeight = currentDrag.offsetHeight;
+
+    // Current rotation angle (in radians)
+    const transform = window.getComputedStyle(currentDrag).transform;
+    let angle = 0;
+    if (transform && transform !== 'none') {
+        const matrix = new DOMMatrix(transform);
+        angle = Math.atan2(matrix.b, matrix.a); // in Radiant
     }
+
+    // Corner points relative to the center
+    const cx = seatWidth / 2;
+    const cy = seatHeight / 2;
+    const corners = [
+        { x: -cx, y: -cy },
+        { x:  cx, y: -cy },
+        { x: -cx, y:  cy },
+        { x:  cx, y:  cy },
+    ];
+
+    // Apply rotation
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const rotated = corners.map(c => ({
+        x: newX + cx + (c.x * cos - c.y * sin),
+        y: newY + cy + (c.x * sin + c.y * cos)
+    }));
+
+    // Find min/max values
+    const minX = Math.min(...rotated.map(p => p.x));
+    const maxX = Math.max(...rotated.map(p => p.x));
+    const minY = Math.min(...rotated.map(p => p.y));
+    const maxY = Math.max(...rotated.map(p => p.y));
+
+    // Constraint: all corners must remain inside the canvas
+    const canvasW = canvas.clientWidth;
+    const canvasH = canvas.clientHeight;
+
+    // Correction if beyond boundary
+    let correctedX = newX;
+    let correctedY = newY;
+
+    if (minX < 0) correctedX += -minX;
+    if (minY < 0) correctedY += -minY;
+    if (maxX > canvasW) correctedX -= (maxX - canvasW);
+    if (maxY > canvasH) correctedY -= (maxY - canvasH);
+    
+    return { x: correctedX, y: correctedY };
 }
 
 function dragMove(e) {
@@ -150,29 +244,23 @@ function dragMove(e) {
     if (!currentDrag) return;
 
     const canvas = document.getElementById('canvas');
-    const rect = canvas.getBoundingClientRect();
-
-    const seatWidth = currentDrag.offsetWidth;
-    const seatHeight = currentDrag.offsetHeight;
+    const canvasRect = canvas.getBoundingClientRect();
 
     // Calculate new position relative to canvas
-    let newX = e.clientX - rect.left - offsetX;
-    let newY = e.clientY - rect.top - offsetY;
+    let newX = e.clientX - canvasRect.left - offsetX;
+    let newY = e.clientY - canvasRect.top - offsetY;
 
-    // Keep inside canvas
-    if (newX < 0) newX = 0;
-    if (newY < 0) newY = 0;
-    if (newX + seatWidth > canvas.clientWidth) newX = canvas.clientWidth - seatWidth;
-    if (newY + seatHeight > canvas.clientHeight) newY = canvas.clientHeight - seatHeight;
+    let { x: correctedX, y: correctedY } = keepInsideCanvas(currentDrag, newX, newY, canvas);
 
-    // Snap to grid (10px)
-    const gridSize = 10;
-    newX = Math.round(newX / gridSize) * gridSize;
-    newY = Math.round(newY / gridSize) * gridSize;
+
+    // Snap to grid (5px)
+    const gridSize = 5;
+    correctedX = Math.round(correctedX / gridSize) * gridSize;
+    correctedY = Math.round(correctedY / gridSize) * gridSize;
 
     // Apply new position
-    currentDrag.style.left = newX + 'px';
-    currentDrag.style.top = newY + 'px';
+    currentDrag.style.left = correctedX + 'px';
+    currentDrag.style.top = correctedY + 'px';
 }
 
 function dragEnd() {
@@ -186,7 +274,17 @@ function dragEnd() {
 
 // Save seats to localStorage
 function saveSeats(alertmessage = true) {
-    const seatData = seats.map(t => ({x: parseInt(t.element.style.left), y: parseInt(t.element.style.top)}));
+    const seatData = seats.map(t => {
+        const transform = t.element.style.transform || 'rotate(0deg)';
+        const match = transform.match(/rotate\(([-\d.]+)deg\)/);
+        const rotation = match ? parseFloat(match[1]) : 0;
+
+        return {
+            x: parseInt(t.element.style.left) || 0,
+            y: parseInt(t.element.style.top) || 0,
+            rotate: rotation
+        };
+    });
     localStorage.setItem('seats', JSON.stringify(seatData));
     if (alertmessage){
         alert('Sitzplätze gespeichert!');
@@ -217,7 +315,7 @@ async function loadData() {
         canvas.innerHTML = '';
         seats = [];
         for(const t of seatData) {
-            await createSeatElement(t.x, t.y, canvas, seatCountElement);
+            await createSeatElement(t.x, t.y, t.rotate, canvas, seatCountElement);
         };
     }
 

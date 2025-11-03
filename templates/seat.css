@@ -12,6 +12,7 @@
     border: 1px solid #ccc;
     touch-action: none;
     font-size: small;
+    transform-origin: center center;
 }
 
 .seat-name {
@@ -65,6 +66,25 @@
     color : rgb(34, 155, 0, 1)
 }
 
+.rot {
+    position : absolute;
+    cursor : pointer;
+    font-weight : bold;
+    color : rgba(80, 80, 80, 0.3);
+}
+
+.rot:hover {
+    color : rgb(80, 80, 80, 1)
+}
+
+.rot.left {
+    left : 4px;
+}
+
+.rot.right {
+    right : 4px;
+}
+
 @media (hover: none) and (pointer: coarse) {
     .del {
         color : rgba(255, 0, 0, 0.7);
@@ -72,11 +92,23 @@
     .add {
         color : rgba(34, 155, 0, 0.7);
     }
+    .rot {
+        color : rgba(80, 80, 80, 0.7);
+    }    
 }
 
 .seat-tools {
     position: absolute;
-    top: 2px;
     width: 100%;
     cursor: pointer;
+}
+
+.seat-tools.top {
+    top: 2px;
+}
+
+.seat-tools.bottom {
+    bottom: 2px;
+    display: flex;
+    align-items: flex-end;
 }
