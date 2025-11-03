@@ -158,24 +158,33 @@ let offsetX = 0;
 let offsetY = 0;
 
 function dragStart(e) {
-    // Check if seat was clicked
-    if (e.target.classList.contains('seat')) {
-        currentDrag = e.target;
+    const seat = e.target.closest('.seat');
+    if (!seat) return;
 
-        // Remember offset inside the seat
-        const rect = currentDrag.getBoundingClientRect();
-        offsetX = e.clientX - rect.left;
-        offsetY = e.clientY - rect.top;
+    currentDrag = seat;
+    const canvas = document.getElementById('canvas');
+    const canvasRect = canvas.getBoundingClientRect();
 
-        startX = e.clientX;
-        startY = e.clientY;
+    const style = window.getComputedStyle(seat);
+    const matrix = new DOMMatrix(style.transform);
 
-        // Bind pointer events
-        document.addEventListener('pointermove', dragMove);
-        document.addEventListener('pointerup', dragEnd);
+    const translateX = matrix.m41;
+    const translateY = matrix.m42;
 
-        e.preventDefault();
-    }
+    const mouseX = e.clientX - canvasRect.left;
+    const mouseY = e.clientY - canvasRect.top;
+
+    offsetX = mouseX - (seat.offsetLeft + translateX);
+    offsetY = mouseY - (seat.offsetTop + translateY);
+
+    startX = e.clientX;
+    startY = e.clientY;
+
+    // Bind pointer events
+    document.addEventListener('pointermove', dragMove);
+    document.addEventListener('pointerup', dragEnd);
+
+    e.preventDefault();
 }
 
 function keepInsideCanvas(currentDrag, newX, newY, canvas) {
