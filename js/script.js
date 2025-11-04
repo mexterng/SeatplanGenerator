@@ -322,10 +322,29 @@ function getSeatData(){
     });
 }
 
+function getFixedData(){
+    const fixedElems = document.querySelectorAll('.fixed-element');
+    return Array.from(fixedElems).map(t => {
+        const transform = t.style.transform || 'rotate(0deg)';
+        const match = transform.match(/rotate\(([-\d.]+)deg\)/);
+        const rotation = match ? parseFloat(match[1]) : 0;
+        const type = [...t.classList].pop();
+        
+        return {
+            type: type,
+            x: parseInt(t.style.left) || 0,
+            y: parseInt(t.style.top) || 0,
+            rotate: rotation
+        };
+    });
+}
+
 // Save seats to localStorage
 function saveSeats(alertmessage = true) {
     const seatData = getSeatData();
+    const fixedData = getFixedData();
     localStorage.setItem('seats', JSON.stringify(seatData));
+    localStorage.setItem('fixed', JSON.stringify(fixedData));
     if (alertmessage){
         alert('Sitzplätze gespeichert!');
     }
@@ -343,15 +362,23 @@ function saveNames(alertmessage = true) {
 // Load seats and names from localStorage
 async function loadData() {
     const seatData = JSON.parse(localStorage.getItem('seats'));
+    const fixedData = JSON.parse(localStorage.getItem('fixed'));
     const nameList = JSON.parse(localStorage.getItem('names'));
     const canvas = document.getElementById('canvas');
     if (seatData){
         document.getElementById('seatCount').value = seatData.length;
     }
     document.getElementById('namesInput').value = nameList;
+    
+    canvas.innerHTML = '';
+
+    if (fixedData) {
+        for(const t of fixedData) {
+            await createFixedElement(t.type, t.x, t.y, t.rotate, canvas);
+        };
+    }
 
     if (seatData) {
-        canvas.innerHTML = '';
         seats = [];
         for(const t of seatData) {
             await createSeatElement(t.x, t.y, t.rotate, canvas);
