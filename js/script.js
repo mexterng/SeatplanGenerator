@@ -36,6 +36,25 @@ async function loadSeatTemplateFiles() {
     }
 }
 
+async function loadFixedTemplateFiles() {
+    // Load CSS once
+    if (!document.getElementById("fixedCSS")) {
+        const cssHref = "templates/fixed.css";
+        const link = document.createElement("link");
+        link.id = "fixedCSS";
+        link.rel = "stylesheet";
+        link.href = cssHref;
+        document.head.appendChild(link);
+    }
+    // Load template once
+    if (!window.fixedTemplate) {
+        const html = await fetch("templates/fixed.html").then(r => r.text());
+        const templateDiv = document.createElement("div");
+        templateDiv.innerHTML = html.trim();
+        window.fixedTemplate = templateDiv.firstElementChild;
+    }
+}
+
 // Get seat size from CSS
 async function getSeatSize() {
     // Seat already exist
@@ -71,17 +90,17 @@ function guaranteeCanvasBoundaries(x, y, elementWidth, elementHeight, canvas) {
   return { x, y };
 }
 
-function rotateSeat(seat, rotationAngle) {
+function rotateElement(element, rotationAngle) {
     const canvas = document.getElementById('canvas');
-    const currentTransform = seat.style.transform || "rotate(0deg)";
+    const currentTransform = element.style.transform || "rotate(0deg)";
     const currentAngle = parseFloat(currentTransform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
     const newAngle = currentAngle + rotationAngle;
-    seat.style.transform = `rotate(${newAngle}deg)`;
+    element.style.transform = `rotate(${newAngle}deg)`;
 
     // Ensure seat stays fully inside canvas
-    const { x: correctedX, y: correctedY } = keepInsideCanvas(seat, parseFloat(seat.style.left), parseFloat(seat.style.top), canvas);
-    seat.style.left = correctedX + "px";
-    seat.style.top = correctedY + "px";
+    const { x: correctedX, y: correctedY } = keepInsideCanvas(element, parseFloat(element.style.left), parseFloat(element.style.top), canvas);
+    element.style.left = correctedX + "px";
+    element.style.top = correctedY + "px";
 }
 
 // Create single seat element
@@ -126,12 +145,12 @@ async function createSeatElement(x, y, rotate, canvas) {
     rotationAngle = 15;
     seat.querySelector(".rot.left").addEventListener("click", e => {
         e.stopPropagation();
-        rotateSeat(seat, rotationAngle);
+        rotateElement(seat, rotationAngle);
     });
 
     seat.querySelector(".rot.right").addEventListener("click", e => {
         e.stopPropagation();
-        rotateSeat(seat, -rotationAngle);
+        rotateElement(seat, -rotationAngle);
     });
 
     // Drag events
@@ -175,14 +194,14 @@ let offsetX = 0;
 let offsetY = 0;
 
 function dragStart(e) {
-    const seat = e.target.closest('.seat');
-    if (!seat) return;
+    const dragElement = e.target.closest('.drag-element');
+    if (!dragElement) return;
 
-    currentDrag = seat;
+    currentDrag = dragElement;
     const canvas = document.getElementById('canvas');
     const canvasRect = canvas.getBoundingClientRect();
 
-    const style = window.getComputedStyle(seat);
+    const style = window.getComputedStyle(dragElement);
     const matrix = new DOMMatrix(style.transform);
 
     const translateX = matrix.m41;
@@ -191,8 +210,8 @@ function dragStart(e) {
     const mouseX = e.clientX - canvasRect.left;
     const mouseY = e.clientY - canvasRect.top;
 
-    offsetX = mouseX - (seat.offsetLeft + translateX);
-    offsetY = mouseY - (seat.offsetTop + translateY);
+    offsetX = mouseX - (dragElement.offsetLeft + translateX);
+    offsetY = mouseY - (dragElement.offsetTop + translateY);
 
     startX = e.clientX;
     startY = e.clientY;
@@ -405,4 +424,69 @@ function assignNames(shuffle = true) {
         s.element.querySelector('.seat-firstname').textContent = shuffledNames[i]['firstname'];
         s.element.querySelector('.seat-lastname').textContent = shuffledNames[i]['lastname'];
     });
+}
+
+
+// Fixed Elements
+// Create single fixed element
+async function createFixedElement(type, x, y, rotate, canvas) {
+    await loadFixedTemplateFiles();
+    // Clone the template for a new fixed
+    const fixedElem = window.fixedTemplate.cloneNode(true);
+
+    // Clamp coordinates to stay inside the canvas
+    const { width: seatWidth, height: seatHeight } = await getSeatSize();
+    ({x, y} = guaranteeCanvasBoundaries(x, y, seatWidth, seatHeight, canvas));
+
+    // Set initial position
+    const types = {
+        desk: 'Pult',
+        board: 'Tafel',
+        door: 'Tür',
+        window: 'Fenster'
+    };
+
+    const name = types[type] || 'Unbekannt';
+    fixedElem.querySelector('#fixed-name').textContent = name;
+    fixedElem.classList.add(type)
+    fixedElem.style.left = x + 'px';
+    fixedElem.style.top = y + 'px';
+    fixedElem.style.transform = `rotate(${rotate}deg)`;
+
+    // Delete button event
+    fixedElem.querySelector(".del").addEventListener("click", e => {
+        e.stopPropagation();
+        canvas.removeChild(fixedElem);
+    });
+
+    // Add button event
+    fixedElem.querySelector(".add").addEventListener("click", async e => {
+        e.stopPropagation();
+        const rect = fixedElem.getBoundingClientRect();
+        const parentRect = canvas.getBoundingClientRect();
+        const currentX = rect.left - parentRect.left;
+        const currentY = rect.top - parentRect.top;
+        const currentTransform = fixedElem.style.transform || "rotate(0deg)";
+        const currentAngle = parseFloat(currentTransform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
+        await createFixedElement(currentX + 19.1, currentY + 19.1, currentAngle, canvas);
+    });
+
+    // Rotate button event
+    rotationAngle = 15;
+    fixedElem.querySelector(".rot.left").addEventListener("click", e => {
+        e.stopPropagation();
+        rotateElement(fixedElem, rotationAngle);
+    });
+
+    fixedElem.querySelector(".rot.right").addEventListener("click", e => {
+        e.stopPropagation();
+        rotateElement(fixedElem, -rotationAngle);
+    });
+
+    // Drag events
+    fixedElem.addEventListener('dragstart', dragStart);
+    fixedElem.addEventListener('dragend', dragEnd);
+
+    // Append seat to canvas and register it
+    canvas.appendChild(fixedElem);
 }

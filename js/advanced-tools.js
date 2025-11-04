@@ -148,17 +148,7 @@ function collectNamesData() {
 // Fixed elements
 // ===============================
 
-function createDesk() {
-    // TODO:
-    console.log("Pult hinzugefügt");
-}
-
-function createDoor() {
-    // TODO:
-    console.log("Tür hinzugefügt");
-}
-
-function createWindow() {
-    // TODO:
-    console.log("Fenster hinzugefügt");
+async function addFixedElement(type) {
+    const canvas = document.getElementById('canvas');
+    await createFixedElement(type, 20, 20, 0, canvas);
 }
