@@ -2,6 +2,21 @@ let seats = [];
 const personDelimiter = ";"
 const nameDelimiter = ","
 
+const advancedToggle = document.getElementById('advanced-toggle');
+const advancedControls = document.getElementById('advanced-controls');
+// Status beim Laden wiederherstellen
+window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('advancedMode') === 'true';
+    advancedToggle.checked = saved;
+    advancedControls.style.display = saved ? 'block' : 'none';
+});
+
+// Status speichern, wenn Switch geändert wird
+advancedToggle.addEventListener('change', () => {
+    advancedControls.style.display = advancedToggle.checked ? 'block' : 'none';
+    localStorage.setItem('advancedMode', advancedToggle.checked);
+});
+
 async function loadSeatTemplateFiles() {
     // Load CSS once
     if (!document.getElementById("seatCSS")) {
@@ -70,7 +85,7 @@ function rotateSeat(seat, rotationAngle) {
 }
 
 // Create single seat element
-async function createSeatElement(x, y, rotate, canvas, seatCountElement) {
+async function createSeatElement(x, y, rotate, canvas) {
     await loadSeatTemplateFiles();
     // Clone the template for a new seat
     const seat = window.seatTemplate.cloneNode(true);
@@ -83,6 +98,8 @@ async function createSeatElement(x, y, rotate, canvas, seatCountElement) {
     seat.style.left = x + 'px';
     seat.style.top = y + 'px';
     seat.style.transform = `rotate(${rotate}deg)`;
+
+    const seatCountElement = document.getElementById('seatCount');
 
     // Delete button event
     seat.querySelector(".del").addEventListener("click", e => {
@@ -101,7 +118,7 @@ async function createSeatElement(x, y, rotate, canvas, seatCountElement) {
         const currentY = rect.top - parentRect.top;
         const currentTransform = seat.style.transform || "rotate(0deg)";
         const currentAngle = parseFloat(currentTransform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
-        await createSeatElement(currentX + 19.1, currentY + 19.1, currentAngle, canvas, seatCountElement);
+        await createSeatElement(currentX + 19.1, currentY + 19.1, currentAngle, canvas);
         seatCountElement.value = Number(seatCountElement.value) + 1;
     });
 
@@ -145,7 +162,7 @@ async function createSeats() {
             x = gap;
             y += seatHeight + gap;
         }
-        await createSeatElement(x, y, 0, canvas, seatCountElement);
+        await createSeatElement(x, y, 0, canvas);
         x += seatWidth + gap;
     }
 }
@@ -272,9 +289,8 @@ function dragEnd() {
     document.removeEventListener('pointerup', dragEnd);
 }
 
-// Save seats to localStorage
-function saveSeats(alertmessage = true) {
-    const seatData = seats.map(t => {
+function getSeatData(){
+    return seats.map(t => {
         const transform = t.element.style.transform || 'rotate(0deg)';
         const match = transform.match(/rotate\(([-\d.]+)deg\)/);
         const rotation = match ? parseFloat(match[1]) : 0;
@@ -285,6 +301,11 @@ function saveSeats(alertmessage = true) {
             rotate: rotation
         };
     });
+}
+
+// Save seats to localStorage
+function saveSeats(alertmessage = true) {
+    const seatData = getSeatData();
     localStorage.setItem('seats', JSON.stringify(seatData));
     if (alertmessage){
         alert('Sitzplätze gespeichert!');
@@ -305,7 +326,6 @@ async function loadData() {
     const seatData = JSON.parse(localStorage.getItem('seats'));
     const nameList = JSON.parse(localStorage.getItem('names'));
     const canvas = document.getElementById('canvas');
-    const seatCountElement = document.getElementById('seatCount');
     if (seatData){
         document.getElementById('seatCount').value = seatData.length;
     }
@@ -315,7 +335,7 @@ async function loadData() {
         canvas.innerHTML = '';
         seats = [];
         for(const t of seatData) {
-            await createSeatElement(t.x, t.y, t.rotate, canvas, seatCountElement);
+            await createSeatElement(t.x, t.y, t.rotate, canvas);
         };
     }
 
