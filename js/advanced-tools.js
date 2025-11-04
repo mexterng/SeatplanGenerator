@@ -37,8 +37,64 @@ async function importSeats() {
 }
 
 function importNames() {
-    // TODO:
-    console.log("Namen importieren...");
+    const input = document.getElementById('importFile');
+    input.click();
+    input.onchange = async () => {
+        const file = input.files[0];
+        if (!file) {
+            alert('Keine Datei ausgewählt (Import abgebrochen).');
+            return;
+        }
+
+        try {
+            const text = await file.text();
+            const namesData = JSON.parse(text);
+            const namesInput = namesData['namesInput'];
+            const seatNames = namesData['seat-names'];
+
+            if (!namesData || !Array.isArray(namesData['seat-names'])) {
+                alert('Ungültiges Dateiformat!');
+                return;
+            }
+            
+            document.getElementById('namesInput').value = namesInput;
+
+            const seats = document.querySelectorAll('#canvas .seat');
+
+            if(seats.length === 0){
+                alert('Keine Sitzplätze zum Zuordnen!');
+                return;
+            }
+            if (seatNames.length < seats.length) {
+                const proceed = confirm(
+                    `Achtung: Es werden nicht alle Sitzplätze besetzt werden. Es gibt ${seats.length} Sitzplätze, aber nur ${seatNames.length} Personen. Fortfahren?`
+                );
+                if (!proceed) return;
+            }
+
+            if (seatNames.length > seats.length) {
+                const extra = seatNames.length - seats.length;
+                alert(`Achtung: Es fehlen ${extra} Sitzplätze.`);
+                return;
+            }
+
+            seats.forEach((seat, i) => {
+                const nameObj = seatNames[i];
+                if (nameObj) {
+                    seat.querySelector('.seat-firstname').textContent = nameObj.firstname || '';
+                    seat.querySelector('.seat-lastname').textContent = nameObj.lastname || '';
+                } else {
+                    seat.querySelector('.seat-firstname').textContent = '';
+                    seat.querySelector('.seat-lastname').textContent = '';
+                }
+            });
+            
+
+            alert('Namen erfolgreich importiert!');
+        } catch (err) {
+            alert('Fehler beim Import: ' + err.message);
+        }
+    };
 }
 
 function exportJSON(data, filename){
