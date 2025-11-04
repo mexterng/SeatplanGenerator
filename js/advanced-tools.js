@@ -3,8 +3,37 @@
 // ===============================
 
 async function importSeats() {
-    // TODO:
-    console.log("Sitzplätze importieren...");
+    const input = document.getElementById('importFile');
+    input.click();
+    input.onchange = async () => {
+        const file = input.files[0];
+        if (!file) {
+            alert('Keine Datei ausgewählt (Import abgebrochen).');
+            return;
+        }
+
+        try {
+            const text = await file.text();
+            const seatData = JSON.parse(text);
+
+            if (!Array.isArray(seatData)) {
+                alert('Ungültiges Dateiformat!');
+                return;
+            }
+
+            const canvas = document.getElementById('canvas');
+            canvas.innerHTML = '';
+            seats = [];
+
+            for (const t of seatData) {
+                await createSeatElement(t.x, t.y, t.rotate, canvas);
+            }
+
+            alert('Sitzplätze erfolgreich importiert!');
+        } catch (err) {
+            alert('Fehler beim Import: ' + err.message);
+        }
+    };
 }
 
 function importNames() {
