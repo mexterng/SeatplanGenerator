@@ -8,6 +8,7 @@
     --color-secondary: #93c5fd;
     --color-secondary-dark: #1e3a8a;
     --color-seat-bg: #eee;
+    --color-fix-bg: #ccc;
 }
 
 /* ===============================
@@ -83,6 +84,12 @@ h3 {
 #advanced-controls {
     display: none;
 }
+
+#advanced-controls > div > .controls.secondary{
+    display: flex;
+    flex-wrap: nowrap;
+}
+
 #import-export {
     display: grid;
     grid-template-columns: repeat(4, 1fr);

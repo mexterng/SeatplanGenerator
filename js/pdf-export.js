@@ -231,6 +231,29 @@ async function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName) {
     }
   });
 
+  // Draw all fixed elements
+  const fixedElements = document.querySelectorAll('#canvas .fixed-element');
+  fixedElements.forEach((el) => {
+    const elemX = (parseFloat(el.style.left) - bbox.minX) * scale + margin_left;
+    const elemY = (parseFloat(el.style.top) - bbox.minY) * scale + yOffset;
+    const angle = parseFloat(el.style.transform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
+    const elemWidth = el.offsetWidth * scale;
+    const elemHeight = el.offsetHeight * scale;
+    const centerX = elemX + elemWidth / 2;
+    const centerY = elemY + elemHeight / 2;
+
+    // Draw rotated rectangle
+    drawRotatedRect(pdf, elemX, elemY, elemWidth, elemHeight, angle, [198,198,198], [0,0,0]);
+
+    // Draw rotated text
+    const elemNameDiv = el.querySelector('#fixed-name');
+    const elemName = elemNameDiv.textContent.trim() || "";
+
+    const elemNameFontSizePt = parseFloat(window.getComputedStyle(elemNameDiv).fontSize) * 0.753 * (scale / 0.285);
+    
+    drawTextRotated(pdf, elemName, centerX, centerY, angle, elemNameFontSizePt, centerX, centerY);
+  });
+
   // Footer
   // Add footer text dynamically with full URL of current page
   pdf.setFontSize(6);
@@ -256,6 +279,24 @@ function getSeatsBoundingBox(seats) {
 
   seats.forEach((s) => {
     const el = s.element;
+    const x = parseFloat(el.style.left);
+    const y = parseFloat(el.style.top);
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    const rotation = parseFloat(el.style.transform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
+
+    const corners = getRotatedCorners(x, y, w, h, rotation);
+
+    corners.forEach(corner => {
+      minX = Math.min(minX, corner.x);
+      minY = Math.min(minY, corner.y);
+      maxX = Math.max(maxX, corner.x);
+      maxY = Math.max(maxY, corner.y);
+    });
+  });
+
+  const fixedElements = document.querySelectorAll('#canvas .fixed-element');
+  fixedElements.forEach((el) => {
     const x = parseFloat(el.style.left);
     const y = parseFloat(el.style.top);
     const w = el.offsetWidth;
