@@ -14,9 +14,11 @@ async function importSeats() {
 
         try {
             const text = await file.text();
-            const seatData = JSON.parse(text);
+            const allData = JSON.parse(text);
+            const seatData = allData['seats'];
+            const fixedData = allData['fixed'];
 
-            if (!Array.isArray(seatData)) {
+            if (!Array.isArray(seatData) || !Array.isArray(fixedData)) {
                 alert('Ungültiges Dateiformat!');
                 return;
             }
@@ -24,6 +26,10 @@ async function importSeats() {
             const canvas = document.getElementById('canvas');
             canvas.innerHTML = '';
             seats = [];
+
+            for(const t of fixedData) {
+                await createFixedElement(t.type, t.x, t.y, t.rotate, canvas);
+            };
 
             for (const t of seatData) {
                 await createSeatElement(t.x, t.y, t.rotate, canvas);
@@ -111,8 +117,8 @@ function exportJSON(data, filename){
 // Export seats as JSON
 function exportSeats() {
     try {
-        const seatsData = getSeatData();
-        exportJSON(seatsData, "seats");
+        seatsData = collectElementsData();
+        exportJSON(seatsData, "sitzplan_elements");
     } catch (err) {
         alert('Export fehlgeschlagen: ' + err.message);
     }
@@ -122,10 +128,19 @@ function exportSeats() {
 function exportNames() {
     try{
         const namesData = collectNamesData();
-        exportJSON(namesData, "names");
+        exportJSON(namesData, "sitzplan_names");
     } catch (err) {
         alert('Export fehlgeschlagen: ' + err.message);
     }
+}
+
+function collectElementsData(){
+    const seatsData = getSeatData();
+    const fixedData = getFixedData();
+    return elementsData = {
+        'seats': seatsData,
+        'fixed': fixedData
+    };
 }
 
 function collectNamesData() {
