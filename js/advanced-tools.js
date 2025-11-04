@@ -143,3 +143,22 @@ function collectNamesData() {
         'seat-names': seatNames
     };
 }
+
+// ===============================
+// Fixed elements
+// ===============================
+
+function createDesk() {
+    // TODO:
+    console.log("Pult hinzugefügt");
+}
+
+function createDoor() {
+    // TODO:
+    console.log("Tür hinzugefügt");
+}
+
+function createWindow() {
+    // TODO:
+    console.log("Fenster hinzugefügt");
+}
