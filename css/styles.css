@@ -18,11 +18,23 @@ html, body {
     height: 100%;
     display: flex;
     flex-direction: column;
-    min-width: 1220px;
+}
+
+html {
+    min-width: 100%;
+    width: max-content;
+}
+
+body {
+    margin: 8px;
 }
 
 a, a:visited {
     color: black;
+}
+
+h3 {
+    margin: 0;
 }
 
 /* ===============================
@@ -32,7 +44,8 @@ a, a:visited {
     flex: 1 auto;
     border: 1px solid #ccc;
     width: 100%;
-    min-height: 520px;
+    min-height: 1100px;
+    min-width: 1220px;
     position: relative;
 }
 
@@ -41,6 +54,14 @@ a, a:visited {
    =============================== */
 #header {
     flex: 0 auto;
+}
+
+#control-section {
+    display: flex;
+}
+
+#primary-controls {
+    min-width: 680px;
 }
 
 .controls {
@@ -55,6 +76,78 @@ a, a:visited {
     height: 1.5rem;
     color: var(--color-primary-dark);
 }
+
+/* ===============================
+   advanced controls
+   =============================== */
+#advanced-controls {
+    display: none;
+}
+#import-export {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.3rem;
+}
+
+@media (max-width: 1370px) { 
+    #import-export {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.advanced-header {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    min-width: 390px;
+    margin-bottom: 0.7rem;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 1.5rem;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--color-secondary);
+    transition: .3s;
+    border-radius: 1.5rem;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: calc(1.5rem - 6px);
+    width: calc(1.5rem - 6px);
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--color-primary-dark);
+}
+
+input:checked + .slider:before {
+    transform: translateX(calc(1.5rem + 3px));
+}
+
 
 /* ===============================
    Footer
