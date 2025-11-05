@@ -116,7 +116,7 @@ h3 {
     flex-direction: row;
     gap: 0.5rem;
     min-width: 390px;
-    margin-bottom: 0.7rem;
+    margin-bottom: 1rem;
 }
 
 .switch {
