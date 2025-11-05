@@ -99,6 +99,7 @@ h3 {
 @media (max-width: 1370px) { 
     #import-export {
         grid-template-columns: repeat(2, 1fr);
+        width: 350px;
     }
 }
 
