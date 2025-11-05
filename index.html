@@ -20,19 +20,20 @@
                 </svg>
             </a>
         </h1>
-<div id="control-section">
+        <div id="control-section">
             <div id="primary-controls">
-        <div class="controls secondary">
-            Anzahl Sitzplätze: <input type="number" id="seatCount" value="0" min="1">
+                <div class="controls secondary">
+                    Anzahl Sitzplätze: <input type="number" id="seatCount" value="0" min="1">
                     <button onclick="createSeats()">Sitzplätze neu zeichnen</button>
                     <button id="clear-seats" onclick="clearSeats()" style="display: none;">Sitzplätze leeren</button><br><br>
-            <button onclick="saveSeats()">Sitzplätze speichern</button>
-            <button onclick="saveNames()">Namen speichern</button>
-        </div>
-        <div class="controls primary">
-            <button onclick="assignNames(false)">Namen übertragen</button>
-            <button onclick="assignNames()">Sitzplätze auslosen</button>
-            <button id="exportBtn">PDF Export</button>
+                    Namen (semikolon-getrennt): <input type="text" id="namesInput" size="50"><br><br>
+                    <button onclick="saveSeats()">Sitzplätze speichern</button>
+                    <button onclick="saveNames()">Namen speichern</button>
+                </div>
+                <div class="controls primary">
+                    <button onclick="assignNames(false)">Namen übertragen</button>
+                    <button onclick="assignNames()">Sitzplätze auslosen</button>
+                    <button id="exportBtn">PDF Export</button>
                 </div>
             </div>
             <div class="advanced-container">
@@ -61,7 +62,7 @@
                         </div>
                     </div>
                 </div>
-                    </div>
+            </div>
         </div>
     </div>
 
