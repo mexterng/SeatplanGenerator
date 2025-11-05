@@ -420,6 +420,7 @@ function shuffleArray(array) {
 
 // Assign random names to seats
 function assignNames(shuffle = true) {
+    document.getElementById('clear-seats').style.display = "inline";
     const nameList = parseNames(document.getElementById('namesInput').value);
     if(nameList[0] === "" || seats.length === 0){
         alert('Keine Namen oder Sitzplätze zum Zuordnen!');
@@ -453,6 +454,13 @@ function assignNames(shuffle = true) {
     });
 }
 
+function clearSeats(){
+    seats.forEach((s) => {
+        s.element.querySelector('.seat-firstname').textContent = "";
+        s.element.querySelector('.seat-lastname').textContent = "";
+    });
+    document.getElementById('clear-seats').style.display = "none";
+}
 
 // Fixed Elements
 // Create single fixed element
