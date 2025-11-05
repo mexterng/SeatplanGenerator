@@ -9,7 +9,6 @@ const margin_bottom = 10;
 const margin_left = 15;
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadData();
     document.getElementById('exportBtn').addEventListener('click', openExportPopup);
 });
 
