@@ -62,6 +62,23 @@ async function loadFixedTemplateFiles() {
 }
 
 // Get seat size from CSS
+async function getFixedSize(type) {
+    // Create a temporary fixed element to measure
+    await loadFixedTemplateFiles();
+    const tempFixed = document.createElement('div');
+    tempFixed.classList.add('fixed-element', type);
+    tempFixed.style.position = 'absolute';
+    tempFixed.style.visibility = 'hidden';
+    document.body.appendChild(tempFixed);
+
+    const width = tempFixed.offsetWidth;
+    const height = tempFixed.offsetHeight;
+
+    document.body.removeChild(tempFixed);
+    return { width, height };
+}
+
+// Get seat size from CSS
 async function getSeatSize() {
     // Seat already exist
     if (seats && seats.length > 0) {
@@ -457,8 +474,8 @@ async function createFixedElement(type, x, y, rotate, canvas) {
     const fixedElem = window.fixedTemplate.cloneNode(true);
 
     // Clamp coordinates to stay inside the canvas
-    const { width: seatWidth, height: seatHeight } = await getSeatSize();
-    ({x, y} = guaranteeCanvasBoundaries(x, y, seatWidth, seatHeight, canvas));
+    const { width, height } = await getFixedSize(type);
+    ({x, y} = guaranteeCanvasBoundaries(x, y, width, height, canvas));
 
     // Set initial position
     const types = {
