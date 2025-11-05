@@ -35,7 +35,7 @@ a, a:visited {
 }
 
 h3 {
-    margin: 0;
+    margin: 0 0 15px 0;
 }
 
 /* ===============================
@@ -210,24 +210,24 @@ input:focus {
     box-shadow: 0 0 5px rgba(59,130,246,0.5);
 }
 
-.controls.primary button {
+.controls.primary button, button.primary {
     background: var(--color-primary);
     box-shadow: 0 3px 5px rgba(0,0,0,0.2);
     color: white;
 }
 
-.controls.primary button:hover {
+.controls.primary button:hover, button.primary:hover {
     background: var(--color-primary);
     box-shadow: 0 5px 10px rgba(0,0,0,0.25);
 }
 
-.controls.secondary button {
+.controls.secondary button, button.secondary {
     background: var(--color-secondary);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     color: var(--color-secondary-dark);
 }
 
-.controls.secondary button:hover {
+.controls.secondary button:hover, button.secondary:hover {
     background: var(--color-secondary);
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
