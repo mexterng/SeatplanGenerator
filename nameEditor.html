@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Namen bearbeiten</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/nameEditor.css">
+</head>
+
+<body>
+  <h1>Namen bearbeiten</h1>
+  <table id="nameTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Vorname</th>
+        <th>Nachname</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+
+  <div class="controls">
+    <button onclick="addRow()" class="secondary" id="addRowBtn">+ Zeile hinzufügen</button>
+    <div id="navigation">
+      <button onclick="confirm()" class="primary" id="okBtn">Bestätigen</button>
+      <button onclick="cancel()" class="secondary" id="cancelBtn">Abbrechen</button>
+    </div>
+  </div>
+
+  <script src="js/general.js"></script>
+  <script src="js/name-editor.js"></script>
+</body>
+</html>

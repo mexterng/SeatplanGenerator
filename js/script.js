@@ -6,6 +6,12 @@ const advancedToggle = document.getElementById('advanced-toggle');
 const advancedControls = document.getElementById('advanced-controls');
 // Status beim Laden wiederherstellen
 window.addEventListener('DOMContentLoaded', () => {
+    const delimiters = {
+        person: personDelimiter,
+        name: nameDelimiter
+    };
+    localStorage.setItem('delimiter', JSON.stringify(delimiters));
+    loadData();
     const saved = localStorage.getItem('advancedMode') === 'true';
     advancedToggle.checked = saved;
     advancedControls.style.display = saved ? 'block' : 'none';
@@ -390,25 +396,6 @@ async function loadData() {
     }
 }
 
-// Split fullname to lastname, firstname
-function getNames(fullname) {
-    const [lastname, firstname] = fullname.includes(nameDelimiter)
-        ? fullname.split(nameDelimiter).map(n => n.trim())
-        : ["", fullname];
-    
-    return { lastname, firstname };
-}
-
-// Parse input string of names
-function parseNames(namesInput) {
-    let nameList = [];
-    const inputSplit = namesInput.split(personDelimiter).map(n => n.trim()).filter(Boolean);
-    inputSplit.forEach((item) => {
-        nameList.push(getNames(item));
-    });
-    return nameList;
-}
-
 function shuffleArray(array) {
     const result = [...array];
     for (let i = result.length - 1; i > 0; i--) {
@@ -421,7 +408,7 @@ function shuffleArray(array) {
 // Assign random names to seats
 function assignNames(shuffle = true) {
     document.getElementById('clear-seats').style.display = "inline";
-    const nameList = parseNames(document.getElementById('namesInput').value);
+    const nameList = parseNames(document.getElementById('namesInput').value, personDelimiter, nameDelimiter);
     if(nameList[0] === "" || seats.length === 0){
         alert('Keine Namen oder Sitzplätze zum Zuordnen!');
         return;
@@ -441,7 +428,7 @@ function assignNames(shuffle = true) {
 
     const fullNameList = [...nameList];
     while (fullNameList.length < seats.length) {
-        fullNameList.push(getNames('')); // empty names for free seats
+        fullNameList.push(getNames('', nameDelimiter)); // empty names for free seats
     }
 
     let shuffledNames = fullNameList;
@@ -525,3 +512,11 @@ async function createFixedElement(type, x, y, rotate, canvas) {
     // Append seat to canvas and register it
     canvas.appendChild(fixedElem);
 }
+
+// ===============================
+// nameEditor
+// ===============================
+document.getElementById('edit-icon').addEventListener('click', () => {
+    localStorage.setItem('namesStr', document.getElementById('namesInput').value);
+    window.open('nameEditor.html', 'nameEditor', 'width=300,height=600,scrollbars=yes,resizable=yes');
+});
