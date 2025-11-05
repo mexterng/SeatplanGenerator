@@ -503,7 +503,7 @@ async function createFixedElement(type, x, y, rotate, canvas) {
         const currentY = rect.top - parentRect.top;
         const currentTransform = fixedElem.style.transform || "rotate(0deg)";
         const currentAngle = parseFloat(currentTransform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
-        await createFixedElement(currentX + 19.1, currentY + 19.1, currentAngle, canvas);
+        await createFixedElement(type, currentX + 19.1, currentY + 19.1, currentAngle, canvas);
     });
 
     // Rotate button event
