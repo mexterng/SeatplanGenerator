@@ -26,7 +26,10 @@
                     Anzahl Sitzplätze: <input type="number" id="seatCount" value="0" min="1">
                     <button onclick="createSeats()">Sitzplätze neu zeichnen</button>
                     <button id="clear-seats" onclick="clearSeats()" style="display: none;">Sitzplätze leeren</button><br><br>
-                    Namen (semikolon-getrennt): <input type="text" id="namesInput" size="50"><br><br>
+
+                    Namen (semikolon-getrennt): <input type="text" id="namesInput" size="50">
+                    <div id="edit-icon">&#x270D;</div><br><br>
+                    
                     <button onclick="saveSeats()">Sitzplätze speichern</button>
                     <button onclick="saveNames()">Namen speichern</button>
                 </div>

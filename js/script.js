@@ -525,3 +525,10 @@ async function createFixedElement(type, x, y, rotate, canvas) {
     // Append seat to canvas and register it
     canvas.appendChild(fixedElem);
 }
+
+// ===============================
+// nameEditor
+// ===============================
+document.getElementById('edit-icon').addEventListener('click', () => {
+  window.open('sub.html', 'nameEditor', 'width=800,height=600,scrollbars=yes,resizable=yes');
+});
