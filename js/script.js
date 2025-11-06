@@ -161,7 +161,6 @@ async function createSeatElement(x, y, rotate, canvas) {
         const currentTransform = seat.style.transform || "rotate(0deg)";
         const currentAngle = parseFloat(currentTransform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
         await createSeatElement(currentX + 19.1, currentY + 19.1, currentAngle, canvas);
-        seatCountElement.value = Number(seatCountElement.value) + 1;
     });
 
     // Rotate button event
@@ -182,6 +181,7 @@ async function createSeatElement(x, y, rotate, canvas) {
 
     // Append seat to canvas and register it
     canvas.appendChild(seat);
+    seatCountElement.value = Number(seatCountElement.value) + 1;
     seats.push({ element: seat, x: x, y: y, rotate: rotate });
 }
 
