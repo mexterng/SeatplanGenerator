@@ -382,6 +382,13 @@ function saveNames(alertmessage = true) {
     }
 }
 
+// Delete local storage
+function deleteLocalStorage(){
+    localStorage.removeItem('seats');
+    localStorage.removeItem('fixed');
+    localStorage.removeItem('names');
+}
+
 // Load seats and names from localStorage
 async function loadData() {
     const seatData = JSON.parse(localStorage.getItem('seats'));
