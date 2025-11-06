@@ -43,6 +43,10 @@ h3 {
     background: var(--color-important) !important;
 }
 
+input[type="checkbox"]:checked {
+    accent-color: var(--color-primary-dark);
+}
+
 /* ===============================
    Canvas / Seating Area
    =============================== */

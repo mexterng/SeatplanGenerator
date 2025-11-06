@@ -49,12 +49,12 @@
                     </label>
                 </div>
                 <div id="advanced-controls">
-                    <div id="import-export" class="controls primary">
+                    <div id="import-export" class="controls">
                         <input type="file" id="importFile" accept=".json" style="display:none;">
-                        <button onclick="importSeats()">Sitzplätze importieren</button>
-                        <button onclick="importNames()">Namen importieren</button>
-                        <button onclick="exportSeats()">Sitzplätze exportieren</button>
-                        <button onclick="exportNames()">Namen exportieren</button>
+                        <button onclick="importSeats()" class="secondary">Sitzplätze importieren</button>
+                        <button onclick="importNames()" class="secondary">Namen importieren</button>
+                        <button onclick="exportSeats()" class="primary">Sitzplätze exportieren</button>
+                        <button onclick="exportNames()" class="primary">Namen exportieren</button>
                     </div>
                     <div class="controls secondary">
                         <div>Feste Elemente hinzufügen:    
