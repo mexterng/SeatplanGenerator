@@ -167,3 +167,12 @@ async function addFixedElement(type) {
     const canvas = document.getElementById('canvas');
     await createFixedElement(type, 20, 20, 0, canvas);
 }
+
+// ===============================
+// Countdown
+// ===============================
+
+const countdownCheckbox = document.getElementById('countdown-checkbox');
+countdownCheckbox.addEventListener('change', () => {
+    localStorage.setItem('countdown', countdownCheckbox.checked);
+});

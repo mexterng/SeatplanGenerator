@@ -284,3 +284,22 @@ input:focus {
 .export-btn.cancel {
   margin-left: 10px;
 }
+
+/* ===============================
+   Countdown
+   =============================== */
+#countdown-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 10vw;
+  z-index: 9999;
+  transition: opacity 0.5s ease;
+}

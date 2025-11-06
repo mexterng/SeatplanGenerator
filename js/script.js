@@ -15,6 +15,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const saved = localStorage.getItem('advancedMode') === 'true';
     advancedToggle.checked = saved;
     advancedControls.style.display = saved ? 'block' : 'none';
+    const countdown = localStorage.getItem('countdown') === 'true';
+    document.getElementById('countdown-checkbox').checked = countdown;
 });
 
 // Status speichern, wenn Switch geändert wird
@@ -430,7 +432,7 @@ function shuffleArray(array) {
 }
 
 // Assign random names to seats
-function assignNames(shuffle = true) {
+async function assignNames(shuffle = true) {
     document.getElementById('clear-seats').style.display = "inline";
     const nameList = parseNames(document.getElementById('namesInput').value, personDelimiter, nameDelimiter);
     if(nameList[0] === "" || seats.length === 0){
@@ -459,9 +461,34 @@ function assignNames(shuffle = true) {
     if (shuffle) {
         shuffledNames = shuffleArray(fullNameList);
     }
+
+    if (document.getElementById('countdown-checkbox').checked) {
+        await showCountdown(5);
+    }
     seats.forEach((s, i) => {
         s.element.querySelector('.seat-firstname').textContent = shuffledNames[i]['firstname'];
         s.element.querySelector('.seat-lastname').textContent = shuffledNames[i]['lastname'];
+    });
+}
+
+async function showCountdown(time){
+    return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.id = 'countdown-overlay';
+        overlay.textContent = time;
+        document.body.appendChild(overlay);
+
+        let count = time;
+        const interval = setInterval(() => {
+            count--;
+            if (count > 0) {
+                overlay.textContent = count;
+            } else {
+                clearInterval(interval);
+                overlay.remove();
+                resolve();
+            }
+        }, 1000);
     });
 }
 
