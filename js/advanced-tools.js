@@ -31,6 +31,7 @@ async function importSeats() {
                 await createFixedElement(t.type, t.x, t.y, t.rotate, canvas);
             };
 
+            document.getElementById('seatCount').value = 0;
             for (const t of seatData) {
                 await createSeatElement(t.x, t.y, t.rotate, canvas);
             }

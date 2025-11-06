@@ -209,6 +209,7 @@ async function createSeats() {
         await createSeatElement(x, y, 0, canvas);
         x += seatWidth + gap;
     }
+    seatCountElement.value = count;
 }
 
 // Drag & drop handling
