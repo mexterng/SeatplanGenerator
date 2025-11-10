@@ -1,0 +1,114 @@
+.seat {
+    width: 108px;
+    height: 58px;
+    background-color: var(--color-seat-bg);
+    position: absolute;
+    cursor: move;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    touch-action: none;
+    font-size: small;
+    transform-origin: center center;
+}
+
+.seat-name {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    font-size: 12px;
+}
+
+.seat-firstname {
+    font-size: large;
+}
+
+.seat-lastname {
+    font-size: small;
+}
+
+
+.seat-firstname,
+.seat-lastname {
+    pointer-events: none;
+}
+
+.del {
+    position : absolute;
+    right : 4px;
+    cursor : pointer;
+    font-weight : bold;
+    color : rgba(255, 0, 0, 0.3);
+}
+
+.del:hover {
+    color : rgba(255, 0, 0, 1)
+}
+
+.add {
+    position : absolute;
+    left : 4px;
+    cursor : pointer;
+    font-weight : bold;
+    color : rgba(34, 155, 0, 0.3);
+}
+
+.add:hover {
+    color : rgb(34, 155, 0, 1)
+}
+
+.rot {
+    position : absolute;
+    cursor : pointer;
+    font-weight : bold;
+    color : rgba(80, 80, 80, 0.3);
+}
+
+.rot:hover {
+    color : rgb(80, 80, 80, 1)
+}
+
+.rot.left {
+    left : 4px;
+}
+
+.rot.right {
+    right : 4px;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .del {
+        color : rgba(255, 0, 0, 0.7);
+    }
+    .add {
+        color : rgba(34, 155, 0, 0.7);
+    }
+    .rot {
+        color : rgba(80, 80, 80, 0.7);
+    }    
+}
+
+.seat-tools {
+    position: absolute;
+    width: 100%;
+    cursor: pointer;
+}
+
+.seat-tools.top {
+    top: 2px;
+}
+
+.seat-tools.bottom {
+    bottom: 2px;
+    display: flex;
+    align-items: flex-end;
+}

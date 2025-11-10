@@ -4,14 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Sitzplangenerator</title>
-    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body>
     <div id="header">
         <h1>
             Sitzplangenerator
-            <a href="./help.html" style="display:inline-block; cursor:pointer;" title="Benutzungsanleitung">
+            <a href="help.html" style="display:inline-block; cursor:pointer;" title="Benutzungsanleitung">
                 <svg class="icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" 
                     style="width:24px; height:24px; vertical-align:middle;">
                     <path d="M512 512m-448 0a448 448 0 1 0 896 0 448 448 0 1 0-896 0Z" fill="var(--color-primary-dark)" />
@@ -20,37 +20,103 @@
                 </svg>
             </a>
         </h1>
-        <div class="controls secondary">
-            Anzahl Sitzplätze: <input type="number" id="seatCount" value="0" min="1">
-            <button onclick="createSeats()">Sitzplätze neu zeichnen</button><br><br>
-            Namen (semikolon-getrennt): <input type="text" id="namesInput" size="50"><br><br>
-            <button onclick="saveSeats()">Sitzplätze speichern</button>
-            <button onclick="saveNames()">Namen speichern</button>
-        </div>
-        <div class="controls primary">
-            <button onclick="assignNames(false)">Namen übertragen</button>
-            <button onclick="assignNames()">Sitzplätze auslosen</button>
-            <button id="exportBtn">PDF Export</button>
+        <div id="control-section">
+            <div id="primary-controls">
+                <div class="controls secondary">
+                    Anzahl Sitzplätze: <input type="number" id="seatCount" value="0" min="1">
+                    <button onclick="createSeats()">Sitzplätze neu zeichnen</button>
+                    <button id="clear-seats" onclick="clearSeats()" style="display: none;">Sitzplätze leeren</button><br><br>
+
+                    Namen (semikolon-getrennt): <input type="text" id="namesInput" size="50">
+                    <div id="edit-icon">&#x270D;</div><br><br>
+                    
+                    <button onclick="saveSeats()">Sitzplätze speichern</button>
+                    <button onclick="saveNames()">Namen speichern</button>
+                    <button onclick="deleteLocalStorage()">Speicher löschen</button>
+                </div>
+                <div class="controls primary">
+                    <button onclick="assignNames(false)" class="important">Namen übertragen</button>
+                    <button onclick="assignNames()" class="important">Sitzplätze auslosen</button>
+                    <button id="exportBtn">PDF Export</button>
+                </div>
+            </div>
+            <div class="advanced-container">
+                <div class="advanced-header">
+                    <h3>Erweiterter Modus</h3>
+                    <label class="switch">
+                        <input type="checkbox" id="advanced-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div id="advanced-controls">
+                    <div id="import-export" class="controls">
+                        <input type="file" id="importFile" accept=".json" style="display:none;">
+                        <button onclick="importSeats()" class="secondary">Sitzplätze importieren</button>
+                        <button onclick="importNames()" class="secondary">Namen importieren</button>
+                        <button onclick="exportSeats()" class="primary">Sitzplätze exportieren</button>
+                        <button onclick="exportNames()" class="primary">Namen exportieren</button>
+                    </div>
+                    <div class="controls secondary">
+                        <div>Feste Elemente hinzufügen:    
+                            <button onclick="addFixedElement('desk')">Pult</button>
+                            <button onclick="addFixedElement('board')">Tafel</button>
+                            <button onclick="addFixedElement('door')">Tür</button>
+                            <button onclick="addFixedElement('window')">Fenster</button>
+                        </div>
+                    </div>
+                    <div class="controls">
+                        Countdown bei Auslosung aktivieren:
+                        <input type="checkbox" id="countdown-checkbox">
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <div id="canvas"></div>
 
-    <div id="footer">
-        <a href="./impressum.html">Impressum</a> & <a href="./datenschutz.html">Datenschutzerklärung</a>  & <a href="https://github.com/mexterng/SeatplanGenerator">Quellcode</a>
+    <div id="exportOverlay" class="export-overlay" style="display: none;">
+        <div class="export-popup">
+            <h3 class="export-popup-header">PDF Export</h3>
+
+            <label>
+            Name der Klasse:<br>
+            <input type="text" id="className" class="export-input">
+            </label><br><br>
+
+            <label>
+            Stand:<br>
+            <input type="date" id="dateFrom" class="export-input">
+            </label><br><br>
+
+            <label>
+            Gültig bis:<br>
+            <input type="date" id="dateTo" class="export-input">
+            </label><br><br>
+
+            <label>
+            Name der Lehrkraft:<br>
+            <input type="text" id="teacherName" class="export-input">
+            </label><br><br>
+
+            <div class="export-button-section">
+                <button id="exportPdfBtn" class="export-btn primary">Exportieren</button>
+                <button id="cancelExportBtn" class="export-btn cancel secondary">Abbrechen</button>
+            </div>
+
+        </div>
     </div>
 
-    <script src="./libs/html2canvas.min.js?v=1.4.1"></script>
-    <script src="./libs/jspdf.umd.min.js?v=2.5.1"></script>
-    <script src="./fonts/NotoSans-Regular-normal.js"></script>
-    <script src="./script.js"></script>
-    <script src="./export.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            loadData();
-            document.getElementById('exportBtn').addEventListener('click', openExportPopup);
-        });
-    </script>
+    <div id="footer">
+        <a href="impressum.html">Impressum</a> & <a href="datenschutz.html">Datenschutzerklärung</a>  & <a href="https://github.com/mexterng/SeatplanGenerator">Quellcode</a>
+    </div>
+
+    <script src="libs/html2canvas.min.js?v=1.4.1"></script>
+    <script src="libs/jspdf.umd.min.js?v=2.5.1"></script>
+    <script src="js/general.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/advanced-tools.js"></script>
+    <script src="js/pdf-export.js"></script>
 </body>
 
 </html>

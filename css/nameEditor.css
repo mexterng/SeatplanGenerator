@@ -1,0 +1,49 @@
+html,
+body {
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+}
+
+#name-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+th,
+td {
+    border: 1px solid #ccc;
+    padding: 6px 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f0f0f0;
+}
+
+button {
+    margin: 10px;
+}
+
+.firstName {
+    width: 100px;
+}
+
+.lastName {
+    width: 120px;
+}
+
+.controls {
+    display: grid;
+    align-items: center;
+}
+
+#navigation {
+    display: flex;
+    justify-content: space-between;
+}

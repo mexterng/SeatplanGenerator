@@ -1,46 +1,78 @@
 <!DOCTYPE html>
 <html lang="de">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="./style_back.css" />
-    <title>Benutzungsanleitung</title>
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="css/style_back.css" />
+  <title>Benutzungsanleitung</title>
+</head>
 
-  <body>
-    <section id="container" role="contentinfo">
-      <h1>Benutzungsanleitung</h1>
-      <h2>Willkommen beim Sitzplangenerator!</h2>
-      <p>
-        Mit diesem Tool können Sie einfach und schnell einen Sitzplan für Ihre Klasse erstellen. Gehen Sie Schritt für Schritt vor:</p>
-      <ol>
-        <li>Geben Sie oben die gewünschte <strong>Anzahl der Sitzplätze</strong> ein und klicken Sie auf <em>"Sitzplätze neu zeichnen"</em>.</li>
-        <li>Tragen Sie die <strong>(Nachnamen,) Vornamen der Schüler/innen</strong> semikolon-getrennt in das Namensfeld ein. <br/>
-          Syntax: <em>Nachname, Vorname; nur_Nachname,; nur_Vorname</em>. <br/>
-          Beispiel: <em>Albrecht, Anna; Bauer,; Clara</em>. <br/>
-          </li>
-          <li>Falls Sie die Sitzordnung anpassen möchten, können Sie <strong>Sitzplätze per Drag & Drop</strong> frei verschieben.<br/>
-            Tipp: Wenn Sie einen <em>manuellen Sitzplan</em> erstellen möchten, lassen Sie zuerst die Namen mit <em>"Namen übertragen"</em> auf die Plätze setzen und verschieben Sie danach die Sitzplätze. So behalten Sie leichter den Überblick, da die ursprüngliche Reihenfolge nach dem Verschieben sonst nicht mehr sichtbar ist.
-          </li>
-        <li>Weisen Sie nun die Namen den Plätzen zu:
-          <ul>
-            <li><em>"Namen übertragen"</em>: ordnet die Namen in der Reihenfolge der Eingabe zu.</li>
-            <li><em>"Sitzplätze auslosen"</em>: verteilt die Namen zufällig auf die Plätze.</li>
-          </ul>
-        </li>
-        <li>Wenn alles passt, können Sie Ihre Eingaben mit <strong>"Sitzplätze speichern"</strong> und <strong>"Namen speichern"</strong> dauerhaft im Browser sichern. So gehen sie beim nächsten Öffnen nicht verloren.</li>
-        <li>Über den Button <strong>"PDF Export"</strong> können Sie den fertigen Sitzplan als PDF-Datei speichern oder ausdrucken.</li>
-      </ol>
+<body>
+  <section id="container" role="contentinfo">
+    <h1>Benutzungsanleitung</h1>
+    <h2>Willkommen beim Sitzplangenerator!</h2>
 
-      <p>Viel Erfolg beim Erstellen Ihres Sitzplans!</p>
+    <p>Dieses Tool hilft Ihnen, Sitzpläne schnell und flexibel zu erstellen, anzupassen und zu speichern. Folgen Sie einfach den unten beschriebenen Schritten.</p>
 
-      <hr style="margin: 20px 0" />
+    <!-- 1. Overview -->
+    <h3>1. Überblick</h3>
+    <p>Der Sitzplangenerator ermöglicht das Erstellen, Bearbeiten und Speichern von Sitzordnungen direkt im Browser.</p>
 
-      <p style="font-size: 0.9em; color: #555">
-        <strong>Hinweis:</strong> Verbesserungsvorschläge können gerne an die im <a href="./impressum.html">Impressum</a> hinterlegte E-Mailadresse gesendet werden.
-      </p>
+    <!-- 2. Preparation -->
+    <h3>2. Vorbereitung</h3>
+    <ol>
+      <li>Geben Sie die gewünschte <strong>Anzahl der Sitzplätze</strong> ein.</li>
+      <li>Klicken Sie auf <button class="secondary small">Sitzplätze neu zeichnen</button>, um die Plätze zu erzeugen.</li>
+      <li>Tragen Sie im Eingabefeld die Namen semikolon-getrennt ein oder nutzen Sie die Namenseingabe &#x270D;<br />
+        <em>Beispiel:</em> <code class="input">Albrecht, Anna; Bauer,; Clara</code>
+      </li>
+    </ol>
 
-      <a href="./">zurück</a>
-    </section>
-  </body>
+    <!-- 3. Creation and Adjustment -->
+    <h3>3. Erstellung und Anpassung</h3>
+    <p class="no-margin-bottom">Nach dem Zeichnen können alle Elemente (Sitze oder ggf. Festelemente) frei verschoben, gedreht, gelöscht oder dupliziert werden.</p>
+    <ul>
+      <li><strong>&#43;</strong>: dupliziert das ausgewählte Element</li>
+      <li><strong>&#215;</strong>: löscht das ausgewählte Element</li>
+      <li><strong>&#8634;</strong>: dreht das ausgewählte Element um 15° gegen den Uhrzeigersinn</li>
+      <li><strong>&#8635;</strong>: dreht das ausgewählte Element um 15° im Uhrzeigersinn</li>
+      <h4>Erweiterter Modus</h4>
+      <li><b>Feste Elemente hinzufügen:</b> Fügen Sie einzelne Festelemente (Pult, Tafel, Tür, Fenster) auf dem Sitzplan ein, die nicht mit Namen gefüllt werden. Bei einer Speicherung oder einem Export der Sitzplätze werden diese Elemente ebenfalls gesichert.</li>
+    </ul>
+
+    <!-- 4. Name Assignment -->
+    <h3>4. Namenszuweisung</h3>
+    <ul>
+      <li><button class="important small">Namen übertragen</button> ordnet die eingegebenen Namen in der Reihenfolge der Eingabe den Sitzplätzen zu.</li>
+      <li><button class="important small">Sitzplätze auslosen</button> verteilt die Namen zufällig auf die Sitzplätze.</li>
+    </ul>
+
+    <!-- 5. Speichern und Export -->
+    <h3>5. Speichern und Export</h3>
+    <ul>
+      <li><button class="secondary small">Sitzplätze speichern</button> speichert die aktuelle Sitzordnung lokal im Browser. Dabei werden Position, Drehung und Typ aller Sitz- und Festelemente dauerhaft gesichert. Beim nächsten Öffnen der Seite wird die gespeicherte Anordnung automatisch wiederhergestellt.</li>
+      <li><button class="secondary small">Namen speichern</button> speichert die eingegebenen Namen lokal im Browser. Beim nächsten Öffnen der Seite werden die gespeicherten Namen automatisch in das Eingabefeld übernommen.</li>
+      <li><button class="secondary small">Speicher löschen</button> entfernt alle lokal gespeicherten Sitzpläne und Namensdaten aus dem Browser. Die aktuelle Ansicht bleibt unverändert, die Löschung wirkt sich erst beim nächsten Laden der Seite aus.</li>
+      <li><button class="primary small">PDF Export</button> erzeugt eine druckfertige PDF-Datei des aktuellen Sitzplans. Vor dem Export können zusätzliche Informationen wie Klassenname, Datum und Lehrkraft eingetragen werden.</li>
+      <h4>Erweiterter Modus</h4>
+      <li><button class="primary small">Sitzplätze exportieren</button> exportiert die aktuelle Sitzordnung als <code>.json</code>-Datei, um sie auf einem anderen Gerät zu öffnen oder mit anderen Personen zu teilen.</li>
+      <li><button class="primary small">Namen exportieren</button> exportiert die Namen sowie ggf. bereits erfolgte Zuordnungen zu den Sitzen als <code>.json</code>-Datei. <strong>Hinweis:</strong> Achten Sie bei der Weitergabe auf den Datenschutz.</li>
+      <li><button class="secondary small">Sitzplätze importieren</button> lädt eine zuvor exportierte <code>.json</code>-Datei und stellt die gespeicherte Sitzordnung wieder her.</li>
+      <li><button class="secondary small">Namen importieren</button> lädt eine exportierte Namensliste, inklusive ggf. bereits erfolgter Sitzplatzzuordnungen, und fügt sie automatisch ein.</li>
+    </ul>
+
+    <!-- 6. Tips -->
+    <h3>6. Tipps</h3>
+    <ul>
+      <li>Für manuelle Pläne: zuerst Namen übertragen, dann Plätze verschieben, so bleibt die Zuordnung übersichtlich.</li>
+      <li>Für ein besseres Nutzererlebnis aktivieren Sie im <b>Erweiterten Modus</b> den Countdown bei der Zuweisung oder Auslosung der Sitzplätze.</li>
+    </ul>
+
+    <!-- 7. Feedback -->
+    <h3>7. Feedback</h3>
+    <p>Verbesserungsvorschläge sind willkommen! Schreiben Sie einfach an die im <a href="impressum.html">Impressum</a> genannte E-Mail-Adresse.</p>
+    <hr style="margin: 10px 0" />
+    <a href="./">zurück</a>
+  </section>
+</body>
 </html>
