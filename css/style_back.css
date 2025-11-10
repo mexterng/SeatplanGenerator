@@ -1,3 +1,14 @@
+:root {
+    /* Primary Colors */
+    --color-important: #BF1A2F;
+    --color-primary: #2b81be;
+    --color-primary-dark: #0067aa;
+    --color-secondary: #8ccbf7;
+    --color-secondary-dark: #005d93;
+    --color-seat-bg: #eee;
+    --color-fix-bg: #ccc;
+}
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f9f9f9;
@@ -40,4 +51,62 @@ a:focus {
 }
 .address{
   height: 150;
+}
+.no-margin-bottom {
+  margin-bottom: 0;
+}
+code {
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+  box-sizing: border-box;
+  cursor: default;
+  display: inline-block;;
+}
+.input {
+  padding: 2px 6px;
+  border: 1px solid var(--color-primary);
+  border-radius: 6px;
+}
+
+/* ===============================
+   Button Styles
+   =============================== */
+button {
+    background-color: var(--color-secondary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    margin: 4px;
+    font-size: 13px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+
+.important {
+    background: var(--color-important) !important;
+}
+
+button.primary {
+    background: var(--color-primary);
+    box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+    color: white;
+}
+
+button.secondary {
+    background: var(--color-secondary);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    color: var(--color-secondary-dark);
+}
+
+/* Kleinere Varianten (z. B. Icons) */
+button.small {
+    padding: 4px 8px;
+}
+
+/* Inline Buttons z. B. in Text */
+button.inline {
+    display: inline-block;
+    padding: 3px 8px;
 }
