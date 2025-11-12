@@ -10,6 +10,17 @@
 
 <body>
   <h1>Namen bearbeiten</h1>
+  <button onclick="csvImport()" class="primary" id="addRowBtn">&#x2937; Namen aus CSV-Datei importieren</button>
+  <div id="importOverlay" style="display: none;">
+    <div id="import-popup">
+      <h3 id="import-popup-header">CSV Import</h3>
+      <div id="import-button-section">
+        <button id="importCsvBtn" class="import-btn primary">Importieren</button>
+        <button id="cancelImportBtn" class="import-btn cancel secondary">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+
   <table id="nameTable">
     <thead>
       <tr>

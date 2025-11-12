@@ -69,3 +69,7 @@ function closeWindow(){
     localStorage.removeItem('namesStr');
     window.close();
 }
+
+function csvImport(){
+    // TODO
+}
