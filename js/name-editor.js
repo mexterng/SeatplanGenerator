@@ -70,6 +70,68 @@ function closeWindow(){
     window.close();
 }
 
-function csvImport(){
-    // TODO
+function startCsvImport() {
+    openCsvFilepicker();
+}
+
+// Close popup
+function closeImportPopup() {
+  document.getElementById("importOverlay").style.display = "none";
+}
+
+async function openCsvFilepicker() {
+    const input = document.getElementById('csvImportFile');
+    input.click();
+    input.onchange = async () => {
+        const file = input.files[0];
+        if (!file) {
+            alert('Keine Datei ausgewählt (Import abgebrochen).');
+            return;
+        }
+
+        try {
+            const csvData = await file.text();
+            const headLine = csvData.split('\n')[0].replace('\r', '');
+            const fields = headLine.split(',');
+            openImportPopup(fields, csvData);
+        } catch (err) {
+            alert('Fehler beim Import: ' + err.message);
+        }
+    }
+}
+
+// Open popup to collect import data
+function openImportPopup(fields, csvData) {
+    let allFields = ["---", ...fields];
+
+    document.getElementById("importOverlay").style.display = "flex";
+    const firstnameSelect = document.getElementById("firstnameSelect");
+    const lastnameSelect = document.getElementById("lastnameSelect");
+
+    // Optionen füllen
+    [firstnameSelect, lastnameSelect].forEach(select => {
+        select.innerHTML = ""; // vorherige Optionen entfernen
+        allFields.forEach(f => {
+            const option = document.createElement("option");
+            option.text = f;
+            option.value = f;
+            select.add(option);
+        });
+    });
+
+    // Cancel button
+    document.getElementById("cancelImportBtn").addEventListener("click", closeImportPopup);
+
+    // ESC-key
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && document.getElementById("importOverlay").style.display !== "none") {
+            closeImportPopup();
+        }
+    });
+
+    // Import button
+    document.getElementById("importCsvBtn").addEventListener("click", () => {
+        //TODO 
+        closeImportPopup();
+    });
 }
