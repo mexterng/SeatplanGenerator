@@ -90,10 +90,10 @@ async function openCsvFilepicker() {
         }
 
         try {
-            const csvData = await file.text();
-            const headLine = csvData.split('\n')[0].replace('\r', '');
+            const csvFiletext = await file.text();
+            const headLine = csvFiletext.split('\n')[0].replace('\r', '');
             const fields = headLine.split(',');
-            openImportPopup(fields, csvData);
+            openImportPopup(fields, csvFiletext);
         } catch (err) {
             alert('Fehler beim Import: ' + err.message);
         }
@@ -101,7 +101,7 @@ async function openCsvFilepicker() {
 }
 
 // Open popup to collect import data
-function openImportPopup(fields, csvData) {
+function openImportPopup(fields, csvFiletext) {
     let allFields = ["---", ...fields];
 
     document.getElementById("importOverlay").style.display = "flex";
@@ -131,7 +131,28 @@ function openImportPopup(fields, csvData) {
 
     // Import button
     document.getElementById("importCsvBtn").addEventListener("click", () => {
-        //TODO 
+        // clear all rows in window
+        document.querySelector('#nameTable tbody').querySelectorAll('tr').forEach(tr => tr.remove());
+
+        const firstnameCol = firstnameSelect.value;
+        const lastnameCol = lastnameSelect.value;
+
+        const csvData = csvFiletext.split('\n').map(r => r.replace('\r', '').split(','));
+
+        // find the index of the selected columns in the header array  
+        const firstnameIndex = fields.indexOf(firstnameCol);
+        const lastnameIndex = fields.indexOf(lastnameCol);
+
+        // map CSV data to objects, ignore if "---" is selected
+        // skip header and only add rows with at least one non-empty field
+        csvData.slice(1).forEach(row => {
+            const firstname = firstnameIndex >= 0 ? row[firstnameIndex] : '';
+            const lastname  = lastnameIndex  >= 0 ? row[lastnameIndex]  : '';
+
+            if (firstname || lastname) {
+                addRow(firstname, lastname);
+            }
+        });
         closeImportPopup();
     });
 }
