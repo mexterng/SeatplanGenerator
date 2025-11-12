@@ -24,27 +24,27 @@ function openExportPopup() {
   document.getElementById("dateFrom").value = new Date().toLocaleDateString('en-CA');
   document.getElementById("className").focus();
 
-  // Cancel button
-  document.getElementById("cancelExportBtn").addEventListener("click", closeExportPopup);
-
-  // ESC-key
-  document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape" && document.getElementById("exportOverlay").style.display !== "none") {
-      closeExportPopup();
-    }
-  });
-
-  // Export button
-  document.getElementById("exportPdfBtn").addEventListener("click", () => {
-    const className = document.getElementById("className").value;
-    const dateFrom = document.getElementById("dateFrom").value;
-    const dateTo = document.getElementById("dateTo").value;
-    const teacherName = document.getElementById("teacherName").value;
-
-    exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName);
-    closeExportPopup();
-  });
 }
+// Cancel button
+document.getElementById("cancelExportBtn").addEventListener("click", closeExportPopup);
+
+// ESC-key
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Escape" && document.getElementById("exportOverlay").style.display !== "none") {
+    closeExportPopup();
+  }
+});
+
+// Export button
+document.getElementById("exportPdfBtn").addEventListener("click", () => {
+  const className = document.getElementById("className").value;
+  const dateFrom = document.getElementById("dateFrom").value;
+  const dateTo = document.getElementById("dateTo").value;
+  const teacherName = document.getElementById("teacherName").value;
+
+  exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName);
+  closeExportPopup();
+});
 
 // Format date string to DD.MM.YYYY
 function formatDateToDDMMYYYY(dateString) {
