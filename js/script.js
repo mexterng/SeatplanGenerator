@@ -398,9 +398,7 @@ async function loadData() {
     const fixedData = JSON.parse(localStorage.getItem('fixed'));
     const nameList = JSON.parse(localStorage.getItem('names'));
     const canvas = document.getElementById('canvas');
-    if (seatData){
-        document.getElementById('seatCount').value = seatData.length;
-    }
+
     document.getElementById('namesInput').value = nameList;
     
     canvas.innerHTML = '';
@@ -416,6 +414,7 @@ async function loadData() {
         for(const t of seatData) {
             await createSeatElement(t.x, t.y, t.rotate, canvas);
         };
+        document.getElementById('seatCount').value = seatData.length;
     }
 
     if (nameList) {
