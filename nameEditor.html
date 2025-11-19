@@ -10,6 +10,32 @@
 
 <body>
   <h1>Namen bearbeiten</h1>
+  <button onclick="startCsvImport()" class="primary" id="addRowBtn">&#x2937; Namen aus csv-Datei importieren</button>
+  <input type="file" id="csvImportFile" accept=".csv" style="display:none;">
+  <div id="importOverlay" style="display:none;">
+    <div id="import-popup">
+      <h3 id="import-popup-header">CSV Import</h3>
+      <p>Ordnen Sie jeweils die richtige Spalte der csv-Datei zu oder wählen Sie "---".</p>
+      <div id="fields">
+        <div class="field-row">
+          <label for="firstnameSelect">Vorname:</label>
+          <select id="firstnameSelect">
+          </select>
+        </div>
+
+        <div class="field-row">
+          <label for="lastnameSelect">Nachname:</label>
+          <select id="lastnameSelect">
+          </select>
+        </div>
+      </div>
+      <div id="import-button-section">
+        <button id="importCsvBtn" class="import-btn primary">Importieren</button>
+        <button id="cancelImportBtn" class="import-btn cancel secondary">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+
   <table id="nameTable">
     <thead>
       <tr>
