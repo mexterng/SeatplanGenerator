@@ -33,7 +33,7 @@ async function importSeats() {
 
             document.getElementById('seatCount').value = 0;
             for (const t of seatData) {
-                await createSeatElement(t.x, t.y, t.rotate, canvas);
+                await createSeatElement(t.x, t.y, t.rotate, canvas, t.id);
             }
 
             alert('Sitzplätze erfolgreich importiert!');
