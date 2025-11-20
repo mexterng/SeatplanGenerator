@@ -33,7 +33,7 @@ async function importSeats() {
 
             document.getElementById('seatCount').value = 0;
             for (const t of seatData) {
-                await createSeatElement(t.x, t.y, t.rotate, canvas);
+                await createSeatElement(t.x, t.y, t.rotate, canvas, t.id);
             }
 
             alert('Sitzplätze erfolgreich importiert!');
@@ -176,4 +176,16 @@ async function addFixedElement(type) {
 const countdownCheckbox = document.getElementById('countdown-checkbox');
 countdownCheckbox.addEventListener('change', () => {
     localStorage.setItem('countdown', countdownCheckbox.checked);
+});
+
+// ===============================
+// Show seat numbers
+// ===============================
+
+const seatNumberCheckbox = document.getElementById('seatNumber-checkbox');
+seatNumberCheckbox.addEventListener('change', () => {
+    localStorage.setItem('showSeatNumbers', seatNumberCheckbox.checked);
+    Array.from(document.getElementsByClassName('seat-nr')).forEach(seatNr => {
+        seatNr.style.visibility = seatNumberCheckbox.checked ? 'visible' : 'hidden';
+    });
 });
