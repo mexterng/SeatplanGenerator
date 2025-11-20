@@ -18,6 +18,13 @@ window.addEventListener('DOMContentLoaded', () => {
     advancedControls.style.display = saved ? 'block' : 'none';
     const countdown = localStorage.getItem('countdown') === 'true';
     document.getElementById('countdown-checkbox').checked = countdown;
+    const seatNumbers = localStorage.getItem('showSeatNumbers') === 'true';
+    document.getElementById('seatNumber-checkbox').checked = seatNumbers;
+    if (seatNumbers) {
+        Array.from(document.querySelectorAll('.seat-nr')).forEach(seatNr => {
+            seatNr.style.visibility = 'visible';
+        });
+    }
 });
 
 // Status speichern, wenn Switch geändert wird

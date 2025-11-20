@@ -177,3 +177,15 @@ const countdownCheckbox = document.getElementById('countdown-checkbox');
 countdownCheckbox.addEventListener('change', () => {
     localStorage.setItem('countdown', countdownCheckbox.checked);
 });
+
+// ===============================
+// Show seat numbers
+// ===============================
+
+const seatNumberCheckbox = document.getElementById('seatNumber-checkbox');
+seatNumberCheckbox.addEventListener('change', () => {
+    localStorage.setItem('showSeatNumbers', seatNumberCheckbox.checked);
+    Array.from(document.getElementsByClassName('seat-nr')).forEach(seatNr => {
+        seatNr.style.visibility = seatNumberCheckbox.checked ? 'visible' : 'hidden';
+    });
+});
