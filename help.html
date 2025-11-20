@@ -23,14 +23,14 @@
     <h3>2. Vorbereitung</h3>
     <ol>
       <li>Geben Sie die gewünschte <strong>Anzahl der Sitzplätze</strong> ein.</li>
-      <li>Klicken Sie auf<button class="secondary small">Sitzplätze neu zeichnen</button>, um die Plätze zu erzeugen.</li>
+      <li>Klicken Sie auf<button class="secondary small"><i class="fa-solid fa-object-ungroup"></i> Sitzplätze neu zeichnen</button>, um die Plätze zu erzeugen.</li>
       <li>Tragen Sie im Eingabefeld die Namen semikolon-getrennt ein. <em>Beispiel:</em> <code class="input">Albrecht, Anna; Bauer,; Clara</code><br />
         Oder nutzen Sie die <b>Namenseingabe</b> (<i class="fa-solid fa-pen-to-square"></i>): <br />
         <ul>
-          <li><button class="primary small">&#x2937; Namen aus csv-Datei importieren</button>Importieren Sie Namen aus einer CSV-Datei.</li>
+          <li><button class="primary small"><i class="fa-solid fa-file-import"></i> Namen aus csv-Datei importieren</button>Importieren Sie Namen aus einer <code>.csv</code>-Datei.</li>
           <li><i class="fa-solid fa-circle-minus"></i>: löscht eine Personen</td></li>
           <li><i class="fa-solid fa-arrows-up-down"></i>: ändert die Reihenfolge per Drag & Drop</li>
-          <li><i class="fa-solid fa-anchor-lock"></i>-Spalte: weist der Person fest (<i class="fa-solid fa-lock"></i>) die danebenstehende Sitzplatznummer zu. Dies wird auch bei<button class="important small">Sitzplätze auslosen</button>beachtet! <i>Es empfiehlt sich, im <b>Erweiterten Modus</b> die <i>Sitzplatznummern</i> zu aktivieren.</i></li>
+          <li><i class="fa-solid fa-anchor-lock"></i>-Spalte: weist der Person fest (<i class="fa-solid fa-lock"></i>) die danebenstehende Sitzplatznummer zu. Dies wird auch bei<button class="important small"><i class="fa-solid fa-shuffle"></i> Sitzplätze auslosen</button>beachtet! <i>Es empfiehlt sich, im <b>Erweiterten Modus</b> die <i>Sitzplatznummern</i> zu aktivieren.</i></li>
         </ul> 
       </li>
     </ol>
@@ -50,29 +50,29 @@
     <!-- 4. Name Assignment -->
     <h3>4. Namenszuweisung</h3>
     <ul>
-      <li><button class="important small">Namen übertragen</button>ordnet die eingegebenen Namen in der Reihenfolge der Eingabe den Sitzplätzen zu.</li>
-      <li><button class="important small">Sitzplätze auslosen</button>verteilt die Namen zufällig auf die Sitzplätze.</li>
+      <li><button class="important small"><i class="fa-solid fa-arrows-down-to-people"></i> Namen übertragen</button>ordnet die eingegebenen Namen in der Reihenfolge der Eingabe den Sitzplätzen zu.</li>
+      <li><button class="important small"><i class="fa-solid fa-shuffle"></i> Sitzplätze auslosen</button>verteilt die Namen zufällig auf die Sitzplätze.</li>
     </ul>
 
     <!-- 5. Speichern und Export -->
     <h3>5. Speichern und Export</h3>
     <ul>
-      <li><button class="secondary small">Sitzplätze speichern</button>speichert die aktuelle Sitzordnung lokal im Browser. Dabei werden Position, Drehung und Typ aller Sitz- und Festelemente dauerhaft gesichert. Beim nächsten Öffnen der Seite wird die gespeicherte Anordnung automatisch wiederhergestellt.</li>
-      <li><button class="secondary small">Namen speichern</button>speichert die eingegebenen Namen lokal im Browser. Beim nächsten Öffnen der Seite werden die gespeicherten Namen automatisch in das Eingabefeld übernommen.</li>
-      <li><button class="secondary small">Speicher löschen</button>entfernt alle lokal gespeicherten Sitzpläne und Namensdaten aus dem Browser. Die aktuelle Ansicht bleibt unverändert, die Löschung wirkt sich erst beim nächsten Laden der Seite aus.</li>
-      <li><button class="primary small">PDF Export</button>erzeugt eine druckfertige PDF-Datei des aktuellen Sitzplans. Vor dem Export können zusätzliche Informationen wie Klassenname, Datum und Lehrkraft eingetragen werden.</li>
+      <li><button class="secondary small"><i class="fa-solid fa-floppy-disk"></i> Sitzplätze speichern</button>speichert die aktuelle Sitzordnung lokal im Browser. Dabei werden Position, Drehung und Typ aller Sitz- und Festelemente dauerhaft gesichert. Beim nächsten Öffnen der Seite wird die gespeicherte Anordnung automatisch wiederhergestellt.</li>
+      <li><button class="secondary small"><i class="fa-solid fa-floppy-disk"></i> Namen speichern</button>speichert die eingegebenen Namen lokal im Browser. Beim nächsten Öffnen der Seite werden die gespeicherten Namen automatisch in das Eingabefeld übernommen.</li>
+      <li><button class="secondary small"><i class="fa-solid fa-eraser"></i> Speicher löschen</button>entfernt alle lokal gespeicherten Sitzpläne und Namensdaten aus dem Browser. Die aktuelle Ansicht bleibt unverändert, die Löschung wirkt sich erst beim nächsten Laden der Seite aus.</li>
+      <li><button class="primary small"><i class="fa-solid fa-download"></i> PDF Export</button>erzeugt eine druckfertige PDF-Datei des aktuellen Sitzplans. Vor dem Export können zusätzliche Informationen wie Klassenname, Datum und Lehrkraft eingetragen werden.</li>
       <h4>Erweiterter Modus</h4>
-      <li><button class="primary small">Sitzplätze exportieren</button>exportiert die aktuelle Sitzordnung als <code>.json</code>-Datei, um sie auf einem anderen Gerät zu öffnen oder mit anderen Personen zu teilen.</li>
-      <li><button class="primary small">Namen exportieren</button>exportiert die Namen sowie ggf. bereits erfolgte Zuordnungen zu den Sitzen als <code>.json</code>-Datei. <strong>Hinweis:</strong> Achten Sie bei der Weitergabe auf den Datenschutz.</li>
-      <li><button class="secondary small">Sitzplätze importieren</button>lädt eine zuvor exportierte <code>.json</code>-Datei und stellt die gespeicherte Sitzordnung wieder her.</li>
-      <li><button class="secondary small">Namen importieren</button>lädt eine exportierte Namensliste, inklusive ggf. bereits erfolgter Sitzplatzzuordnungen, und fügt sie automatisch ein.</li>
+      <li><button class="primary small"><i class="fa-solid fa-download"></i> Sitzplätze exportieren</button>exportiert die aktuelle Sitzordnung als <code>.json</code>-Datei, um sie auf einem anderen Gerät zu öffnen oder mit anderen Personen zu teilen.</li>
+      <li><button class="primary small"><i class="fa-solid fa-download"></i> Namen exportieren</button>exportiert die Namen sowie ggf. bereits erfolgte Zuordnungen zu den Sitzen als <code>.json</code>-Datei. <strong>Hinweis:</strong> Achten Sie bei der Weitergabe auf den Datenschutz.</li>
+      <li><button class="secondary small"><i class="fa-solid fa-file-import"></i> Sitzplätze importieren</button>lädt eine zuvor exportierte <code>.json</code>-Datei und stellt die gespeicherte Sitzordnung wieder her.</li>
+      <li><button class="secondary small"><i class="fa-solid fa-file-import"></i> Namen importieren</button>lädt eine exportierte Namensliste, inklusive ggf. bereits erfolgter Sitzplatzzuordnungen, und fügt sie automatisch ein.</li>
     </ul>
 
     <!-- 6. Tips -->
     <h3>6. Tipps</h3>
     <ul>
-      <li>Für manuelle Pläne: Entweder im <b>Erweiterten Modus</b> die <i>Sitzplatznummern</i> aktivieren und anschließend mit Hilfe der Namenseingabe <i class="fa-solid fa-pen-to-square"></i> die Reihenfolge der Namen bearbeiten. <br />
-        Oder zuerst <button class="important small">Namen übertragen</button>, dann Plätze verschieben, so bleibt die Zuordnung übersichtlich.</li>
+      <li>Für manuelle Pläne: Entweder im <b>Erweiterten Modus</b> die <i>Sitzplatznummern</i> aktivieren und anschließend mit Hilfe der <b>Namenseingabe</b> (<i class="fa-solid fa-pen-to-square"></i>) die Reihenfolge der Namen bearbeiten. <br />
+        Oder zuerst <button class="important small"><i class="fa-solid fa-arrows-down-to-people"></i> Namen übertragen</button>, dann Plätze verschieben, so bleibt die Zuordnung übersichtlich.</li>
       <li>Für ein besseres Nutzererlebnis aktivieren Sie im <b>Erweiterten Modus</b> den <i>Countdown</i> bei der Zuweisung oder Auslosung der Sitzplätze.</li>
     </ul>
 

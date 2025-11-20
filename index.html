@@ -20,20 +20,20 @@
             <div id="primary-controls">
                 <div class="controls secondary">
                     Anzahl Sitzplätze: <input type="number" id="seatCount" value="0" min="1">
-                    <button onclick="createSeats()">Sitzplätze neu zeichnen</button>
-                    <button id="clear-seats" onclick="clearSeats()" style="display: none;">Sitzplätze leeren</button><br><br>
+                    <button onclick="createSeats()"><i class="fa-solid fa-object-ungroup"></i> Sitzplätze neu zeichnen</button>
+                    <button id="clear-seats" onclick="clearSeats()" style="display: none;"><i class="fa-solid fa-eraser"></i> Sitzplätze leeren</button><br><br>
 
                     Namen (semikolon-getrennt): <input type="text" id="namesInput" size="50">
                     <div id="edit-icon"><i class="fa-solid fa-pen-to-square"></i></div><br><br>
                     
-                    <button onclick="saveSeats()">Sitzplätze speichern</button>
-                    <button onclick="saveNames()">Namen speichern</button>
-                    <button onclick="deleteLocalStorage()">Speicher löschen</button>
+                    <button onclick="saveSeats()"><i class="fa-solid fa-floppy-disk"></i> Sitzplätze speichern</button>
+                    <button onclick="saveNames()"><i class="fa-solid fa-floppy-disk"></i> Namen speichern</button>
+                    <button onclick="deleteLocalStorage()"><i class="fa-solid fa-trash"></i> Speicher löschen</button>
                 </div>
                 <div class="controls primary">
-                    <button onclick="assignNames(false)" class="important">Namen übertragen</button>
-                    <button onclick="assignNames()" class="important">Sitzplätze auslosen</button>
-                    <button id="exportBtn">PDF Export</button>
+                    <button onclick="assignNames(false)" class="important"><i class="fa-solid fa-arrows-down-to-people"></i> Namen übertragen</button>
+                    <button onclick="assignNames()" class="important"><i class="fa-solid fa-shuffle"></i> Sitzplätze auslosen</button>
+                    <button id="exportBtn"><i class="fa-solid fa-download"></i> PDF Export</button>
                 </div>
             </div>
             <div class="advanced-container">
@@ -47,17 +47,17 @@
                 <div id="advanced-controls">
                     <div id="import-export" class="controls">
                         <input type="file" id="importFile" accept=".json" style="display:none;">
-                        <button onclick="importSeats()" class="secondary">Sitzplätze importieren</button>
-                        <button onclick="importNames()" class="secondary">Namen importieren</button>
-                        <button onclick="exportSeats()" class="primary">Sitzplätze exportieren</button>
-                        <button onclick="exportNames()" class="primary">Namen exportieren</button>
+                        <button onclick="importSeats()" class="secondary"><i class="fa-solid fa-file-import"></i> Sitzplätze importieren</button>
+                        <button onclick="importNames()" class="secondary"><i class="fa-solid fa-file-import"></i> Namen importieren</button>
+                        <button onclick="exportSeats()" class="primary"><i class="fa-solid fa-download"></i> Sitzplätze exportieren</button>
+                        <button onclick="exportNames()" class="primary"><i class="fa-solid fa-download"></i> Namen exportieren</button>
                     </div>
                     <div class="controls secondary">
                         <div>Feste Elemente hinzufügen:    
-                            <button onclick="addFixedElement('desk')">Pult</button>
-                            <button onclick="addFixedElement('board')">Tafel</button>
-                            <button onclick="addFixedElement('door')">Tür</button>
-                            <button onclick="addFixedElement('window')">Fenster</button>
+                            <button onclick="addFixedElement('desk')"><i class="fa-solid fa-briefcase"></i> Pult</button>
+                            <button onclick="addFixedElement('board')"><i class="fa-solid fa-chalkboard"></i> Tafel</button>
+                            <button onclick="addFixedElement('door')"><i class="fa-solid fa-door-open"></i> Tür</button>
+                            <button onclick="addFixedElement('window')"><i class="fa-solid fa-table"></i> Fenster</button>
                         </div>
                     </div>
                     <div class="controls">

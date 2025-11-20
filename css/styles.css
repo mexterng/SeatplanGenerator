@@ -114,10 +114,10 @@ input[type="checkbox"]:checked {
     gap: 0.3rem;
 }
 
-@media (max-width: 1370px) { 
+@media (max-width: 1450px) { 
     #import-export {
         grid-template-columns: repeat(2, 1fr);
-        width: 350px;
+        width: 400px;
     }
 }
 
