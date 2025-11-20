@@ -24,13 +24,20 @@ function addRow(firstname = '', lastname = ''){
     const tr = document.createElement('tr');
 
     tr.innerHTML = `
+        <td class="delete-row">&#215;</td>
         <td class="draggable">&#x21F5;</td>
         <td class="rowCount">${rowCount}</td>
         <td><input type="text" class="firstName" placeholder="Vorname" value="${firstname}"></td>
         <td><input type="text" class="lastName" placeholder="Nachname" value="${lastname}"></td>
     `;
     tbody.appendChild(tr);
-    enableRowDragging(tbody, tr);
+    enableRowControls(tbody, tr);
+}
+
+
+function deleteRow(row){
+    row.remove();
+    updateRowNumbers();
 }
 
 function confirm(){
@@ -163,10 +170,15 @@ document.getElementById("importCsvBtn").addEventListener("click", () => {
 });
 
 // Make table rows draggable
-function enableRowDragging(tbody, row) {
+function enableRowControls(tbody, row) {
     const tds = row.querySelectorAll("td");
 
     tds.forEach(td => {
+        // Delete row event
+        if (td.classList.contains("delete-row")) {
+            td.addEventListener("click", () => deleteRow(row));
+        };
+        
         // Skip TDs mit Input
         if (!td.classList.contains("draggable")) return;
 
