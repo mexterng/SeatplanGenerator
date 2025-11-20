@@ -226,7 +226,9 @@ async function createSeats() {
     seatCountElement.value = count;
 }
 
-// Drag & drop handling
+// ===============================
+// Drag and Drop handling 
+// ===============================
 let currentDrag = null;
 let startX = 0;
 let startY = 0;
@@ -347,6 +349,22 @@ function dragEnd() {
     document.removeEventListener('pointermove', dragMove);
     document.removeEventListener('pointerup', dragEnd);
 }
+
+// Cancel dragging if click on non-drag-element
+document.addEventListener('mousedown', e => {
+    const seat = e.target.closest('.drag-element');
+    if (!seat) return;
+    if (e.target.closest('.non-drag-element')) {
+        seat.dataset.dragBlocked = "1";
+        seat.draggable = false;
+    }
+});
+document.addEventListener('mouseup', e => {
+    const seat = e.target.closest('.drag-element');
+    if (!seat) return;
+    seat.draggable = true;
+    delete seat.dataset.dragBlocked;
+});
 
 function getSeatData(){
     return seats.map(t => {
