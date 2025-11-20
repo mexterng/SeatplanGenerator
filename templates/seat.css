@@ -116,10 +116,12 @@
 
 .seat-tools.top {
     top: 2px;
+    font-size: x-small;
 }
 
 .seat-tools.bottom {
     bottom: 2px;
     display: flex;
     align-items: flex-end;
+    font-size: small;
 }
