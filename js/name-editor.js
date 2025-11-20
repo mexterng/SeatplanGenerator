@@ -24,9 +24,10 @@ function addRow(firstname = '', lastname = ''){
     const tr = document.createElement('tr');
 
     tr.innerHTML = `
-        <td class="delete-row">&#215;</td>
-        <td class="draggable">&#x21F5;</td>
+        <td class="delete-row"><i class="fa-solid fa-circle-minus"></i></td>
+        <td class="draggable"><i class="fa-solid fa-arrows-up-down"></i></td>
         <td class="rowCount">${rowCount}</td>
+        <td class="lock"><i class="fa-solid fa-lock-open"></i></td>
         <td><input type="text" class="firstName" placeholder="Vorname" value="${firstname}"></td>
         <td><input type="text" class="lastName" placeholder="Nachname" value="${lastname}"></td>
     `;
