@@ -32,6 +32,7 @@ function addRow(firstname = '', lastname = ''){
         <td><input type="text" class="lastName" placeholder="Nachname" value="${lastname}"></td>
     `;
     tbody.appendChild(tr);
+    enableLockControls(tr);
     enableRowControls(tbody, tr);
 }
 
@@ -219,6 +220,19 @@ function enableRowControls(tbody, row) {
     row.querySelectorAll("input").forEach(input => {
         input.setAttribute("draggable", "false");
         input.addEventListener("dragstart", e => e.preventDefault());
+    });
+}
+
+function enableLockControls(tr) {
+    const lock = tr.querySelector(".lock .fa-solid");
+    lock.addEventListener('click', () => {
+        if (lock.classList.contains('fa-lock-open')) {
+            lock.classList.remove('fa-lock-open');
+            lock.classList.add('fa-lock');
+        } else {
+            lock.classList.remove('fa-lock');
+            lock.classList.add('fa-lock-open');
+        }
     });
 }
 

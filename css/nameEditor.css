@@ -41,6 +41,10 @@ th:nth-of-type(2), td:nth-of-type(2) {
     padding-left: 4px;
 }
 
+.lock i {
+    cursor: pointer;
+}
+
 button {
     margin: 10px;
 }
