@@ -1,22 +1,30 @@
 let seats = [];
+let lastSeatID = 1;
 const personDelimiter = ";"
 const nameDelimiter = ","
 
 const advancedToggle = document.getElementById('advanced-toggle');
 const advancedControls = document.getElementById('advanced-controls');
 // Status beim Laden wiederherstellen
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
     const delimiters = {
         person: personDelimiter,
         name: nameDelimiter
     };
     localStorage.setItem('delimiter', JSON.stringify(delimiters));
-    loadData();
+    await loadData(); // ensure all elements are created
     const saved = localStorage.getItem('advancedMode') === 'true';
     advancedToggle.checked = saved;
     advancedControls.style.display = saved ? 'block' : 'none';
     const countdown = localStorage.getItem('countdown') === 'true';
     document.getElementById('countdown-checkbox').checked = countdown;
+    const seatNumbers = localStorage.getItem('showSeatNumbers') === 'true';
+    document.getElementById('seatNumber-checkbox').checked = seatNumbers;
+    if (seatNumbers) {
+        Array.from(document.querySelectorAll('.seat-nr')).forEach(seatNr => {
+            seatNr.style.visibility = 'visible';
+        });
+    }
 });
 
 // Status speichern, wenn Switch geändert wird
@@ -129,7 +137,7 @@ function rotateElement(element, rotationAngle) {
 }
 
 // Create single seat element
-async function createSeatElement(x, y, rotate, canvas) {
+async function createSeatElement(x, y, rotate, canvas, id) {
     await loadSeatTemplateFiles();
     // Clone the template for a new seat
     const seat = window.seatTemplate.cloneNode(true);
@@ -143,6 +151,10 @@ async function createSeatElement(x, y, rotate, canvas) {
     seat.style.top = y + 'px';
     seat.style.transform = `rotate(${rotate}deg)`;
 
+    // Set id
+    seat.id = lastSeatID ++;
+    if (id) seat.id = id;
+
     const seatCountElement = document.getElementById('seatCount');
 
     // Delete button event
@@ -151,6 +163,7 @@ async function createSeatElement(x, y, rotate, canvas) {
         canvas.removeChild(seat);
         seats = seats.filter(t => t.element !== seat);
         seatCountElement.value = seatCountElement.value - 1;
+        updateSeatNumbers();
     });
 
     // Add button event
@@ -184,7 +197,8 @@ async function createSeatElement(x, y, rotate, canvas) {
     // Append seat to canvas and register it
     canvas.appendChild(seat);
     seatCountElement.value = Number(seatCountElement.value) + 1;
-    seats.push({ element: seat, x: x, y: y, rotate: rotate });
+    updateSeatNumbers();
+    seats.push({ element: seat, id: seat.id, x: x, y: y, rotate: rotate });
 }
 
 // Create multiple seats
@@ -212,7 +226,9 @@ async function createSeats() {
     seatCountElement.value = count;
 }
 
-// Drag & drop handling
+// ===============================
+// Drag and Drop handling 
+// ===============================
 let currentDrag = null;
 let startX = 0;
 let startY = 0;
@@ -334,6 +350,22 @@ function dragEnd() {
     document.removeEventListener('pointerup', dragEnd);
 }
 
+// Cancel dragging if click on non-drag-element
+document.addEventListener('mousedown', e => {
+    const seat = e.target.closest('.drag-element');
+    if (!seat) return;
+    if (e.target.closest('.non-drag-element')) {
+        seat.dataset.dragBlocked = "1";
+        seat.draggable = false;
+    }
+});
+document.addEventListener('mouseup', e => {
+    const seat = e.target.closest('.drag-element');
+    if (!seat) return;
+    seat.draggable = true;
+    delete seat.dataset.dragBlocked;
+});
+
 function getSeatData(){
     return seats.map(t => {
         const transform = t.element.style.transform || 'rotate(0deg)';
@@ -341,6 +373,7 @@ function getSeatData(){
         const rotation = match ? parseFloat(match[1]) : 0;
 
         return {
+            id: t.id,
             x: parseInt(t.element.style.left) || 0,
             y: parseInt(t.element.style.top) || 0,
             rotate: rotation
@@ -398,9 +431,7 @@ async function loadData() {
     const fixedData = JSON.parse(localStorage.getItem('fixed'));
     const nameList = JSON.parse(localStorage.getItem('names'));
     const canvas = document.getElementById('canvas');
-    if (seatData){
-        document.getElementById('seatCount').value = seatData.length;
-    }
+
     document.getElementById('namesInput').value = nameList;
     
     canvas.innerHTML = '';
@@ -414,8 +445,9 @@ async function loadData() {
     if (seatData) {
         seats = [];
         for(const t of seatData) {
-            await createSeatElement(t.x, t.y, t.rotate, canvas);
+            await createSeatElement(t.x, t.y, t.rotate, canvas, t.id);
         };
+        document.getElementById('seatCount').value = seatData.length;
     }
 
     if (nameList) {
@@ -565,10 +597,20 @@ async function createFixedElement(type, x, y, rotate, canvas) {
     canvas.appendChild(fixedElem);
 }
 
+// Update numbering of seats
+function updateSeatNumbers() {
+    document.querySelectorAll(".seat-nr").forEach((seatNr, idx) => {
+        seatNr.textContent = idx + 1;
+        if (document.getElementById('seatNumber-checkbox').checked) {
+            seatNr.style.visibility = 'visible';
+        } 
+    });
+}
+
 // ===============================
 // nameEditor
 // ===============================
 document.getElementById('edit-icon').addEventListener('click', () => {
     localStorage.setItem('namesStr', document.getElementById('namesInput').value);
-    window.open('nameEditor.html', 'nameEditor', 'width=300,height=600,scrollbars=yes,resizable=yes');
+    window.open('nameEditor.html', 'nameEditor', 'width=355,height=600,scrollbars=yes,resizable=yes');
 });

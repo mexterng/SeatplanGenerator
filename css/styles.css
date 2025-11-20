@@ -57,6 +57,7 @@ input[type="checkbox"]:checked {
     min-height: 1100px;
     min-width: 1220px;
     position: relative;
+    user-select: none;
 }
 
 /* ===============================
