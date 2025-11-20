@@ -599,8 +599,11 @@ async function createFixedElement(type, x, y, rotate, canvas) {
 
 // Update numbering of seats
 function updateSeatNumbers() {
-    document.querySelectorAll(".seat-nr").forEach((seat, idx) => {
-        seat.textContent = idx + 1;
+    document.querySelectorAll(".seat-nr").forEach((seatNr, idx) => {
+        seatNr.textContent = idx + 1;
+        if (document.getElementById('seatNumber-checkbox').checked) {
+            seatNr.style.visibility = 'visible';
+        } 
     });
 }
 
