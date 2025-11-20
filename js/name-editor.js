@@ -1,36 +1,41 @@
 var personDelimiter = ";";
 var nameDelimiter = ",";
+var lockedSeatTag = "#";
 var csvFiletext = "";
 var fields = [];
 
 window.addEventListener('DOMContentLoaded', () => {
-    const { person, name } = JSON.parse(localStorage.getItem('delimiter'));
+    const { person, name, lockedSeat} = JSON.parse(localStorage.getItem('delimiter'));
     const nameStr = localStorage.getItem('namesStr');
     personDelimiter = person;
     nameDelimiter = name;
+    lockedSeatTag = lockedSeat;
     initRows(nameStr);
 });
 
 function initRows(names){
-    const nameList = parseNames(names, personDelimiter, nameDelimiter);
+    const nameList = parseNames(names, personDelimiter, nameDelimiter, lockedSeatTag);
     nameList.forEach((person) => {
-        addRow(person.firstname, person.lastname);
+        addRow(person.firstname, person.lastname, person.lockedSeat);
     });
 }
 
-function addRow(firstname = '', lastname = ''){
+function addRow(firstname = '', lastname = '', lockedSeat = false){
     const tbody = document.querySelector('#nameTable tbody');
     const rowCount = tbody.rows.length + 1;
     const tr = document.createElement('tr');
+    const lockIcon = lockedSeat ? 'fa-lock': 'fa-lock-open';
 
     tr.innerHTML = `
-        <td class="delete-row">&#215;</td>
-        <td class="draggable">&#x21F5;</td>
+        <td class="delete-row"><i class="fa-solid fa-circle-minus"></i></td>
+        <td class="draggable"><i class="fa-solid fa-arrows-up-down"></i></td>
         <td class="rowCount">${rowCount}</td>
+        <td class="lock"><i class="fa-solid ${lockIcon}"></i></td>
         <td><input type="text" class="firstName" placeholder="Vorname" value="${firstname}"></td>
         <td><input type="text" class="lastName" placeholder="Nachname" value="${lastname}"></td>
     `;
     tbody.appendChild(tr);
+    enableLockControls(tr);
     enableRowControls(tbody, tr);
 }
 
@@ -47,11 +52,13 @@ function confirm(){
     rows.forEach(row => {
         const first = row.querySelector('.firstName').value.trim();
         const last = row.querySelector('.lastName').value.trim();
+        const locked = row.querySelector('.lock i').classList.contains('fa-lock');
+        const lockedStr = locked ? '#' : '';
         if (first && last == '') {
-            values.push(`${first}`.trim());
+            values.push(`${first} ${lockedStr}`.trim());
         }
         else if (first || last) {
-            values.push(`${last}${nameDelimiter} ${first}`.trim());
+            values.push(`${last}${nameDelimiter} ${first} ${lockedStr}`.trim());
         }
     });
 
@@ -218,6 +225,19 @@ function enableRowControls(tbody, row) {
     row.querySelectorAll("input").forEach(input => {
         input.setAttribute("draggable", "false");
         input.addEventListener("dragstart", e => e.preventDefault());
+    });
+}
+
+function enableLockControls(tr) {
+    const lock = tr.querySelector(".lock i");
+    lock.addEventListener('click', () => {
+        if (lock.classList.contains('fa-lock-open')) {
+            lock.classList.remove('fa-lock-open');
+            lock.classList.add('fa-lock');
+        } else {
+            lock.classList.remove('fa-lock');
+            lock.classList.add('fa-lock-open');
+        }
     });
 }
 
