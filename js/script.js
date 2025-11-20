@@ -6,13 +6,13 @@ const nameDelimiter = ","
 const advancedToggle = document.getElementById('advanced-toggle');
 const advancedControls = document.getElementById('advanced-controls');
 // Status beim Laden wiederherstellen
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
     const delimiters = {
         person: personDelimiter,
         name: nameDelimiter
     };
     localStorage.setItem('delimiter', JSON.stringify(delimiters));
-    loadData();
+    await loadData(); // ensure all elements are created
     const saved = localStorage.getItem('advancedMode') === 'true';
     advancedToggle.checked = saved;
     advancedControls.style.display = saved ? 'block' : 'none';
