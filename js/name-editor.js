@@ -24,7 +24,7 @@ function addRow(firstname = '', lastname = ''){
     const tr = document.createElement('tr');
 
     tr.innerHTML = `
-        <td>${rowCount}</td>
+        <td class="draggable">&#x21F5;</td>
         <td><input type="text" class="firstName" placeholder="Vorname" value="${firstname}"></td>
         <td><input type="text" class="lastName" placeholder="Nachname" value="${lastname}"></td>
     `;
