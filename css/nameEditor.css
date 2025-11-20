@@ -117,3 +117,8 @@ select {
     box-sizing: border-box;
     background-color: white;
 }
+
+tr.dragging {
+    opacity: 0.5;
+    background: #aaa;
+}

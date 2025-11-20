@@ -25,10 +25,12 @@ function addRow(firstname = '', lastname = ''){
 
     tr.innerHTML = `
         <td class="draggable">&#x21F5;</td>
+        <td class="rowCount">${rowCount}</td>
         <td><input type="text" class="firstName" placeholder="Vorname" value="${firstname}"></td>
         <td><input type="text" class="lastName" placeholder="Nachname" value="${lastname}"></td>
     `;
     tbody.appendChild(tr);
+    enableRowDragging(tbody, tr);
 }
 
 function confirm(){
@@ -159,3 +161,57 @@ document.getElementById("importCsvBtn").addEventListener("click", () => {
     });
     closeImportPopup();
 });
+
+// Make table rows draggable
+function enableRowDragging(tbody, row) {
+    const tds = row.querySelectorAll("td");
+
+    tds.forEach(td => {
+        // Skip TDs mit Input
+        if (!td.classList.contains("draggable")) return;
+
+        td.setAttribute("draggable", "true");
+        td.style.cursor = "grab";
+
+        td.addEventListener("dragstart", e => {
+            draggedRow = row;
+            row.classList.add("dragging");
+            e.dataTransfer.setDragImage(row, 0, 0);
+            e.dataTransfer.effectAllowed = "move";
+        });
+
+        td.addEventListener("dragend", e => {
+            row.classList.remove("dragging");
+            draggedRow = null;
+            updateRowNumbers();
+        });
+
+        td.addEventListener("dragover", e => {
+            e.preventDefault();
+            if (!draggedRow || draggedRow === row) return;
+
+            const rect = row.getBoundingClientRect();
+            const offset = e.clientY - rect.top;
+            const middle = rect.height / 2;
+
+            if (offset < middle) {
+                tbody.insertBefore(draggedRow, row);
+            } else {
+                tbody.insertBefore(draggedRow, row.nextSibling);
+            }
+        });
+    });
+
+    // Inputs dürfen Drag nicht starten
+    row.querySelectorAll("input").forEach(input => {
+        input.setAttribute("draggable", "false");
+        input.addEventListener("dragstart", e => e.preventDefault());
+    });
+}
+
+// Update numbering in column "#"
+function updateRowNumbers() {
+    document.querySelectorAll("#nameTable tbody tr").forEach((row, idx) => {
+        row.querySelector(".rowCount").textContent = idx + 1;
+    });
+}
