@@ -1,7 +1,8 @@
 let seats = [];
 let lastSeatID = 0;
-const personDelimiter = ";"
-const nameDelimiter = ","
+const personDelimiter = ";";
+const nameDelimiter = ",";
+const lockedSeatTag = "#";
 
 const advancedToggle = document.getElementById('advanced-toggle');
 const advancedControls = document.getElementById('advanced-controls');
@@ -9,7 +10,8 @@ const advancedControls = document.getElementById('advanced-controls');
 window.addEventListener('DOMContentLoaded', async () => {
     const delimiters = {
         person: personDelimiter,
-        name: nameDelimiter
+        name: nameDelimiter,
+        lockedSeat: lockedSeatTag
     };
     localStorage.setItem('delimiter', JSON.stringify(delimiters));
     await loadData(); // ensure all elements are created
@@ -471,7 +473,7 @@ function shuffleArray(array) {
 // Assign random names to seats
 async function assignNames(shuffle = true) {
     document.getElementById('clear-seats').style.display = "inline";
-    const nameList = parseNames(document.getElementById('namesInput').value, personDelimiter, nameDelimiter);
+    const nameList = parseNames(document.getElementById('namesInput').value, personDelimiter, nameDelimiter, lockedSeatTag);
     if(nameList[0] === "" || seats.length === 0){
         alert('Keine Namen oder Sitzplätze zum Zuordnen!');
         return;
@@ -491,7 +493,7 @@ async function assignNames(shuffle = true) {
 
     const fullNameList = [...nameList];
     while (fullNameList.length < seats.length) {
-        fullNameList.push(getNames('', nameDelimiter)); // empty names for free seats
+        fullNameList.push(getNames('', nameDelimiter, lockedSeatTag)); // empty names for free seats
     }
 
     let shuffledNames = fullNameList;
