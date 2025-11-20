@@ -1,5 +1,5 @@
 let seats = [];
-let lastSeatID = 1;
+let lastSeatID = 0;
 const personDelimiter = ";"
 const nameDelimiter = ","
 
@@ -152,8 +152,11 @@ async function createSeatElement(x, y, rotate, canvas, id) {
     seat.style.transform = `rotate(${rotate}deg)`;
 
     // Set id
-    seat.id = lastSeatID ++;
-    if (id) seat.id = id;
+    seat.id = ++ lastSeatID;
+    if (id) {
+        seat.id = id;
+        if (id >= lastSeatID) lastSeatID = id;
+    }
 
     const seatCountElement = document.getElementById('seatCount');
 
@@ -209,6 +212,7 @@ async function createSeats() {
     const { width: seatWidth, height: seatHeight } = await getSeatSize();
     canvas.innerHTML = '';
     seats = [];
+    lastSeatID = 0;
     const count = parseInt(seatCountElement.value);
     const gap = 10;
 
