@@ -60,6 +60,10 @@ input[type="checkbox"]:checked {
     user-select: none;
 }
 
+#connection-layer {
+    visibility: hidden;
+}
+
 /* ===============================
    Header / Controls
    =============================== */

@@ -127,18 +127,23 @@
 }
 
 .connector {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: rgba(0,0,0,0.6);
-  transform: translate(-50%, -50%);
-  pointer-events: auto;
-  cursor: pointer;
-  left: 50%; 
-  top: 50%;
-  opacity: 0; 
-  transition: opacity 120ms;
+    visibility: hidden;
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.6);
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+    cursor: pointer;
+    left: 50%; 
+    top: 50%;
+    opacity: 0; 
+    transition: opacity 120ms;
+}
+
+.show-seat-connectors .connector {
+    visibility: visible;
 }
 
 .seat:hover .connector { 

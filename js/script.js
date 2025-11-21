@@ -28,6 +28,14 @@ window.addEventListener('DOMContentLoaded', async () => {
             seatNr.style.visibility = 'visible';
         });
     }
+
+    const seatConnectors = localStorage.getItem('showSeatConnectors') === 'true';
+    document.getElementById('seatConnector-checkbox').checked = seatConnectors;
+    const canvas = document.getElementById('canvas');
+    if (seatConnectors) {
+        canvas.classList.add('show-seat-connectors');
+        document.getElementById('connection-layer').style.visibility = 'visible';
+    }
 });
 
 // Status speichern, wenn Switch geändert wird

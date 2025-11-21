@@ -189,3 +189,15 @@ seatNumberCheckbox.addEventListener('change', () => {
         seatNr.style.visibility = seatNumberCheckbox.checked ? 'visible' : 'hidden';
     });
 });
+
+// ===============================
+// Show seat connectors
+// ===============================
+
+const seatConnectorCheckbox = document.getElementById('seatConnector-checkbox');
+seatConnectorCheckbox.addEventListener('change', () => {
+    localStorage.setItem('showSeatConnectors', seatConnectorCheckbox.checked);
+    const canvas = document.getElementById('canvas');
+    canvas.classList.toggle('show-seat-connectors', seatConnectorCheckbox.checked);
+    document.getElementById('connection-layer').style.visibility = seatConnectorCheckbox.checked ? 'visible' : 'hidden';
+});
