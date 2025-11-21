@@ -60,6 +60,20 @@ input[type="checkbox"]:checked {
     user-select: none;
 }
 
+#connection-layer {
+    visibility: hidden;
+}
+
+#connection-layer path {
+    pointer-events: stroke;
+}
+
+#connection-layer circle, 
+#connection-layer line {
+    pointer-events: all;
+}
+
+
 /* ===============================
    Header / Controls
    =============================== */

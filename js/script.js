@@ -1,5 +1,6 @@
 let seats = [];
 let lastSeatID = 0;
+let seatConnectionSet = new Set();
 const personDelimiter = ";";
 const nameDelimiter = ",";
 const lockedSeatTag = "#";
@@ -14,10 +15,10 @@ window.addEventListener('DOMContentLoaded', async () => {
         lockedSeat: lockedSeatTag
     };
     localStorage.setItem('delimiter', JSON.stringify(delimiters));
-    await loadData(); // ensure all elements are created
     const saved = localStorage.getItem('advancedMode') === 'true';
     advancedToggle.checked = saved;
     advancedControls.style.display = saved ? 'block' : 'none';
+    await loadData(); // ensure all elements are created
     const countdown = localStorage.getItem('countdown') === 'true';
     document.getElementById('countdown-checkbox').checked = countdown;
     const seatNumbers = localStorage.getItem('showSeatNumbers') === 'true';
@@ -27,6 +28,19 @@ window.addEventListener('DOMContentLoaded', async () => {
             seatNr.style.visibility = 'visible';
         });
     }
+
+    const seatConnectors = localStorage.getItem('showSeatConnectors') === 'true';
+    document.getElementById('seatConnector-checkbox').checked = seatConnectors;
+    const canvas = document.getElementById('canvas');
+    if (seatConnectors) {
+        canvas.classList.add('show-seat-connectors');
+        document.getElementById('connection-layer').style.visibility = 'visible';
+    }
+});
+
+// Recalculate all connections on window resize
+window.addEventListener('resize', () => {
+    updateAllConnections();
 });
 
 // Status speichern, wenn Switch geändert wird
@@ -136,6 +150,9 @@ function rotateElement(element, rotationAngle) {
     const { x: correctedX, y: correctedY } = keepInsideCanvas(element, parseFloat(element.style.left), parseFloat(element.style.top), canvas);
     element.style.left = correctedX + "px";
     element.style.top = correctedY + "px";
+
+    // Update connections
+    updateAllConnections();
 }
 
 // Create single seat element
@@ -165,6 +182,17 @@ async function createSeatElement(x, y, rotate, canvas, id) {
     // Delete button event
     seat.querySelector(".del").addEventListener("click", e => {
         e.stopPropagation();
+
+        // Remove all connections related to this seat
+        fixedConnections
+            .filter(c => c.startConnector.closest('.seat') === seat || c.endConnector.closest('.seat') === seat)
+            .forEach(c => {
+                c.path.remove();       // remove SVG path
+                if (c.deleteBtn) c.deleteBtn.remove(); // remove delete button
+                seatConnectionSet.delete(c.pairId);   // remove from set
+            });
+
+        // Remove the seat
         canvas.removeChild(seat);
         seats = seats.filter(t => t.element !== seat);
         seatCountElement.value = seatCountElement.value - 1;
@@ -203,6 +231,7 @@ async function createSeatElement(x, y, rotate, canvas, id) {
     canvas.appendChild(seat);
     seatCountElement.value = Number(seatCountElement.value) + 1;
     updateSeatNumbers();
+    attachConnectorListener(seat);
     seats.push({ element: seat, id: seat.id, x: x, y: y, rotate: rotate });
 }
 
@@ -345,6 +374,9 @@ function dragMove(e) {
     // Apply new position
     currentDrag.style.left = correctedX + 'px';
     currentDrag.style.top = correctedY + 'px';
+
+    // Update connections
+    updateAllConnections();
 }
 
 function dragEnd() {
@@ -356,20 +388,24 @@ function dragEnd() {
     document.removeEventListener('pointerup', dragEnd);
 }
 
-// Cancel dragging if click on non-drag-element
+let dragBlockedSeat = null;
+// cancel dragging if click on non-drag-element
 document.addEventListener('mousedown', e => {
     const seat = e.target.closest('.drag-element');
     if (!seat) return;
     if (e.target.closest('.non-drag-element')) {
         seat.dataset.dragBlocked = "1";
         seat.draggable = false;
+        dragBlockedSeat = seat; // store reference
     }
 });
+
 document.addEventListener('mouseup', e => {
-    const seat = e.target.closest('.drag-element');
-    if (!seat) return;
-    seat.draggable = true;
-    delete seat.dataset.dragBlocked;
+    if (!dragBlockedSeat) return;
+
+    dragBlockedSeat.draggable = true;
+    delete dragBlockedSeat.dataset.dragBlocked;
+    dragBlockedSeat = null; // reset reference
 });
 
 function getSeatData(){
@@ -404,12 +440,15 @@ function getFixedData(){
     });
 }
 
+function getSeatConnectionsData(){
+    return [...seatConnectionSet];
+}
+
 // Save seats to localStorage
 function saveSeats(alertmessage = true) {
-    const seatData = getSeatData();
-    const fixedData = getFixedData();
-    localStorage.setItem('seats', JSON.stringify(seatData));
-    localStorage.setItem('fixed', JSON.stringify(fixedData));
+    localStorage.setItem('seats', JSON.stringify(getSeatData()));
+    localStorage.setItem('fixed', JSON.stringify(getFixedData()));
+    localStorage.setItem('connections', JSON.stringify(getSeatConnectionsData()));
     if (alertmessage){
         alert('Sitzplätze gespeichert!');
     }
@@ -435,6 +474,7 @@ function deleteLocalStorage(){
 async function loadData() {
     const seatData = JSON.parse(localStorage.getItem('seats'));
     const fixedData = JSON.parse(localStorage.getItem('fixed'));
+    const connectionsData = JSON.parse(localStorage.getItem('connections'));
     const nameList = JSON.parse(localStorage.getItem('names'));
     const canvas = document.getElementById('canvas');
 
@@ -454,6 +494,15 @@ async function loadData() {
             await createSeatElement(t.x, t.y, t.rotate, canvas, t.id);
         };
         document.getElementById('seatCount').value = seatData.length;
+    }
+
+    if (connectionsData) {
+        for(const connection of connectionsData) {
+            const {a,b} = splitPairString(connection);
+            const seatElementA = document.getElementById(a);
+            const seatElementB = document.getElementById(b);
+            connectSeats(seatElementA, seatElementB);
+        }
     }
 
     if (nameList) {
@@ -480,7 +529,8 @@ function shuffleArray(array) {
 // Assign random names to seats
 async function assignNames(shuffle = true) {
     document.getElementById('clear-seats').style.display = "inline";
-    const nameList = parseNames(document.getElementById('namesInput').value, personDelimiter, nameDelimiter, lockedSeatTag);
+    const nameListNested = parseNames(document.getElementById('namesInput').value, personDelimiter, nameDelimiter, lockedSeatTag);
+    const nameList = nameListNested.flatMap(flattenNames);
     if(nameList[0] === "" || seats.length === 0){
         alert('Keine Namen oder Sitzplätze zum Zuordnen!');
         return;
@@ -505,7 +555,26 @@ async function assignNames(shuffle = true) {
 
     let shuffledNames = fullNameList;
     if (shuffle) {
-        shuffledNames = shuffleArray(fullNameList);
+        if (!nameListNested.some(item => Array.isArray(item))) {
+            // no seat neighbors are set in name string
+            shuffledNames = shuffleArray(fullNameList);
+        } else {
+            const edges = getNormalizedSeatConnectionSet();
+            const solution = generateSeatAssignmentBacktracking(
+                nameListNested,
+                edges,
+                seats.length,
+                nameDelimiter,
+                lockedSeatTag
+            );
+            if (solution) {
+                shuffledNames = solution;
+            } else {
+                shuffledNames = Array.from({ length: seats.length }, () => []);
+                alert(`Achtung: Es kann keine gültige Besetzung der Sitzplätze gefunden werden. Beachten Sie vorgegeben Sitznachbarn und als benachbart gekennzeichnete Sitzplätze.`);
+                return;
+            }
+        }
     }
 
     if (document.getElementById('countdown-checkbox').checked) {
@@ -515,6 +584,42 @@ async function assignNames(shuffle = true) {
         s.element.querySelector('.seat-firstname').textContent = shuffledNames[i]['firstname'];
         s.element.querySelector('.seat-lastname').textContent = shuffledNames[i]['lastname'];
     });
+}
+
+function getNormalizedSeatConnectionSet(){
+    function getAllSeatIDs(){
+        const ids = [];
+        seats.forEach(seat => {
+            ids.push(seat.id);
+        });
+        return ids;
+    }
+    function normalizeSeatConnectionSet(seatConnectionSet, seatIDs){
+        // 1. Sort ids and create mapping
+        const sortedIds = [...seatIDs].sort((a, b) => Number(a) - Number(b));
+        const idMap = {};
+        sortedIds.forEach((id, index) => {
+            idMap[id] = (index + 1).toString(); // assign new normalized id
+        });
+
+        // convert set to array before mapping
+        const edgeArray = Array.from(seatConnectionSet);
+
+        const normalizedEdges = edgeArray.map(edge => {
+            const [a, b] = edge.split('-'); // old ids
+            const newA = idMap[a];
+            const newB = idMap[b];
+            return [newA, newB]; // numeric pair
+        });
+
+        return normalizedEdges;
+    }
+
+    const ids = getAllSeatIDs();
+    const normalizedSeatConnectionSet = normalizeSeatConnectionSet(seatConnectionSet, ids);
+
+    return normalizedSeatConnectionSet;
+
 }
 
 async function showCountdown(time){
@@ -625,5 +730,364 @@ function updateSeatNumbers() {
 // ===============================
 document.getElementById('edit-icon').addEventListener('click', () => {
     localStorage.setItem('namesStr', document.getElementById('namesInput').value);
-    window.open('nameEditor.html', 'nameEditor', 'width=405,height=600,scrollbars=yes,resizable=yes');
+    window.open('nameEditor.html', 'nameEditor', 'width=550,height=600,scrollbars=yes,resizable=yes');
 });
+
+// ===============================
+// connecterLines
+// ===============================
+let currentConnection = null;
+let fixedConnections = [];
+
+// build unique pair id
+function makePairId(a, b) {
+    return a < b ? `${a}-${b}` : `${b}-${a}`;
+}
+
+function splitPairString(pairString) {
+    const [a, b] = pairString.split('-');
+    return {a, b};
+}
+
+// create svg path element
+function createConnectionPath() {
+    const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    // styling is directly applied; could be moved to CSS class
+    p.setAttribute('stroke', 'rgba(0,0,0,0.6)');
+    p.setAttribute('stroke-width', '2');
+    p.setAttribute('stroke-dasharray', '6 4');
+    p.setAttribute('fill', 'none');
+    p.style.pointerEvents = "none";
+    return p;
+}
+
+function addDeleteButtonOnConnection(startSeat, endSeat, path) {
+    const svg = document.getElementById('connection-layer');
+
+    // create group for delete X
+    const btnGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    btnGroup.style.cursor = "pointer";
+
+    // create two lines for delete X
+    const line1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    const line2 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    
+    [line1, line2].forEach(line => {
+        line.setAttribute("stroke", "red");
+        line.setAttribute("stroke-width", 2);
+        line.setAttribute("pointer-events", "all"); // make clickable
+        btnGroup.appendChild(line);
+    });
+
+    svg.appendChild(btnGroup);
+
+    // click removes connection
+    btnGroup.addEventListener("click", () => {
+        path.remove();
+        btnGroup.remove();
+
+        const pairId = makePairId(startSeat.id, endSeat.id);
+        seatConnectionSet.delete(pairId);
+        fixedConnections = fixedConnections.filter(c => c.pairId !== pairId);
+    });
+
+    // store delete button reference in fixedConnections
+    const connObj = fixedConnections.find(c => c.path === path);
+    if(connObj){
+        connObj.deleteBtn = btnGroup;
+    } else {
+        fixedConnections.push({ 
+            startConnector: startSeat.querySelector('.connector'), 
+            endConnector: endSeat.querySelector('.connector'), 
+            path: path, 
+            pairId: makePairId(startSeat.id, endSeat.id), 
+            deleteBtn: btnGroup 
+        });
+    }
+
+    // initial position
+    updateDeleteButtonPosition(path, btnGroup);
+    return btnGroup;
+}
+
+function updateDeleteButtonPosition(pathEl, btnGroup) {
+    const pathLength = pathEl.getTotalLength();
+    const midPoint = pathEl.getPointAtLength(pathLength / 2);
+
+    const size = 4; // half size of X arms
+    const lines = btnGroup.querySelectorAll("line");
+
+    // line1: \
+    lines[0].setAttribute("x1", midPoint.x - size);
+    lines[0].setAttribute("y1", midPoint.y - size);
+    lines[0].setAttribute("x2", midPoint.x + size);
+    lines[0].setAttribute("y2", midPoint.y + size);
+
+    // line2: /
+    lines[1].setAttribute("x1", midPoint.x - size);
+    lines[1].setAttribute("y1", midPoint.y + size);
+    lines[1].setAttribute("x2", midPoint.x + size);
+    lines[1].setAttribute("y2", midPoint.y - size);
+}
+
+// update all connections (including delete buttons)
+function updateAllConnections() {
+    fixedConnections.forEach(conn => {
+        updateConnectionFixed(conn.startConnector, conn.endConnector, conn.path);
+        if(conn.deleteBtn) {
+            updateDeleteButtonPosition(conn.path, conn.deleteBtn);
+        }
+    });
+}
+
+// throttling with internal RAF
+let rafId = null;
+function throttled(fn) {
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+        fn();
+        rafId = null;
+    });
+}
+
+function connectorPointerDown(e) {
+    e.stopPropagation(); // prevent seat drag
+    
+    const svg = document.getElementById('connection-layer');
+    const path = createConnectionPath();
+    svg.appendChild(path);
+
+    const startConnector = e.target;
+    const startSeat = startConnector.closest('.seat');
+
+    currentConnection = { path, startConnector };
+
+    updateConnectionDynamic(startConnector, e.clientX, e.clientY, path);
+
+    function moveHandler(ev) {
+        throttled(() => {
+            updateConnectionDynamic(startConnector, ev.clientX, ev.clientY, path);
+        });
+    }
+
+    function upHandler(ev) {
+        document.removeEventListener('pointermove', moveHandler);
+        document.removeEventListener('pointerup', upHandler);
+
+        const endConnector = ev.target.closest?.('.connector') || null;
+        const endSeat = endConnector ? endConnector.closest('.seat') : null;
+
+        // check valid connection
+        const valid =
+            endConnector &&
+            endConnector !== startConnector &&
+            endSeat &&
+            endSeat !== startSeat;
+
+        if (valid) {
+            const pair = makePairId(startSeat.id, endSeat.id);
+
+            if (seatConnectionSet.has(pair)) {
+                // already exists → remove temp path
+                path.remove();
+            } else {
+                // new connection
+                seatConnectionSet.add(pair);
+
+                updateConnectionFixed(startConnector, endConnector, path);
+                addDeleteButtonOnConnection(startSeat, endSeat, path);
+
+                fixedConnections.push({
+                    startConnector,
+                    endConnector,
+                    path,
+                    pairId: pair
+                });
+            }
+        } else {
+            path.remove();
+        }
+
+        currentConnection = null;
+    }
+
+    document.addEventListener('pointermove', moveHandler);
+    document.addEventListener('pointerup', upHandler);
+}
+
+
+// calculate cubic bezier path between two points
+function buildBezierPath(x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+
+    const nearStraight = Math.abs(dx) < 20 || Math.abs(dy) < 20;
+
+    if (nearStraight) {
+        // distance for proportional arc size
+        const dist = Math.hypot(dx, dy);
+        const arcHeight = dist * 0.1; // arc factor
+
+        // decide arc direction (fixed)
+        const vertical = Math.abs(dx) < Math.abs(dy);
+
+        const nx = vertical ? 1 : 0;   // always right
+        const ny = vertical ? 0 : -1;  // always up
+
+        // apply arc offset to control points
+        const cx1 = x1 + (dx * 0.25) + nx * arcHeight;
+        const cy1 = y1 + (dy * 0.25) + ny * arcHeight;
+
+        const cx2 = x1 + (dx * 0.75) + nx * arcHeight;
+        const cy2 = y1 + (dy * 0.75) + ny * arcHeight;
+
+        return `M ${x1},${y1} C ${cx1},${cy1} ${cx2},${cy2} ${x2},${y2}`;
+    }
+
+    // default curve
+    const cx1 = x1 + (x2 - x1) * 0.25;
+    const cy1 = y1;
+    const cx2 = x1 + (x2 - x1) * 0.75;
+    const cy2 = y2;
+    return `M ${x1},${y1} C ${cx1},${cy1} ${cx2},${cy2} ${x2},${y2}`;
+}
+
+function updateConnectionDynamic(startEl, mouseX, mouseY, pathEl) {
+    const a = startEl.getBoundingClientRect();
+    const startX = a.left + a.width / 2;
+    const startY = a.top + a.height / 2;
+
+    pathEl.setAttribute("d", buildBezierPath(startX, startY, mouseX, mouseY));
+}
+
+function updateConnectionFixed(startEl, endEl, pathEl) {
+    const a = startEl.getBoundingClientRect();
+    const b = endEl.getBoundingClientRect();
+
+    const startX = a.left + a.width / 2;
+    const startY = a.top + a.height / 2;
+    const endX   = b.left + b.width / 2;
+    const endY   = b.top + b.height / 2;
+
+    pathEl.setAttribute("d", buildBezierPath(startX, startY, endX, endY));
+}
+
+function attachConnectorListener(element) {
+    element.querySelector('.connector').addEventListener('pointerdown', connectorPointerDown);
+}
+
+function connectSeats(seatA, seatB) {
+    const svg = document.getElementById('connection-layer');
+    const path = createConnectionPath();
+    svg.appendChild(path);
+
+    const pair = makePairId(seatA.id, seatB.id);
+
+    if (!seatConnectionSet.has(pair)) {
+        seatConnectionSet.add(pair);
+        updateConnectionFixed(seatA, seatB, path);
+        addDeleteButtonOnConnection(seatA, seatB, path);
+
+        fixedConnections.push({
+            startConnector: seatA.querySelector('.connector'),
+            endConnector: seatB.querySelector('.connector'),
+            path,
+            pairId: pair
+        });
+    }
+}
+
+function generateSeatAssignmentBacktracking(persons, edges, seatCount, nameDelimiter, lockedSeatTag) {
+
+    // Build adjacency (0-based)
+    function buildAdjacency(edges, seatCount) {
+        const adj = Array.from({ length: seatCount }, () => []);
+        for (const [a,b] of edges) {
+            const a0 = a-1, b0 = b-1;
+            if (a0 < seatCount && b0 < seatCount) {
+                adj[a0].push(b0);
+                adj[b0].push(a0);
+            }
+        }
+        return adj;
+    }
+    const adjacency = buildAdjacency(edges, seatCount);
+
+    // Flatten persons & identify clusters
+    const flatPersons = [];
+    const clusters = {};
+    persons.forEach((p, idx) => {
+        if (Array.isArray(p)) {
+            p.forEach(sub => flatPersons.push({...sub, cluster: idx}));
+            clusters[idx] = p.length;
+        } else {
+            flatPersons.push({...p, cluster:null});
+        }
+    });
+
+    const seats = Array(seatCount).fill(null);
+
+    // Place locked seats first
+    let index = 0;
+    flatPersons.forEach(p => {
+        if (p.lockedSeat) {
+            seats[index] = p;
+        }
+        index++;
+    });
+
+    // Helpers
+    function freeSeats(seats) {
+        return seats.map((s,i)=>s===null?i:null).filter(i=>i!==null);
+    }
+
+    function shuffle(arr) {
+        const copy = [...arr];
+        for(let i=copy.length-1;i>0;i--){
+            const j=Math.floor(Math.random()*(i+1));
+            [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+    }
+
+    // Place clusters on any random free edge
+    for(const clusterId in clusters){
+        const size = clusters[clusterId];
+        const members = flatPersons.filter(p=>p.cluster==clusterId);
+        if(size!==2) throw new Error("Cluster size other than 2 not yet supported");
+
+        const free = freeSeats(seats);
+
+        // collect all free seat pairs connected by edges
+        const candidatePairs = [];
+        for(let i=0;i<free.length;i++){
+            for(let j=i+1;j<free.length;j++){
+                if(adjacency[free[i]].includes(free[j])){
+                    candidatePairs.push([free[i], free[j]]);
+                }
+            }
+        }
+
+        if(candidatePairs.length===0) return null; // keine passende Kante
+
+        // pick a random pair
+        const chosenPair = candidatePairs[Math.floor(Math.random()*candidatePairs.length)];
+
+        // random order within cluster
+        const shuffledMembers = shuffle(members);
+        seats[chosenPair[0]] = shuffledMembers[0];
+        seats[chosenPair[1]] = shuffledMembers[1];
+    }
+
+    // Place remaining persons randomly
+    const remaining = flatPersons.filter(p=>!seats.includes(p));
+    const remainingSeats = shuffle(freeSeats(seats));
+    remaining.forEach((p,i)=>{
+        seats[remainingSeats[i]] = p;
+    });
+
+    // Fill empty seats with dummy objects
+    const dummyList = getNames('', nameDelimiter, lockedSeatTag);
+    const dummy = dummyList[0];
+    return seats.map(s=>s===null?{...dummy}:s);
+}
