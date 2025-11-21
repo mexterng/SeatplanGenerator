@@ -150,6 +150,9 @@ function rotateElement(element, rotationAngle) {
     const { x: correctedX, y: correctedY } = keepInsideCanvas(element, parseFloat(element.style.left), parseFloat(element.style.top), canvas);
     element.style.left = correctedX + "px";
     element.style.top = correctedY + "px";
+
+    // Update connections
+    updateAllConnections();
 }
 
 // Create single seat element
