@@ -15,10 +15,10 @@ window.addEventListener('DOMContentLoaded', async () => {
         lockedSeat: lockedSeatTag
     };
     localStorage.setItem('delimiter', JSON.stringify(delimiters));
-    await loadData(); // ensure all elements are created
     const saved = localStorage.getItem('advancedMode') === 'true';
     advancedToggle.checked = saved;
     advancedControls.style.display = saved ? 'block' : 'none';
+    await loadData(); // ensure all elements are created
     const countdown = localStorage.getItem('countdown') === 'true';
     document.getElementById('countdown-checkbox').checked = countdown;
     const seatNumbers = localStorage.getItem('showSeatNumbers') === 'true';
@@ -423,12 +423,15 @@ function getFixedData(){
     });
 }
 
+function getSeatConnectionsData(){
+    return [...seatConnectionSet];
+}
+
 // Save seats to localStorage
 function saveSeats(alertmessage = true) {
-    const seatData = getSeatData();
-    const fixedData = getFixedData();
-    localStorage.setItem('seats', JSON.stringify(seatData));
-    localStorage.setItem('fixed', JSON.stringify(fixedData));
+    localStorage.setItem('seats', JSON.stringify(getSeatData()));
+    localStorage.setItem('fixed', JSON.stringify(getFixedData()));
+    localStorage.setItem('connections', JSON.stringify(getSeatConnectionsData()));
     if (alertmessage){
         alert('Sitzplätze gespeichert!');
     }
@@ -454,6 +457,7 @@ function deleteLocalStorage(){
 async function loadData() {
     const seatData = JSON.parse(localStorage.getItem('seats'));
     const fixedData = JSON.parse(localStorage.getItem('fixed'));
+    const connectionsData = JSON.parse(localStorage.getItem('connections'));
     const nameList = JSON.parse(localStorage.getItem('names'));
     const canvas = document.getElementById('canvas');
 
@@ -473,6 +477,15 @@ async function loadData() {
             await createSeatElement(t.x, t.y, t.rotate, canvas, t.id);
         };
         document.getElementById('seatCount').value = seatData.length;
+    }
+
+    if (connectionsData) {
+        for(const connection of connectionsData) {
+            const {a,b} = splitPairString(connection);
+            const seatElementA = document.getElementById(a);
+            const seatElementB = document.getElementById(b);
+            connectSeats(seatElementA, seatElementB);
+        }
     }
 
     if (nameList) {
@@ -658,6 +671,11 @@ function makePairId(a, b) {
     return a < b ? `${a}-${b}` : `${b}-${a}`;
 }
 
+function splitPairString(pairString) {
+    const [a, b] = pairString.split('-');
+    return {a, b};
+}
+
 // create svg path element
 function createConnectionPath() {
     const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -805,12 +823,21 @@ function attachConnectorListener(element) {
 }
 
 function connectSeats(seatA, seatB) {
-    // ensure stable order
-    const idA = seatA.dataset.id;
-    const idB = seatB.dataset.id;
+    const svg = document.getElementById('connection-layer');
+    const path = createConnectionPath();
+    svg.appendChild(path);
 
-    // not connected → add
-    seatConnectionSet.add(makePairId(idA, idB));
+    const pair = makePairId(seatA.id, seatB.id);
 
-    createSvgLineBetween(seatA, seatB);
+    if (!seatConnectionSet.has(pair)) {
+        seatConnectionSet.add(pair);
+        updateConnectionFixed(seatA, seatB, path);
+
+        fixedConnections.push({
+            startConnector: seatA.querySelector('.connector'),
+            endConnector: seatB.querySelector('.connector'),
+            path,
+            pairId: pair
+        });
+    }
 }
