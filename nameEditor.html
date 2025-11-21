@@ -11,7 +11,7 @@
 
 <body>
   <h1>Namen bearbeiten</h1>
-  <button onclick="startCsvImport()" class="primary" id="addRowBtn"><i class="fa-solid fa-file-import"></i> Namen aus csv-Datei importieren</button>
+  <button onclick="startCsvImport()" class="primary" id="openCsvPopUp"><i class="fa-solid fa-file-import"></i> Namen aus csv-Datei importieren</button>
   <input type="file" id="csvImportFile" accept=".csv" style="display:none;">
   <div id="importOverlay" style="display:none;">
     <div id="import-popup">
@@ -46,6 +46,7 @@
         <th><i class="fa-solid fa-anchor-lock"></i></th>
         <th>Vorname</th>
         <th>Nachname</th>
+        <th colspan="2" class="seat-neighbor">Sitznachbar</th>
       </tr>
     </thead>
     <tbody>

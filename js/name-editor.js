@@ -10,7 +10,21 @@ window.addEventListener('DOMContentLoaded', () => {
     personDelimiter = person;
     nameDelimiter = name;
     lockedSeatTag = lockedSeat;
-    initRows(nameStr);
+    if (nameStr === "") {
+        addRow();
+    }else {
+        initRows(nameStr);
+    }
+    // Breite der ersten 6 Spalten ermitteln und Body anpassen
+    const table = document.getElementById('nameTable');
+    const firstRow = table.rows[0];
+    let width = 0;
+
+    for (let i = 0; i < 6; i++) {
+        width += firstRow.cells[i].offsetWidth;
+    }
+
+    document.body.style.width = width + "px";
 });
 
 function initRows(names){
@@ -33,10 +47,12 @@ function addRow(firstname = '', lastname = '', lockedSeat = false){
         <td class="lock"><i class="fa-solid ${lockIcon}"></i></td>
         <td><input type="text" class="firstName" placeholder="Vorname" value="${firstname}"></td>
         <td><input type="text" class="lastName" placeholder="Nachname" value="${lastname}"></td>
+        <td colspan="2" class="seat-neighbor"><button class="secondary"><i class="fa-solid fa-plus"></i> Sitznachbar</button></td>
     `;
     tbody.appendChild(tr);
     enableLockControls(tr);
     enableRowControls(tbody, tr);
+    enableSeatNeighbor(tr);
 }
 
 
@@ -229,15 +245,67 @@ function enableRowControls(tbody, row) {
 }
 
 function enableLockControls(tr) {
-    const lock = tr.querySelector(".lock i");
-    lock.addEventListener('click', () => {
-        if (lock.classList.contains('fa-lock-open')) {
-            lock.classList.remove('fa-lock-open');
-            lock.classList.add('fa-lock');
+    const lock = tr.querySelector(".lock");
+    const lockIcon = tr.querySelector(".lock i");
+    lockIcon.addEventListener('click', () => {
+        if(lock.classList.contains('deactivate')) return;
+        if (lockIcon.classList.contains('fa-lock-open')) {
+            lockIcon.classList.remove('fa-lock-open');
+            lockIcon.classList.add('fa-lock');
         } else {
-            lock.classList.remove('fa-lock');
-            lock.classList.add('fa-lock-open');
+            lockIcon.classList.remove('fa-lock');
+            lockIcon.classList.add('fa-lock-open');
         }
+    });
+}
+
+function enableSeatNeighbor(tr) {
+    const seatNeighbor = tr.querySelector(".seat-neighbor");
+    const addNeighborBtn = seatNeighbor.querySelector("button");
+    neighborEventListener(tr, addNeighborBtn);
+}
+
+function neighborEventListener(tr, elem) {
+    const seatNeighbor = tr.querySelector(".seat-neighbor");
+    const lock = tr.querySelector(".lock");
+    const lockIcon = tr.querySelector(".lock i");
+    elem.addEventListener('click', () => {
+        lockIcon.classList.remove('fa-lock-open');
+        lockIcon.classList.remove('fa-lock');
+        lockIcon.classList.add('fa-lock-open');
+        lock.classList.add('deactivate');
+        elem.remove();
+        seatNeighbor.remove();
+        
+        // new seat neighbor
+        window.resizeTo(720, window.outerHeight);
+        const firstNameNeighborTd = document.createElement('td');
+        firstNameNeighborTd.innerHTML = '<input type="text" class="firstName" placeholder="Vorname" value="">';
+        tr.appendChild(firstNameNeighborTd);
+
+        const lastNameNeighborTd = document.createElement('td');
+        lastNameNeighborTd.innerHTML = '<input type="text" class="lastName" placeholder="Nachname" value="">';
+        tr.appendChild(lastNameNeighborTd);
+
+        const deleteNeighborTd = document.createElement('td');
+        deleteNeighborTd.classList.add('delete-neighbor');
+        deleteNeighborTd.innerHTML = '<i class="fa-solid fa-circle-minus"></i>';
+        tr.appendChild(deleteNeighborTd);
+
+        const deleteNeighborBtn = deleteNeighborTd.querySelector(".delete-neighbor i");
+        deleteNeighborBtn.addEventListener('click', () => {
+            firstNameNeighborTd.remove();
+            lastNameNeighborTd.remove();
+            deleteNeighborTd.remove();
+            
+            const addNeighborTd = document.createElement('td');
+            addNeighborTd.classList.add("seat-neighbor");
+            addNeighborTd.colSpan ="2";
+            addNeighborTd.innerHTML = '<button class="secondary"><i class="fa-solid fa-plus"></i> Sitznachbar</button>';
+            tr.appendChild(addNeighborTd);
+            lock.classList.remove('deactivate');
+            neighborEventListener(tr, addNeighborTd);
+        });
     });
 }
 

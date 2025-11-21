@@ -674,7 +674,7 @@ function updateSeatNumbers() {
 // ===============================
 document.getElementById('edit-icon').addEventListener('click', () => {
     localStorage.setItem('namesStr', document.getElementById('namesInput').value);
-    window.open('nameEditor.html', 'nameEditor', 'width=405,height=600,scrollbars=yes,resizable=yes');
+    window.open('nameEditor.html', 'nameEditor', 'width=550,height=600,scrollbars=yes,resizable=yes');
 });
 
 // ===============================
