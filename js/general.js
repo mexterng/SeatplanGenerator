@@ -13,7 +13,7 @@ function getNames(fullname, nameDelimiter, lockedSeatTag) {
 // Parse input string of names
 function parseNames(namesInput, personDelimiter, nameDelimiter, lockedSeatTag) {
     let nameList = [];
-    const inputSplit = namesInput.split(personDelimiter).map(n => n.trim()).filter(Boolean);
+    const inputSplit = namesInput.split(personDelimiter).map(n => n.trim());
     inputSplit.forEach((item) => {
         nameList.push(getNames(item, nameDelimiter, lockedSeatTag));
     });

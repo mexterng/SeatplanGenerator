@@ -64,7 +64,7 @@ function deleteRow(row){
 function confirm(){
     const rows = document.querySelectorAll('#nameTable tbody tr');
     const values = [];
-
+    
     rows.forEach(row => {
         const first = row.querySelector('.firstName').value.trim();
         const last = row.querySelector('.lastName').value.trim();
@@ -76,7 +76,15 @@ function confirm(){
         else if (first || last) {
             values.push(`${last}${nameDelimiter} ${first} ${lockedStr}`.trim());
         }
+        else{
+            values.push('');
+        }
+        
     });
+    // remove trailing empty values
+    while (values.length > 0 && (values[values.length - 1] === "" || values[values.length - 1] == null)) {
+        values.pop(); // remove last element
+    }
 
     const result = values.join(personDelimiter + ' ');
 
