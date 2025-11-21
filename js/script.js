@@ -529,7 +529,10 @@ function shuffleArray(array) {
 // Assign random names to seats
 async function assignNames(shuffle = true) {
     document.getElementById('clear-seats').style.display = "inline";
-    const nameList = parseNames(document.getElementById('namesInput').value, personDelimiter, nameDelimiter, lockedSeatTag);
+    const nameListNested = parseNames(document.getElementById('namesInput').value, personDelimiter, nameDelimiter, lockedSeatTag);
+    console.log(nameListNested);
+    const nameList = nameListNested.flatMap(flattenNames);
+    console.log(nameList);
     if(nameList[0] === "" || seats.length === 0){
         alert('Keine Namen oder Sitzplätze zum Zuordnen!');
         return;

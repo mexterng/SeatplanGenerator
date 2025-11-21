@@ -29,12 +29,16 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function initRows(names){
     const nameList = parseNames(names, personDelimiter, nameDelimiter, lockedSeatTag);
-    nameList.forEach((person) => {
-        addRow(person.firstname, person.lastname, person.lockedSeat);
+    nameList.forEach((p) => {
+        if (Array.isArray(p)) {
+            addRow(p[0].firstname, p[0].lastname, false, p[1].firstname, p[1].lastname);
+        } else{
+            addRow(p.firstname, p.lastname, p.lockedSeat);
+        }
     });
 }
 
-function addRow(firstname = '', lastname = '', lockedSeat = false){
+function addRow(firstname = '', lastname = '', lockedSeat = false, neighborFirstname = '', neighborLastname = ''){
     const tbody = document.querySelector('#nameTable tbody');
     const rowCount = tbody.rows.length + 1;
     const tr = document.createElement('tr');
@@ -48,10 +52,18 @@ function addRow(firstname = '', lastname = '', lockedSeat = false){
         <td><input type="text" class="firstName" placeholder="Vorname" value="${firstname}"></td>
         <td><input type="text" class="lastName" placeholder="Nachname" value="${lastname}"></td>
     `;
-    addNeighborButtonTdToTr(tr);
+    if (neighborFirstname === '' && neighborLastname === '') {
+        addNeighborButtonTdToTr(tr);
+    } else {
+        window.resizeTo(760, window.outerHeight);
+        addNeighborInputTdsToTr(tr, neighborFirstname, neighborLastname);
+        const lock = tr.querySelector(".lock");
+        lock.classList.add('deactivate');
+    }
     tbody.appendChild(tr);
     enableLockControls(tr);
     enableRowControls(tbody, tr);
+    updateRowNumbers();
 }
 
 
@@ -281,22 +293,22 @@ function createNeighborButtonTd(){
     return neighborTd;
 }
 
-function addNeighborInputTdsToTr(tr){
-    const tds = createNeighborInputTds(tr);
+function addNeighborInputTdsToTr(tr, firstname = '', lastname = ''){
+    const tds = createNeighborInputTds(tr, firstname, lastname);
     tds.forEach(td => {
         tr.appendChild(td);
     });
     updateRowNumbers();
 }
-function createNeighborInputTds(tr){
+function createNeighborInputTds(tr, firstname = '', lastname = ''){
     const rowCountNeighborTd = document.createElement('td');
     rowCountNeighborTd.classList.add('rowCount');
 
     const firstNameNeighborTd = document.createElement('td');
-    firstNameNeighborTd.innerHTML = '<input type="text" class="firstName" placeholder="Vorname" value="">';
+    firstNameNeighborTd.innerHTML = `<input type="text" class="firstName neighbor" placeholder="Vorname" value="${firstname}">`;
 
     const lastNameNeighborTd = document.createElement('td');
-    lastNameNeighborTd.innerHTML = '<input type="text" class="lastName" placeholder="Nachname" value="">';
+    lastNameNeighborTd.innerHTML = `<input type="text" class="lastName neighbor" placeholder="Nachname" value="${lastname}">`;
 
     const deleteNeighborTd = document.createElement('td');
     deleteNeighborTd.classList.add('delete-neighbor');
