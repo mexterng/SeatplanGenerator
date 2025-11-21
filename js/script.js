@@ -38,6 +38,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
+// Recalculate all connections on window resize
+window.addEventListener('resize', () => {
+    fixedConnections.forEach(conn => {
+        updateConnectionFixed(conn.startConnector, conn.endConnector, conn.path);
+    });
+});
+
 // Status speichern, wenn Switch geändert wird
 advancedToggle.addEventListener('change', () => {
     advancedControls.style.display = advancedToggle.checked ? 'block' : 'none';
