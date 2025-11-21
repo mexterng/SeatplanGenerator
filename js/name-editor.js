@@ -41,13 +41,13 @@ function addRow(firstname = '', lastname = '', lockedSeat = false){
     const lockIcon = lockedSeat ? 'fa-lock': 'fa-lock-open';
 
     tr.innerHTML = `
-        <td class="delete-row"><i class="fa-solid fa-circle-minus"></i></td>
+        <td class="delete-row"><i class="fa-solid fa-trash"></i></td>
         <td class="draggable"><i class="fa-solid fa-arrows-up-down"></i></td>
         <td class="rowCount">${rowCount}</td>
         <td class="lock"><i class="fa-solid ${lockIcon}"></i></td>
         <td><input type="text" class="firstName" placeholder="Vorname" value="${firstname}"></td>
         <td><input type="text" class="lastName" placeholder="Nachname" value="${lastname}"></td>
-        <td colspan="2" class="seat-neighbor"><button class="secondary"><i class="fa-solid fa-plus"></i> Sitznachbar</button></td>
+        <td colspan="3" class="seat-neighbor"><button class="secondary"><i class="fa-solid fa-plus"></i> Sitznachbar</button></td>
     `;
     tbody.appendChild(tr);
     enableLockControls(tr);
@@ -278,7 +278,12 @@ function neighborEventListener(tr, elem) {
         seatNeighbor.remove();
         
         // new seat neighbor
-        window.resizeTo(720, window.outerHeight);
+        window.resizeTo(760, window.outerHeight);
+
+        const rowCountNeighborTd = document.createElement('td');
+        rowCountNeighborTd.classList.add('rowCount');
+        tr.appendChild(rowCountNeighborTd);                
+
         const firstNameNeighborTd = document.createElement('td');
         firstNameNeighborTd.innerHTML = '<input type="text" class="firstName" placeholder="Vorname" value="">';
         tr.appendChild(firstNameNeighborTd);
@@ -292,15 +297,19 @@ function neighborEventListener(tr, elem) {
         deleteNeighborTd.innerHTML = '<i class="fa-solid fa-circle-minus"></i>';
         tr.appendChild(deleteNeighborTd);
 
+        updateRowNumbers();
+
         const deleteNeighborBtn = deleteNeighborTd.querySelector(".delete-neighbor i");
         deleteNeighborBtn.addEventListener('click', () => {
+            rowCountNeighborTd.remove();
             firstNameNeighborTd.remove();
             lastNameNeighborTd.remove();
             deleteNeighborTd.remove();
+            updateRowNumbers();
             
             const addNeighborTd = document.createElement('td');
             addNeighborTd.classList.add("seat-neighbor");
-            addNeighborTd.colSpan ="2";
+            addNeighborTd.colSpan ="3";
             addNeighborTd.innerHTML = '<button class="secondary"><i class="fa-solid fa-plus"></i> Sitznachbar</button>';
             tr.appendChild(addNeighborTd);
             lock.classList.remove('deactivate');
@@ -311,7 +320,10 @@ function neighborEventListener(tr, elem) {
 
 // Update numbering in column "#"
 function updateRowNumbers() {
-    document.querySelectorAll("#nameTable tbody tr").forEach((row, idx) => {
-        row.querySelector(".rowCount").textContent = idx + 1;
+    let idx = 1;
+    document.querySelectorAll("#nameTable tbody tr").forEach(row => {
+        row.querySelectorAll(".rowCount").forEach(cell => {
+            cell.textContent = idx ++;
+        });
     });
 }

@@ -19,7 +19,7 @@ th,
 td {
     border: 1px solid #ccc;
     padding: 6px 8px;
-    text-align: left;
+    text-align: center;
 }
 
 td.delete-row, td.delete-neighbor {
