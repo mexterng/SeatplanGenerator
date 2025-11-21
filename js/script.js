@@ -1,5 +1,6 @@
 let seats = [];
 let lastSeatID = 0;
+const seatConnectionSet = new Set();
 const personDelimiter = ";";
 const nameDelimiter = ",";
 const lockedSeatTag = "#";
@@ -203,6 +204,7 @@ async function createSeatElement(x, y, rotate, canvas, id) {
     canvas.appendChild(seat);
     seatCountElement.value = Number(seatCountElement.value) + 1;
     updateSeatNumbers();
+    attachConnectorListener(seat);
     seats.push({ element: seat, id: seat.id, x: x, y: y, rotate: rotate });
 }
 
@@ -345,6 +347,11 @@ function dragMove(e) {
     // Apply new position
     currentDrag.style.left = correctedX + 'px';
     currentDrag.style.top = correctedY + 'px';
+
+    // Update connections
+    fixedConnections.forEach(conn => {
+        updateConnectionFixed(conn.startConnector, conn.endConnector, conn.path);
+    });
 }
 
 function dragEnd() {
@@ -356,20 +363,24 @@ function dragEnd() {
     document.removeEventListener('pointerup', dragEnd);
 }
 
-// Cancel dragging if click on non-drag-element
+let dragBlockedSeat = null;
+// cancel dragging if click on non-drag-element
 document.addEventListener('mousedown', e => {
     const seat = e.target.closest('.drag-element');
     if (!seat) return;
     if (e.target.closest('.non-drag-element')) {
         seat.dataset.dragBlocked = "1";
         seat.draggable = false;
+        dragBlockedSeat = seat; // store reference
     }
 });
+
 document.addEventListener('mouseup', e => {
-    const seat = e.target.closest('.drag-element');
-    if (!seat) return;
-    seat.draggable = true;
-    delete seat.dataset.dragBlocked;
+    if (!dragBlockedSeat) return;
+
+    dragBlockedSeat.draggable = true;
+    delete dragBlockedSeat.dataset.dragBlocked;
+    dragBlockedSeat = null; // reset reference
 });
 
 function getSeatData(){
@@ -627,3 +638,171 @@ document.getElementById('edit-icon').addEventListener('click', () => {
     localStorage.setItem('namesStr', document.getElementById('namesInput').value);
     window.open('nameEditor.html', 'nameEditor', 'width=405,height=600,scrollbars=yes,resizable=yes');
 });
+
+// ===============================
+// connecterLines
+// ===============================
+let currentConnection = null;
+let fixedConnections = [];
+
+// build unique pair id
+function makePairId(a, b) {
+    return a < b ? `${a}-${b}` : `${b}-${a}`;
+}
+
+// create svg path element
+function createConnectionPath() {
+    const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    // styling is directly applied; could be moved to CSS class
+    p.setAttribute('stroke', 'rgba(0,0,0,0.6)');
+    p.setAttribute('stroke-width', '2');
+    p.setAttribute('stroke-dasharray', '6 4');
+    p.setAttribute('fill', 'none');
+    return p;
+}
+
+// throttling with internal RAF
+let rafId = null;
+function throttled(fn) {
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+        fn();
+        rafId = null;
+    });
+}
+
+function connectorPointerDown(e) {
+    e.stopPropagation(); // prevent seat drag
+    
+    const svg = document.getElementById('connection-layer');
+    const path = createConnectionPath();
+    svg.appendChild(path);
+
+    const startConnector = e.target;
+    const startSeat = startConnector.closest('.seat');
+
+    currentConnection = { path, startConnector };
+
+    updateConnectionDynamic(startConnector, e.clientX, e.clientY, path);
+
+    function moveHandler(ev) {
+        throttled(() => {
+            updateConnectionDynamic(startConnector, ev.clientX, ev.clientY, path);
+        });
+    }
+
+    function upHandler(ev) {
+        document.removeEventListener('pointermove', moveHandler);
+        document.removeEventListener('pointerup', upHandler);
+
+        const endConnector = ev.target.closest?.('.connector') || null;
+        const endSeat = endConnector ? endConnector.closest('.seat') : null;
+
+        // check valid connection
+        const valid =
+            endConnector &&
+            endConnector !== startConnector &&
+            endSeat &&
+            endSeat !== startSeat;
+
+        if (valid) {
+            const pair = makePairId(startSeat.id, endSeat.id);
+
+            if (seatConnectionSet.has(pair)) {
+                // already exists → remove temp path
+                path.remove();
+            } else {
+                // new connection
+                seatConnectionSet.add(pair);
+
+                updateConnectionFixed(startConnector, endConnector, path);
+
+                fixedConnections.push({
+                    startConnector,
+                    endConnector,
+                    path,
+                    pairId: pair
+                });
+            }
+        } else {
+            path.remove();
+        }
+
+        currentConnection = null;
+    }
+
+    document.addEventListener('pointermove', moveHandler);
+    document.addEventListener('pointerup', upHandler);
+}
+
+
+// calculate cubic bezier path between two points
+function buildBezierPath(x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+
+    const nearStraight = Math.abs(dx) < 20 || Math.abs(dy) < 20;
+
+    if (nearStraight) {
+        // distance for proportional arc size
+        const dist = Math.hypot(dx, dy);
+        const arcHeight = dist * 0.1; // arc factor
+
+        // decide arc direction (fixed)
+        const vertical = Math.abs(dx) < Math.abs(dy);
+
+        const nx = vertical ? 1 : 0;   // always right
+        const ny = vertical ? 0 : -1;  // always up
+
+        // apply arc offset to control points
+        const cx1 = x1 + (dx * 0.25) + nx * arcHeight;
+        const cy1 = y1 + (dy * 0.25) + ny * arcHeight;
+
+        const cx2 = x1 + (dx * 0.75) + nx * arcHeight;
+        const cy2 = y1 + (dy * 0.75) + ny * arcHeight;
+
+        return `M ${x1},${y1} C ${cx1},${cy1} ${cx2},${cy2} ${x2},${y2}`;
+    }
+
+    // default curve
+    const cx1 = x1 + (x2 - x1) * 0.25;
+    const cy1 = y1;
+    const cx2 = x1 + (x2 - x1) * 0.75;
+    const cy2 = y2;
+    return `M ${x1},${y1} C ${cx1},${cy1} ${cx2},${cy2} ${x2},${y2}`;
+}
+
+function updateConnectionDynamic(startEl, mouseX, mouseY, pathEl) {
+    const a = startEl.getBoundingClientRect();
+    const startX = a.left + a.width / 2;
+    const startY = a.top + a.height / 2;
+
+    pathEl.setAttribute("d", buildBezierPath(startX, startY, mouseX, mouseY));
+}
+
+function updateConnectionFixed(startEl, endEl, pathEl) {
+    const a = startEl.getBoundingClientRect();
+    const b = endEl.getBoundingClientRect();
+
+    const startX = a.left + a.width / 2;
+    const startY = a.top + a.height / 2;
+    const endX   = b.left + b.width / 2;
+    const endY   = b.top + b.height / 2;
+
+    pathEl.setAttribute("d", buildBezierPath(startX, startY, endX, endY));
+}
+
+function attachConnectorListener(element) {
+    element.querySelector('.connector').addEventListener('pointerdown', connectorPointerDown);
+}
+
+function connectSeats(seatA, seatB) {
+    // ensure stable order
+    const idA = seatA.dataset.id;
+    const idB = seatB.dataset.id;
+
+    // not connected → add
+    seatConnectionSet.add(makePairId(idA, idB));
+
+    createSvgLineBetween(seatA, seatB);
+}
