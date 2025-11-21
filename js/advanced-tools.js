@@ -17,8 +17,9 @@ async function importSeats() {
             const allData = JSON.parse(text);
             const seatData = allData['seats'];
             const fixedData = allData['fixed'];
+            const connectionsData = allData['connections'];
 
-            if (!Array.isArray(seatData) || !Array.isArray(fixedData)) {
+            if (!Array.isArray(seatData) || !Array.isArray(fixedData) || !Array.isArray(connectionsData)) {
                 alert('Ungültiges Dateiformat!');
                 return;
             }
@@ -34,6 +35,14 @@ async function importSeats() {
             document.getElementById('seatCount').value = 0;
             for (const t of seatData) {
                 await createSeatElement(t.x, t.y, t.rotate, canvas, t.id);
+            }
+            
+            seatConnectionSet = new Set();
+            for (const connection of connectionsData) {
+                const {a,b} = splitPairString(connection);
+                const seatElementA = document.getElementById(a);
+                const seatElementB = document.getElementById(b);
+                connectSeats(seatElementA, seatElementB);
             }
 
             alert('Sitzplätze erfolgreich importiert!');
@@ -138,9 +147,11 @@ function exportNames() {
 function collectElementsData(){
     const seatsData = getSeatData();
     const fixedData = getFixedData();
+    const connectionsData = getSeatConnectionsData();
     return elementsData = {
         'seats': seatsData,
-        'fixed': fixedData
+        'fixed': fixedData,
+        'connections': connectionsData
     };
 }
 

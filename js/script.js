@@ -1,6 +1,6 @@
 let seats = [];
 let lastSeatID = 0;
-const seatConnectionSet = new Set();
+let seatConnectionSet = new Set();
 const personDelimiter = ";";
 const nameDelimiter = ",";
 const lockedSeatTag = "#";
