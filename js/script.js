@@ -702,7 +702,7 @@ function createConnectionPath() {
     return p;
 }
 
-function addDeleteButtonOnConnection(startEl, endEl, pathEl) {
+function addDeleteButtonOnConnection(startSeat, endSeat, path) {
     const svg = document.getElementById('connection-layer');
 
     // create group for delete X
@@ -724,30 +724,30 @@ function addDeleteButtonOnConnection(startEl, endEl, pathEl) {
 
     // click removes connection
     btnGroup.addEventListener("click", () => {
-        pathEl.remove();
+        path.remove();
         btnGroup.remove();
 
-        const pairId = makePairId(startEl.id, endEl.id);
+        const pairId = makePairId(startSeat.id, endSeat.id);
         seatConnectionSet.delete(pairId);
         fixedConnections = fixedConnections.filter(c => c.pairId !== pairId);
     });
 
     // store delete button reference in fixedConnections
-    const connObj = fixedConnections.find(c => c.path === pathEl);
+    const connObj = fixedConnections.find(c => c.path === path);
     if(connObj){
         connObj.deleteBtn = btnGroup;
     } else {
         fixedConnections.push({ 
-            startConnector: startEl.querySelector('.connector'), 
-            endConnector: endEl.querySelector('.connector'), 
-            path: pathEl, 
-            pairId: makePairId(startEl.id, endEl.id), 
+            startConnector: startSeat.querySelector('.connector'), 
+            endConnector: endSeat.querySelector('.connector'), 
+            path: path, 
+            pairId: makePairId(startSeat.id, endSeat.id), 
             deleteBtn: btnGroup 
         });
     }
 
     // initial position
-    updateDeleteButtonPosition(pathEl, btnGroup);
+    updateDeleteButtonPosition(path, btnGroup);
     return btnGroup;
 }
 
@@ -836,7 +836,7 @@ function connectorPointerDown(e) {
                 seatConnectionSet.add(pair);
 
                 updateConnectionFixed(startConnector, endConnector, path);
-                addDeleteButtonOnConnection(startConnector, endConnector, path);
+                addDeleteButtonOnConnection(startSeat, endSeat, path);
 
                 fixedConnections.push({
                     startConnector,
