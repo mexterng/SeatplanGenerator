@@ -530,9 +530,7 @@ function shuffleArray(array) {
 async function assignNames(shuffle = true) {
     document.getElementById('clear-seats').style.display = "inline";
     const nameListNested = parseNames(document.getElementById('namesInput').value, personDelimiter, nameDelimiter, lockedSeatTag);
-    console.log(nameListNested);
     const nameList = nameListNested.flatMap(flattenNames);
-    console.log(nameList);
     if(nameList[0] === "" || seats.length === 0){
         alert('Keine Namen oder Sitzplätze zum Zuordnen!');
         return;
@@ -557,7 +555,26 @@ async function assignNames(shuffle = true) {
 
     let shuffledNames = fullNameList;
     if (shuffle) {
-        shuffledNames = shuffleArray(fullNameList);
+        if (!nameListNested.some(item => Array.isArray(item))) {
+            // no seat neighbors are set in name string
+            shuffledNames = shuffleArray(fullNameList);
+        } else {
+            const edges = getNormalizedSeatConnectionSet();
+            const solution = generateSeatAssignmentBacktracking(
+                nameListNested,
+                edges,
+                seats.length,
+                nameDelimiter,
+                lockedSeatTag
+            );
+            if (solution) {
+                shuffledNames = solution;
+            } else {
+                shuffledNames = Array.from({ length: seats.length }, () => []);
+                alert(`Achtung: Es kann keine gültige Besetzung der Sitzplätze gefunden werden. Beachten Sie vorgegeben Sitznachbarn und als benachbart gekennzeichnete Sitzplätze.`);
+                return;
+            }
+        }
     }
 
     if (document.getElementById('countdown-checkbox').checked) {
@@ -567,6 +584,42 @@ async function assignNames(shuffle = true) {
         s.element.querySelector('.seat-firstname').textContent = shuffledNames[i]['firstname'];
         s.element.querySelector('.seat-lastname').textContent = shuffledNames[i]['lastname'];
     });
+}
+
+function getNormalizedSeatConnectionSet(){
+    function getAllSeatIDs(){
+        const ids = [];
+        seats.forEach(seat => {
+            ids.push(seat.id);
+        });
+        return ids;
+    }
+    function normalizeSeatConnectionSet(seatConnectionSet, seatIDs){
+        // 1. Sort ids and create mapping
+        const sortedIds = [...seatIDs].sort((a, b) => Number(a) - Number(b));
+        const idMap = {};
+        sortedIds.forEach((id, index) => {
+            idMap[id] = (index + 1).toString(); // assign new normalized id
+        });
+
+        // convert set to array before mapping
+        const edgeArray = Array.from(seatConnectionSet);
+
+        const normalizedEdges = edgeArray.map(edge => {
+            const [a, b] = edge.split('-'); // old ids
+            const newA = idMap[a];
+            const newB = idMap[b];
+            return [newA, newB]; // numeric pair
+        });
+
+        return normalizedEdges;
+    }
+
+    const ids = getAllSeatIDs();
+    const normalizedSeatConnectionSet = normalizeSeatConnectionSet(seatConnectionSet, ids);
+
+    return normalizedSeatConnectionSet;
+
 }
 
 async function showCountdown(time){
@@ -942,4 +995,99 @@ function connectSeats(seatA, seatB) {
             pairId: pair
         });
     }
+}
+
+function generateSeatAssignmentBacktracking(persons, edges, seatCount, nameDelimiter, lockedSeatTag) {
+
+    // Build adjacency (0-based)
+    function buildAdjacency(edges, seatCount) {
+        const adj = Array.from({ length: seatCount }, () => []);
+        for (const [a,b] of edges) {
+            const a0 = a-1, b0 = b-1;
+            if (a0 < seatCount && b0 < seatCount) {
+                adj[a0].push(b0);
+                adj[b0].push(a0);
+            }
+        }
+        return adj;
+    }
+    const adjacency = buildAdjacency(edges, seatCount);
+
+    // Flatten persons & identify clusters
+    const flatPersons = [];
+    const clusters = {};
+    persons.forEach((p, idx) => {
+        if (Array.isArray(p)) {
+            p.forEach(sub => flatPersons.push({...sub, cluster: idx}));
+            clusters[idx] = p.length;
+        } else {
+            flatPersons.push({...p, cluster:null});
+        }
+    });
+
+    const seats = Array(seatCount).fill(null);
+
+    // Place locked seats first
+    let index = 0;
+    flatPersons.forEach(p => {
+        if (p.lockedSeat) {
+            seats[index] = p;
+        }
+        index++;
+    });
+
+    // Helpers
+    function freeSeats(seats) {
+        return seats.map((s,i)=>s===null?i:null).filter(i=>i!==null);
+    }
+
+    function shuffle(arr) {
+        const copy = [...arr];
+        for(let i=copy.length-1;i>0;i--){
+            const j=Math.floor(Math.random()*(i+1));
+            [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+    }
+
+    // Place clusters on any random free edge
+    for(const clusterId in clusters){
+        const size = clusters[clusterId];
+        const members = flatPersons.filter(p=>p.cluster==clusterId);
+        if(size!==2) throw new Error("Cluster size other than 2 not yet supported");
+
+        const free = freeSeats(seats);
+
+        // collect all free seat pairs connected by edges
+        const candidatePairs = [];
+        for(let i=0;i<free.length;i++){
+            for(let j=i+1;j<free.length;j++){
+                if(adjacency[free[i]].includes(free[j])){
+                    candidatePairs.push([free[i], free[j]]);
+                }
+            }
+        }
+
+        if(candidatePairs.length===0) return null; // keine passende Kante
+
+        // pick a random pair
+        const chosenPair = candidatePairs[Math.floor(Math.random()*candidatePairs.length)];
+
+        // random order within cluster
+        const shuffledMembers = shuffle(members);
+        seats[chosenPair[0]] = shuffledMembers[0];
+        seats[chosenPair[1]] = shuffledMembers[1];
+    }
+
+    // Place remaining persons randomly
+    const remaining = flatPersons.filter(p=>!seats.includes(p));
+    const remainingSeats = shuffle(freeSeats(seats));
+    remaining.forEach((p,i)=>{
+        seats[remainingSeats[i]] = p;
+    });
+
+    // Fill empty seats with dummy objects
+    const dummyList = getNames('', nameDelimiter, lockedSeatTag);
+    const dummy = dummyList[0];
+    return seats.map(s=>s===null?{...dummy}:s);
 }
