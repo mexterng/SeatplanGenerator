@@ -75,22 +75,33 @@ function deleteRow(row){
 function confirm(){
     const rows = document.querySelectorAll('#nameTable tbody tr');
     const values = [];
+
+    function generateNameString(first, last, lockedStr) {
+        if (first && last == '') {
+            return `${first} ${lockedStr}`.trim();
+        }
+        else if (first || last) {
+            return `${last}${nameDelimiter} ${first} ${lockedStr}`.trim();
+        }
+        else {
+            return '';
+        }        
+    }
     
     rows.forEach(row => {
         const first = row.querySelector('.firstName').value.trim();
         const last = row.querySelector('.lastName').value.trim();
         const locked = row.querySelector('.lock i').classList.contains('fa-lock');
         const lockedStr = locked ? '#' : '';
-        if (first && last == '') {
-            values.push(`${first} ${lockedStr}`.trim());
+        const neighbor = row.querySelector('.neighbor') !== null;
+        const neighborFirst = neighbor ? row.querySelector('.firstName.neighbor').value.trim() : '';
+        const neighborLast = neighbor ? row.querySelector('.lastName.neighbor').value.trim() : '';
+        if (neighbor) {
+            values.push("[" + generateNameString(first, last, ''));
+            values.push(generateNameString(neighborFirst, neighborLast, '') + "]");
+        } else {
+            values.push(generateNameString(first, last, lockedStr));        
         }
-        else if (first || last) {
-            values.push(`${last}${nameDelimiter} ${first} ${lockedStr}`.trim());
-        }
-        else{
-            values.push('');
-        }
-        
     });
     // remove trailing empty values
     while (values.length > 0 && (values[values.length - 1] === "" || values[values.length - 1] == null)) {
