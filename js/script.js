@@ -698,6 +698,7 @@ function createConnectionPath() {
     p.setAttribute('stroke-width', '2');
     p.setAttribute('stroke-dasharray', '6 4');
     p.setAttribute('fill', 'none');
+    p.style.pointerEvents = "none";
     return p;
 }
 
