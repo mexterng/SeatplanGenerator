@@ -179,6 +179,17 @@ async function createSeatElement(x, y, rotate, canvas, id) {
     // Delete button event
     seat.querySelector(".del").addEventListener("click", e => {
         e.stopPropagation();
+
+        // Remove all connections related to this seat
+        fixedConnections
+            .filter(c => c.startConnector.closest('.seat') === seat || c.endConnector.closest('.seat') === seat)
+            .forEach(c => {
+                c.path.remove();       // remove SVG path
+                if (c.deleteBtn) c.deleteBtn.remove(); // remove delete button
+                seatConnectionSet.delete(c.pairId);   // remove from set
+            });
+
+        // Remove the seat
         canvas.removeChild(seat);
         seats = seats.filter(t => t.element !== seat);
         seatCountElement.value = seatCountElement.value - 1;
