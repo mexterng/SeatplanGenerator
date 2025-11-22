@@ -510,7 +510,7 @@ async function loadData() {
     }
 }
 
-function shuffleArray(array) {
+function shuffleNameswithoutPairs(array) {
     const result = [...array];
     const freeItems = result.filter(item => !item.lockedSeat);
     for (let i = freeItems.length - 1; i > 0; i--) {
@@ -557,7 +557,7 @@ async function assignNames(shuffle = true) {
     if (shuffle) {
         if (!nameListNested.some(item => Array.isArray(item))) {
             // no seat neighbors are set in name string
-            shuffledNames = shuffleArray(fullNameList);
+            shuffledNames = shuffleNameswithoutPairs(fullNameList);
         } else {
             const edges = getNormalizedSeatConnectionSet();
             const solution = generateSeatAssignmentBacktracking(
@@ -999,95 +999,111 @@ function connectSeats(seatA, seatB) {
 
 function generateSeatAssignmentBacktracking(persons, edges, seatCount, nameDelimiter, lockedSeatTag) {
 
-    // Build adjacency (0-based)
-    function buildAdjacency(edges, seatCount) {
-        const adj = Array.from({ length: seatCount }, () => []);
-        for (const [a,b] of edges) {
-            const a0 = a-1, b0 = b-1;
-            if (a0 < seatCount && b0 < seatCount) {
-                adj[a0].push(b0);
-                adj[b0].push(a0);
-            }
-        }
-        return adj;
-    }
-    const adjacency = buildAdjacency(edges, seatCount);
+    // convert edges to 0-based pairs
+    const edgePairs = edges.map(([a, b]) => [a - 1, b - 1]);
 
-    // Flatten persons & identify clusters
+    // --- Flatten persons and assign stable IDs ---
+    let idCounter = 0;
     const flatPersons = [];
-    const clusters = {};
+    const clusterIds = [];
+    const clusterMap = {};
+
     persons.forEach((p, idx) => {
         if (Array.isArray(p)) {
-            p.forEach(sub => flatPersons.push({...sub, cluster: idx}));
-            clusters[idx] = p.length;
+            clusterIds.push(idx);
+            clusterMap[idx] = [];
+
+            p.forEach(sub => {
+                const obj = { ...sub, cluster: idx, _pid: idCounter++ };
+                flatPersons.push(obj);
+                clusterMap[idx].push(obj);
+            });
+
         } else {
-            flatPersons.push({...p, cluster:null});
+            const obj = { ...p, cluster: null, _pid: idCounter++ };
+            flatPersons.push(obj);
         }
     });
+    const shuffledClusters = shuffle(clusterIds);
 
     const seats = Array(seatCount).fill(null);
 
-    // Place locked seats first
-    let index = 0;
+    // --- Place locked seats by their seat index ---
+    let index = 0
     flatPersons.forEach(p => {
         if (p.lockedSeat) {
-            seats[index] = p;
+            seats[index++] = p;
         }
-        index++;
     });
 
-    // Helpers
-    function freeSeats(seats) {
-        return seats.map((s,i)=>s===null?i:null).filter(i=>i!==null);
-    }
-
+    // --- Shuffling helper ---
     function shuffle(arr) {
         const copy = [...arr];
-        for(let i=copy.length-1;i>0;i--){
-            const j=Math.floor(Math.random()*(i+1));
+        for (let i = copy.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
             [copy[i], copy[j]] = [copy[j], copy[i]];
         }
         return copy;
     }
 
-    // Place clusters on any random free edge
-    for(const clusterId in clusters){
-        const size = clusters[clusterId];
-        const members = flatPersons.filter(p=>p.cluster==clusterId);
-        if(size!==2) throw new Error("Cluster size other than 2 not yet supported");
+    // --- Backtracking for cluster pairs ---
+    function placeCluster(idx, edgesList) {
+        if (Math.random() < 0.2) {
+            edgesList = shuffle(edgesList);
+        }
 
-        const free = freeSeats(seats);
+        if (idx >= shuffledClusters.length) return true;
 
-        // collect all free seat pairs connected by edges
-        const candidatePairs = [];
-        for(let i=0;i<free.length;i++){
-            for(let j=i+1;j<free.length;j++){
-                if(adjacency[free[i]].includes(free[j])){
-                    candidatePairs.push([free[i], free[j]]);
-                }
+        const cid = shuffledClusters[idx];
+        const members = shuffle(clusterMap[cid]);   // 2 persons expected
+        const edgesShuffled = shuffle(edgesList);
+
+        for (let e = 0; e < edgesShuffled.length; e++) {
+            const [s1, s2] = edgesShuffled[e];
+
+            if (seats[s1] === null && seats[s2] === null) {
+                seats[s1] = members[0];
+                seats[s2] = members[1];
+
+                const rest = edgesShuffled.filter((_, i) => i !== e);
+
+                if (placeCluster(idx + 1, rest)) return true;
+
+                seats[s1] = null;
+                seats[s2] = null;
             }
         }
 
-        if(candidatePairs.length===0) return null; // keine passende Kante
-
-        // pick a random pair
-        const chosenPair = candidatePairs[Math.floor(Math.random()*candidatePairs.length)];
-
-        // random order within cluster
-        const shuffledMembers = shuffle(members);
-        seats[chosenPair[0]] = shuffledMembers[0];
-        seats[chosenPair[1]] = shuffledMembers[1];
+        return false;
     }
 
-    // Place remaining persons randomly
-    const remaining = flatPersons.filter(p=>!seats.includes(p));
-    const remainingSeats = shuffle(freeSeats(seats));
-    remaining.forEach((p,i)=>{
-        seats[remainingSeats[i]] = p;
+    const shuffledEdges = shuffle(edgePairs);
+
+    // --- Try placing all clusters ---
+    if (!placeCluster(0, shuffledEdges)) {
+        return null; // impossible arrangement
+    }
+
+    // --- Collect remaining persons that are not placed ---
+    const usedIds = new Set(seats.filter(s => s !== null).map(s => s._pid));
+
+    const remaining = flatPersons.filter(p => !usedIds.has(p._pid));
+
+    // --- Fill free seats with remaining persons ---
+    const freeSeats = seats
+        .map((s, i) => s === null ? i : null)
+        .filter(i => i !== null);
+
+    const shuffledFreeSeats = shuffle(freeSeats);
+
+    const remainingShuffled = shuffle(remaining);
+    remainingShuffled.forEach((p, i) => {
+        seats[shuffledFreeSeats[i]] = p;
     });
 
-    // Fill empty seats with dummy objects
+    // --- Fill leftover seats with dummy if needed ---
     const dummyList = getNames('', nameDelimiter, lockedSeatTag);
     const dummy = dummyList[0];
-    return seats.map(s=>s===null?{...dummy}:s);
+
+    return seats.map(s => s === null ? { ...dummy } : s);
 }
