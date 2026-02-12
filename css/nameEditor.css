@@ -19,11 +19,24 @@ th,
 td {
     border: 1px solid #ccc;
     padding: 6px 8px;
-    text-align: left;
+    text-align: center;
 }
 
-td.delete-row {
+td.delete-row, td.delete-neighbor {
     cursor: pointer;
+    color: red;
+}
+
+td.seat-neighbor, th.seat-neighbor {
+    border: none;
+    white-space: nowrap;
+}
+th.seat-neighbor {
+    background-color: transparent;
+    text-align: center;
+}
+.seat-neighbor button {
+    margin: 0;
 }
 
 th {
@@ -32,13 +45,23 @@ th {
 
 th:first-of-type, td:first-of-type {
     border-right: none;
-    color: red;
     padding-right: 4px;
 }
 
 th:nth-of-type(2), td:nth-of-type(2) {
     border-left: none;
     padding-left: 4px;
+}
+
+.lock i {
+    cursor: pointer;
+}
+
+.lock.deactivate {
+    color: #aaa;
+}
+.lock.deactivate i {
+    cursor: default;
 }
 
 button {

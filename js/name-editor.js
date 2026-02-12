@@ -1,37 +1,69 @@
 var personDelimiter = ";";
 var nameDelimiter = ",";
+var lockedSeatTag = "#";
 var csvFiletext = "";
 var fields = [];
 
 window.addEventListener('DOMContentLoaded', () => {
-    const { person, name } = JSON.parse(localStorage.getItem('delimiter'));
+    const { person, name, lockedSeat} = JSON.parse(localStorage.getItem('delimiter'));
     const nameStr = localStorage.getItem('namesStr');
     personDelimiter = person;
     nameDelimiter = name;
-    initRows(nameStr);
+    lockedSeatTag = lockedSeat;
+    if (nameStr === "") {
+        addRow();
+    }else {
+        initRows(nameStr);
+    }
+    // Breite der ersten 6 Spalten ermitteln und Body anpassen
+    const table = document.getElementById('nameTable');
+    const firstRow = table.rows[0];
+    let width = 0;
+
+    for (let i = 0; i < 6; i++) {
+        width += firstRow.cells[i].offsetWidth;
+    }
+
+    document.body.style.width = width + "px";
 });
 
 function initRows(names){
-    const nameList = parseNames(names, personDelimiter, nameDelimiter);
-    nameList.forEach((person) => {
-        addRow(person.firstname, person.lastname);
+    const nameList = parseNames(names, personDelimiter, nameDelimiter, lockedSeatTag);
+    nameList.forEach((p) => {
+        if (Array.isArray(p)) {
+            addRow(p[0].firstname, p[0].lastname, false, p[1].firstname, p[1].lastname);
+        } else{
+            addRow(p.firstname, p.lastname, p.lockedSeat);
+        }
     });
 }
 
-function addRow(firstname = '', lastname = ''){
+function addRow(firstname = '', lastname = '', lockedSeat = false, neighborFirstname = '', neighborLastname = ''){
     const tbody = document.querySelector('#nameTable tbody');
     const rowCount = tbody.rows.length + 1;
     const tr = document.createElement('tr');
+    const lockIcon = lockedSeat ? 'fa-lock': 'fa-lock-open';
 
     tr.innerHTML = `
-        <td class="delete-row">&#215;</td>
-        <td class="draggable">&#x21F5;</td>
+        <td class="delete-row"><i class="fa-solid fa-trash"></i></td>
+        <td class="draggable"><i class="fa-solid fa-arrows-up-down"></i></td>
         <td class="rowCount">${rowCount}</td>
+        <td class="lock"><i class="fa-solid ${lockIcon}"></i></td>
         <td><input type="text" class="firstName" placeholder="Vorname" value="${firstname}"></td>
         <td><input type="text" class="lastName" placeholder="Nachname" value="${lastname}"></td>
     `;
+    if (neighborFirstname === '' && neighborLastname === '') {
+        addNeighborButtonTdToTr(tr);
+    } else {
+        window.resizeTo(760, window.outerHeight);
+        addNeighborInputTdsToTr(tr, neighborFirstname, neighborLastname);
+        const lock = tr.querySelector(".lock");
+        lock.classList.add('deactivate');
+    }
     tbody.appendChild(tr);
+    enableLockControls(tr);
     enableRowControls(tbody, tr);
+    updateRowNumbers();
 }
 
 
@@ -44,16 +76,37 @@ function confirm(){
     const rows = document.querySelectorAll('#nameTable tbody tr');
     const values = [];
 
+    function generateNameString(first, last, lockedStr) {
+        if (first && last == '') {
+            return `${first} ${lockedStr}`.trim();
+        }
+        else if (first || last) {
+            return `${last}${nameDelimiter} ${first} ${lockedStr}`.trim();
+        }
+        else {
+            return '';
+        }        
+    }
+    
     rows.forEach(row => {
         const first = row.querySelector('.firstName').value.trim();
         const last = row.querySelector('.lastName').value.trim();
-        if (first && last == '') {
-            values.push(`${first}`.trim());
-        }
-        else if (first || last) {
-            values.push(`${last}${nameDelimiter} ${first}`.trim());
+        const locked = row.querySelector('.lock i').classList.contains('fa-lock');
+        const lockedStr = locked ? '#' : '';
+        const neighbor = row.querySelector('.neighbor') !== null;
+        const neighborFirst = neighbor ? row.querySelector('.firstName.neighbor').value.trim() : '';
+        const neighborLast = neighbor ? row.querySelector('.lastName.neighbor').value.trim() : '';
+        if (neighbor) {
+            values.push("[" + generateNameString(first, last, ''));
+            values.push(generateNameString(neighborFirst, neighborLast, '') + "]");
+        } else {
+            values.push(generateNameString(first, last, lockedStr));        
         }
     });
+    // remove trailing empty values
+    while (values.length > 0 && (values[values.length - 1] === "" || values[values.length - 1] == null)) {
+        values.pop(); // remove last element
+    }
 
     const result = values.join(personDelimiter + ' ');
 
@@ -221,9 +274,105 @@ function enableRowControls(tbody, row) {
     });
 }
 
+function enableLockControls(tr) {
+    const lock = tr.querySelector(".lock");
+    const lockIcon = tr.querySelector(".lock i");
+    lockIcon.addEventListener('click', () => {
+        if(lock.classList.contains('deactivate')) return;
+        if (lockIcon.classList.contains('fa-lock-open')) {
+            lockIcon.classList.remove('fa-lock-open');
+            lockIcon.classList.add('fa-lock');
+        } else {
+            lockIcon.classList.remove('fa-lock');
+            lockIcon.classList.add('fa-lock-open');
+        }
+    });
+}
+
+// seat neighbor
+
+function addNeighborButtonTdToTr(tr){
+    tr.appendChild(createNeighborButtonTd());
+    const neighborBtn = tr.querySelector(".seat-neighbor button");
+    addEventListenerNeighborButton(tr, neighborBtn);
+}
+function createNeighborButtonTd(){
+    const neighborTd = document.createElement('td');
+    neighborTd.classList.add("seat-neighbor");
+    neighborTd.colSpan ="3";
+    neighborTd.innerHTML = '<button class="secondary"><i class="fa-solid fa-plus"></i> Sitznachbar</button>';
+    return neighborTd;
+}
+
+function addNeighborInputTdsToTr(tr, firstname = '', lastname = ''){
+    const tds = createNeighborInputTds(tr, firstname, lastname);
+    tds.forEach(td => {
+        tr.appendChild(td);
+    });
+    updateRowNumbers();
+}
+function createNeighborInputTds(tr, firstname = '', lastname = ''){
+    const rowCountNeighborTd = document.createElement('td');
+    rowCountNeighborTd.classList.add('rowCount');
+
+    const firstNameNeighborTd = document.createElement('td');
+    firstNameNeighborTd.innerHTML = `<input type="text" class="firstName neighbor" placeholder="Vorname" value="${firstname}">`;
+
+    const lastNameNeighborTd = document.createElement('td');
+    lastNameNeighborTd.innerHTML = `<input type="text" class="lastName neighbor" placeholder="Nachname" value="${lastname}">`;
+
+    const deleteNeighborTd = document.createElement('td');
+    deleteNeighborTd.classList.add('delete-neighbor');
+    deleteNeighborTd.innerHTML = '<i class="fa-solid fa-circle-minus"></i>';
+
+    
+
+    const deleteNeighborBtn = deleteNeighborTd.querySelector('i');
+    const newTds = {rowCountNeighborTd, firstNameNeighborTd, lastNameNeighborTd, deleteNeighborTd};
+    addEventListenerNeighborInputs(tr, newTds, deleteNeighborBtn);
+
+    return Object.values(newTds);;
+}
+function addEventListenerNeighborInputs(tr, newTds, elem) {
+    elem.addEventListener('click', () => {
+        newTds.rowCountNeighborTd.remove();
+        newTds.firstNameNeighborTd.remove();
+        newTds.lastNameNeighborTd.remove();
+        newTds.deleteNeighborTd.remove();
+        updateRowNumbers();
+
+        addNeighborButtonTdToTr(tr);
+        const lock = tr.querySelector(".lock");
+        lock.classList.remove('deactivate');
+    });
+}
+
+
+function addEventListenerNeighborButton(tr, elem) {
+    const seatNeighbor = tr.querySelector(".seat-neighbor");
+    const lock = tr.querySelector(".lock");
+    const lockIcon = tr.querySelector(".lock i");
+    elem.addEventListener('click', () => {
+        lockIcon.classList.remove('fa-lock-open');
+        lockIcon.classList.remove('fa-lock');
+        lockIcon.classList.add('fa-lock-open');
+        lock.classList.add('deactivate');
+        elem.remove();
+        seatNeighbor.remove();
+        
+        // new seat neighbor
+        window.resizeTo(760, window.outerHeight);
+
+        addNeighborInputTdsToTr(tr);
+    });
+}
+
 // Update numbering in column "#"
 function updateRowNumbers() {
-    document.querySelectorAll("#nameTable tbody tr").forEach((row, idx) => {
-        row.querySelector(".rowCount").textContent = idx + 1;
+    let idx = 1;
+    document.querySelectorAll("#nameTable tbody tr").forEach(row => {
+        row.querySelectorAll(".rowCount").forEach(cell => {
+            cell.textContent = idx ++;
+        });
     });
 }
