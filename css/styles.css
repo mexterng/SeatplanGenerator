@@ -230,6 +230,9 @@
   .left-0 {
     left: calc(var(--spacing) * 0);
   }
+  .z-40 {
+    z-index: 40;
+  }
   .z-50 {
     z-index: 50;
   }
@@ -250,6 +253,12 @@
     @media (width >= 96rem) {
       max-width: 96rem;
     }
+  }
+  .mx-6 {
+    margin-inline: calc(var(--spacing) * 6);
+  }
+  .my-4 {
+    margin-block: calc(var(--spacing) * 4);
   }
   .mt-0 {
     margin-top: calc(var(--spacing) * 0);
@@ -329,8 +338,14 @@
   .min-h-8 {
     min-height: calc(var(--spacing) * 8);
   }
+  .w-1\/2 {
+    width: calc(1/2 * 100%);
+  }
   .w-16 {
     width: calc(var(--spacing) * 16);
+  }
+  .w-24 {
+    width: calc(var(--spacing) * 24);
   }
   .w-80 {
     width: calc(var(--spacing) * 80);
@@ -344,8 +359,23 @@
   .w-full {
     width: 100%;
   }
+  .w-max {
+    width: max-content;
+  }
+  .min-w-16 {
+    min-width: calc(var(--spacing) * 16);
+  }
+  .min-w-\[350px\] {
+    min-width: 350px;
+  }
+  .min-w-full {
+    min-width: 100%;
+  }
   .flex-1 {
     flex: 1;
+  }
+  .border-collapse {
+    border-collapse: collapse;
   }
   .transform {
     transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
@@ -440,6 +470,10 @@
     --tw-border-style: dashed;
     border-style: dashed;
   }
+  .border-none {
+    --tw-border-style: none;
+    border-style: none;
+  }
   .border-slate-300 {
     border-color: var(--color-slate-300);
   }
@@ -451,6 +485,9 @@
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-black) 50%, transparent);
     }
+  }
+  .bg-slate-300 {
+    background-color: var(--color-slate-300);
   }
   .bg-white {
     background-color: var(--color-white);
@@ -681,7 +718,6 @@ input:checked+.slider:before {
 }
 button {
   color: var(--color-font-black);
-  display: block;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   border-radius: 0.5rem;
@@ -716,13 +752,13 @@ button.hidden {
 .btn-important:hover {
   background-color: var(--color-important-hover);
 }
-input, textarea {
+input, select, textarea {
   font-family: 'Segoe UI', Tahoma, sans-serif;
   border-width: 1px;
   border-radius: 0.5rem;
   border-color: var(--color-slate-400);
 }
-input {
+input, select {
   padding: 0.25rem 0.5rem;
 }
 input[type="checkbox"] {

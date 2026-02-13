@@ -150,7 +150,6 @@ input:checked+.slider:before {
    =============================== */
 button {
     color: var(--color-font-black);
-    display: block;
     gap: 0.5rem;
     padding: 0.5rem 0.75rem;
     border-radius: 0.5rem;
@@ -197,6 +196,7 @@ button.hidden {
    Inputs
    =============================== */
 input,
+select,
 textarea {
     font-family: 'Segoe UI', Tahoma, sans-serif;
     border-width: 1px;
@@ -204,7 +204,7 @@ textarea {
     border-color: var(--color-slate-400);
 }
 
-input {
+input, select {
     padding: 0.25rem 0.5rem;
 }
 

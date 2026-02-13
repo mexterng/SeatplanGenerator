@@ -1,67 +1,74 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" class="min-w-full w-max">
 
 <head>
-  <meta charset="utf-8" />
-  <title>Namen bearbeiten</title>
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="css/nameEditor.css">
-  <link rel="stylesheet" href="libs/fontawesome/css/all.min.css?v=7.1.0">
+    <meta charset="utf-8" />
+    <title>Namen bearbeiten</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/nameEditor.css">
+    <link rel="stylesheet" href="libs/fontawesome/css/all.min.css?v=7.1.0">
 </head>
 
-<body>
-  <h1>Namen bearbeiten</h1>
-  <button onclick="startCsvImport()" class="primary" id="openCsvPopUp"><i class="fa-solid fa-file-import"></i> Namen aus csv-Datei importieren</button>
-  <input type="file" id="csvImportFile" accept=".csv" style="display:none;">
-  <div id="importOverlay" style="display:none;">
-    <div id="import-popup">
-      <h3 id="import-popup-header">CSV Import</h3>
-      <p>Ordnen Sie jeweils die richtige Spalte der csv-Datei zu oder wählen Sie "---".</p>
-      <div id="fields">
-        <div class="field-row">
-          <label for="firstnameSelect">Vorname:</label>
-          <select id="firstnameSelect">
-          </select>
+<body class="mx-6 my-4 text-slate-900 flex flex-col gap-4">
+    <h1>Namen bearbeiten</h1>
+    <button id="openCsvPopUp" class="btn-primary" onclick="startCsvImport()">
+        <i class="fa-solid fa-file-import"></i> Namen aus csv-Datei importieren
+    </button>
+    <input id="csvImportFile" class="hidden" type="file" accept=".csv">
+    <div id="importOverlay" class="fixed inset-0 bg-black/50 flex justify-center items-center z-40 hidden">
+        <div class="bg-white px-6 py-4 text-slate-900 rounded-lg w-1/2 min-w-[350px]">
+            <h3>CSV Import</h3>
+            <div class=" flex flex-col gap-2">
+                <p>Ordnen Sie jeweils die richtige Spalte der csv-Datei zu oder wählen Sie "---".</p>
+                <div class="flex items-center">
+                    <label class="w-24">Vorname:</label>
+                    <select id="firstnameSelect" class="flex-1 min-w-16">
+                    </select>
+                </div>
+
+                <div class="flex items-center">
+                    <label class="w-24">Nachname:</label>
+                    <select id="lastnameSelect" class=" flex-1 min-w-16">
+                    </select>
+                </div>
+                <div class="flex justify-between">
+                    <button id="cancelImportBtn" class="btn-secondary">Abbrechen</button>
+                    <button id="importCsvBtn" class="btn-primary">Importieren</button>
+                </div>
+            </div>
         </div>
-
-        <div class="field-row">
-          <label for="lastnameSelect">Nachname:</label>
-          <select id="lastnameSelect">
-          </select>
-        </div>
-      </div>
-      <div id="import-button-section">
-        <button id="importCsvBtn" class="import-btn primary">Importieren</button>
-        <button id="cancelImportBtn" class="import-btn cancel secondary">Abbrechen</button>
-      </div>
     </div>
-  </div>
 
-  <table id="nameTable">
-    <thead>
-      <tr>
-        <th></th>
-        <th></th>
-        <th>#</th>
-        <th><i class="fa-solid fa-anchor-lock"></i></th>
-        <th>Vorname</th>
-        <th>Nachname</th>
-        <th colspan="3" class="seat-neighbor">Sitznachbar</th>
-      </tr>
-    </thead>
-    <tbody>
-    </tbody>
-  </table>
+    <table id="nameTable" class="border-collapse">
+        <thead>
+            <tr>
+                <th class="bg-slate-300"></th>
+                <th class="bg-slate-300"></th>
+                <th class="bg-slate-300">#</th>
+                <th class="bg-slate-300"><i class="fa-solid fa-anchor-lock"></i></th>
+                <th class="bg-slate-300">Vorname</th>
+                <th class="bg-slate-300">Nachname</th>
+                <th colspan="3" class="border-none">Sitznachbar</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
 
-  <div class="controls">
-    <button onclick="addRow()" class="secondary" id="addRowBtn"><i class="fa-solid fa-plus"></i> Zeile hinzufügen</button>
-    <div id="navigation">
-      <button onclick="confirm()" class="primary" id="okBtn">Bestätigen</button>
-      <button onclick="cancel()" class="secondary" id="cancelBtn">Abbrechen</button>
+    <button id="addRowBtn" class="btn-primary" onclick="addRow()">
+        <i class="fa-solid fa-plus"></i> Zeile hinzufügen
+    </button>
+    <div class="flex justify-between">
+        <button id="cancelBtn" class="btn-secondary" onclick="cancel()">
+            Abbrechen
+        </button>
+        <button id="okBtn" class="btn-important" onclick="confirm()">
+            Bestätigen
+        </button>
     </div>
-  </div>
 
-  <script src="js/general.js"></script>
-  <script src="js/name-editor.js"></script>
+    <script src="js/general.js"></script>
+    <script src="js/name-editor.js"></script>
 </body>
+
 </html>

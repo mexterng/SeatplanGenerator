@@ -4,6 +4,19 @@ var lockedSeatTag = "#";
 var csvFiletext = "";
 var fields = [];
 
+function resizeBody() {
+    const table = document.getElementById('nameTable');
+    const firstRow = table.rows[0];
+    let width = 0;
+    
+    document.body.style.width = "0px";
+    for (let i = 0; i < 6; i++) {
+        width += firstRow.cells[i].offsetWidth;
+    }
+
+    document.body.style.width = width + "px";
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     const { person, name, lockedSeat} = JSON.parse(localStorage.getItem('delimiter'));
     const nameStr = localStorage.getItem('namesStr');
@@ -15,16 +28,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }else {
         initRows(nameStr);
     }
-    // Breite der ersten 6 Spalten ermitteln und Body anpassen
-    const table = document.getElementById('nameTable');
-    const firstRow = table.rows[0];
-    let width = 0;
-
-    for (let i = 0; i < 6; i++) {
-        width += firstRow.cells[i].offsetWidth;
-    }
-
-    document.body.style.width = width + "px";
+    resizeBody();
 });
 
 function initRows(names){
@@ -64,12 +68,14 @@ function addRow(firstname = '', lastname = '', lockedSeat = false, neighborFirst
     enableLockControls(tr);
     enableRowControls(tbody, tr);
     updateRowNumbers();
+    resizeBody();
 }
 
 
 function deleteRow(row){
     row.remove();
     updateRowNumbers();
+    resizeBody();
 }
 
 function confirm(){
@@ -300,7 +306,7 @@ function createNeighborButtonTd(){
     const neighborTd = document.createElement('td');
     neighborTd.classList.add("seat-neighbor");
     neighborTd.colSpan ="3";
-    neighborTd.innerHTML = '<button class="secondary"><i class="fa-solid fa-plus"></i> Sitznachbar</button>';
+    neighborTd.innerHTML = '<button class="btn-secondary"><i class="fa-solid fa-plus"></i> Sitznachbar</button>';
     return neighborTd;
 }
 
