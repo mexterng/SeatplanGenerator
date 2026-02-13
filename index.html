@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 
-<body class="bg-background-light text-slate-900 h-full flex flex-col">
-    <header class="border-b border-slate-400 bg-background-light px-6 py-4 flex items-center justify-between">
+<body class="text-slate-900 h-full flex flex-col">
+    <header class="border-b border-slate-400 px-6 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
             <h1>Sitzplangenerator</h1>
         </div>
@@ -22,7 +22,7 @@
         </div>
     </header>
     <div class="flex flex-1 overflow-hidden">
-        <aside class="w-80 border-r border-slate-400 bg-background-light flex flex-col">
+        <aside class="w-80 border-r border-slate-400 flex flex-col">
             <div class="flex-1 overflow-y-auto space-y-8 p-6">
                 <section class="space-y-4">
                     <h2>Konfiguration</h2>
@@ -30,10 +30,10 @@
                         <label class="block text-sm font-medium text-slate-700">Anzahl Sitzplätze</label>
                         <div class="flex gap-2">
                             <input id="seatCount" class="w-16" type="number" value="0" min="1">
-                            <button onclick="createSeats()" class="btnOLD btn-primary flex-1">
+                            <button onclick="createSeats()" class="btn-primary flex-1">
                                 <i class="fa-solid fa-object-ungroup"></i> Sitzplätze neu zeichnen
                             </button>
-                            <button onclick="clearSeats()" class="btnOLD btn-secondary flex-1 hidden" id="clear-seats">
+                            <button onclick="clearSeats()" class="btn-secondary flex-1 hidden" id="clear-seats">
                                 <i class="fa-solid fa-eraser"></i> Sitzplätze leeren
                             </button>
                         </div>
@@ -54,21 +54,21 @@
                 </section>
                 <section class="space-y-2">
                     <h2>Aktionen</h2>
-                    <button onclick="assignNames(false)" class="btnOLD btn-important w-full">
+                    <button onclick="assignNames(false)" class="btn-important w-full">
                         <i class="fa-solid fa-arrows-down-to-people"></i>
                             Namen übertragen
                     </button>
-                    <button onclick="assignNames()" class="btnOLD btn-important w-full">
+                    <button onclick="assignNames()" class="btn-important w-full">
                         <i class="fa-solid fa-shuffle"></i>
                             Sitzplätze auslosen
                     </button>
-                    <button onclick="saveSeats()" class="btnOLD btn-secondary w-full">
+                    <button onclick="saveSeats()" class="btn-secondary w-full">
                         <i class="fa-solid fa-floppy-disk"></i> Sitzplätze in Browser speichern
                     </button>
-                    <button onclick="saveNames()" class="btnOLD btn-secondary w-full">
+                    <button onclick="saveNames()" class="btn-secondary w-full">
                         <i class="fa-solid fa-floppy-disk"></i> Namen in Browser speichern
                     </button>
-                    <button onclick="deleteLocalStorage()" class="btnOLD btn-secondary w-full">
+                    <button onclick="deleteLocalStorage()" class="btn-secondary w-full">
                         <i class="fa-solid fa-trash"></i> Browser-Speicher löschen
                     </button>
                 </section>
@@ -85,32 +85,32 @@
                             <h2>Import/Export</h2>
                             <input id="importFile" type="file" accept=".json" class="hidden">
                             <div class="flex gap-2">
-                                <button onclick="importSeats()" class="btnOLD btn-secondary w-full">
+                                <button onclick="importSeats()" class="btn-secondary w-full">
                                     <i class="fa-solid fa-file-import"></i> Sitzplätze importieren
                                 </button>
-                                <button onclick="exportSeats()" class="btnOLD btn-primary w-full">
+                                <button onclick="exportSeats()" class="btn-primary w-full">
                                     <i class="fa-solid fa-download"></i> Sitzplätze exportieren</button>
                             </div>
                             <div class="flex gap-2">
-                                <button onclick="importNames()" class="btnOLD btn-secondary w-full">
+                                <button onclick="importNames()" class="btn-secondary w-full">
                                     <i class="fa-solid fa-file-import"></i> Namen importieren</button>
-                                <button onclick="exportNames()" class="btnOLD btn-primary w-full">
+                                <button onclick="exportNames()" class="btn-primary w-full">
                                     <i class="fa-solid fa-download"></i> Namen exportieren</button>
                             </div>
                         </section>
                         <section class="space-y-4">
                             <h2>Feste Elemente</h2>
                             <div class="flex gap-2">
-                                <button onclick="addFixedElement('desk')" class="btnOLD btn-primary w-full">
+                                <button onclick="addFixedElement('desk')" class="btn-primary w-full">
                                     <i class="fa-solid fa-briefcase"></i><br/>Pult
                                 </button>
-                                <button onclick="addFixedElement('board')" class="btnOLD btn-primary w-full">
+                                <button onclick="addFixedElement('board')" class="btn-primary w-full">
                                     <i class="fa-solid fa-chalkboard"></i><br/>Tafel
                                 </button>
-                                <button onclick="addFixedElement('door')" class="btnOLD btn-primary w-full">
+                                <button onclick="addFixedElement('door')" class="btn-primary w-full">
                                     <i class="fa-solid fa-door-open"></i><br/>Tür
                                 </button>
-                                <button onclick="addFixedElement('window')" class="btnOLD btn-primary w-full">
+                                <button onclick="addFixedElement('window')" class="btn-primary w-full">
                                     <i class="fa-solid fa-table"></i><br/>Fenster
                                 </button>
                             </div>
@@ -146,13 +146,13 @@
             </div>
         </aside>
 
-        <main id="workspace" class="flex-1 bg-background-light p-6 overflow-auto">
+        <main id="workspace" class="flex-1 p-6 overflow-auto">
             <div class="relative w-full h-full">
                 <div id="canvas" class="w-full h-full border-2 border-dashed border-slate-300 rounded-2xl canvas-dot-grid relative flex items-center justify-center overflow-hidden"></div>
 
                 <svg id="connection-layer" class="absolute top-0 left-0 w-full h-full invisible pointer-events-none"></svg>
 
-                <button id="exportBtn" class="btnOLD btn-primary absolute top-4 right-4">
+                <button id="exportBtn" class="btn-primary absolute top-4 right-4">
                     <i class="fa-solid fa-download"></i> PDF Export
                 </button>
             </div>
@@ -183,8 +183,8 @@
                     </label>
                     
                     <div class="flex justify-between">
-                        <button id="exportPdfBtn" class="btnOLD btn-primary">Exportieren</button>
-                        <button id="cancelExportBtn" class="btnOLD btn-secondary">Abbrechen</button>
+                        <button id="exportPdfBtn" class="btn-primary">Exportieren</button>
+                        <button id="cancelExportBtn" class="btn-secondary">Abbrechen</button>
                     </div>
                 </div>
             </div>
