@@ -1,12 +1,12 @@
 :root {
     /* Primary Colors */
-    --color-important: #BF1A2F;
-    --color-primary: #2b81be;
-    --color-primary-dark: #0067aa;
-    --color-secondary: #8ccbf7;
-    --color-secondary-dark: #005d93;
-    --color-seat-bg: #eee;
-    --color-fix-bg: #ccc;
+    --important: #BF1A2F;
+    --primary: #2b81be;
+    --primary-dark: #0067aa;
+    --secondary: #8ccbf7;
+    --secondary-dark: #005d93;
+    --seat-bg: #eee;
+    --fix-bg: #ccc;
 }
 
 body {
@@ -65,7 +65,7 @@ code {
 }
 .input {
   padding: 2px 6px;
-  border: 1px solid var(--color-primary);
+  border: 1px solid var(--primary);
   border-radius: 6px;
 }
 
@@ -73,7 +73,7 @@ code {
    Button Styles
    =============================== */
 button {
-    background-color: var(--color-secondary);
+    background-color: var(--secondary);
     color: white;
     border: none;
     border-radius: 8px;
@@ -85,19 +85,19 @@ button {
 
 
 .important {
-    background: var(--color-important) !important;
+    background: var(--important) !important;
 }
 
 button.primary {
-    background: var(--color-primary);
+    background: var(--primary);
     box-shadow: 0 3px 5px rgba(0,0,0,0.2);
     color: white;
 }
 
 button.secondary {
-    background: var(--color-secondary);
+    background: var(--secondary);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    color: var(--color-secondary-dark);
+    color: var(--secondary-dark);
 }
 
 /* Kleinere Varianten (z. B. Icons) */

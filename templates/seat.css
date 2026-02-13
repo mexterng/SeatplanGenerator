@@ -13,6 +13,7 @@
     touch-action: none;
     font-size: small;
     transform-origin: center center;
+    user-select: none;
 }
 
 .seat-name {

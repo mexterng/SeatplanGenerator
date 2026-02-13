@@ -1,121 +1,194 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" class="h-full">
 
 <head>
     <meta charset="UTF-8">
     <title>Sitzplangenerator</title>
-    <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="libs/fontawesome/css/all.min.css?v=7.1.0">
+    <!-- <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script> <!-- DEV -->
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 
-<body>
-    <div id="header">
-        <h1>
-            Sitzplangenerator
-            <a href="help.html" style="display:inline-block; cursor:pointer;" title="Benutzungsanleitung">
-                <div id="help-icon"><i class="fa-solid fa-circle-info"></i></div>
+<body class="bg-background-light text-slate-900 h-full flex flex-col">
+    <header class="border-b border-slate-400 bg-background-light px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <h1>Sitzplangenerator</h1>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <a href="help.html" class="cursor-pointer text-slate-500 hover:text-slate-800" title="Benutzungsanleitung">
+                <i class="fa-solid fa-lightbulb text-xl"></i>
             </a>
-        </h1>
-        <div id="control-section">
-            <div id="primary-controls">
-                <div class="controls secondary">
-                    Anzahl Sitzplätze: <input type="number" id="seatCount" value="0" min="1">
-                    <button onclick="createSeats()"><i class="fa-solid fa-object-ungroup"></i> Sitzplätze neu zeichnen</button>
-                    <button id="clear-seats" onclick="clearSeats()" style="display: none;"><i class="fa-solid fa-eraser"></i> Sitzplätze leeren</button><br><br>
-
-                    Namen (semikolon-getrennt): <input type="text" id="namesInput" size="50">
-                    <div id="edit-icon"><i class="fa-solid fa-pen-to-square"></i></div><br><br>
-                    
-                    <button onclick="saveSeats()"><i class="fa-solid fa-floppy-disk"></i> Sitzplätze speichern</button>
-                    <button onclick="saveNames()"><i class="fa-solid fa-floppy-disk"></i> Namen speichern</button>
-                    <button onclick="deleteLocalStorage()"><i class="fa-solid fa-trash"></i> Speicher löschen</button>
-                </div>
-                <div class="controls primary">
-                    <button onclick="assignNames(false)" class="important"><i class="fa-solid fa-arrows-down-to-people"></i> Namen übertragen</button>
-                    <button onclick="assignNames()" class="important"><i class="fa-solid fa-shuffle"></i> Sitzplätze auslosen</button>
-                    <button id="exportBtn"><i class="fa-solid fa-download"></i> PDF Export</button>
-                </div>
-            </div>
-            <div class="advanced-container">
-                <div class="advanced-header">
-                    <h3>Erweiterter Modus</h3>
-                    <label class="switch">
-                        <input type="checkbox" id="advanced-toggle">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div id="advanced-controls">
-                    <div id="import-export" class="controls">
-                        <input type="file" id="importFile" accept=".json" style="display:none;">
-                        <button onclick="importSeats()" class="secondary"><i class="fa-solid fa-file-import"></i> Sitzplätze importieren</button>
-                        <button onclick="importNames()" class="secondary"><i class="fa-solid fa-file-import"></i> Namen importieren</button>
-                        <button onclick="exportSeats()" class="primary"><i class="fa-solid fa-download"></i> Sitzplätze exportieren</button>
-                        <button onclick="exportNames()" class="primary"><i class="fa-solid fa-download"></i> Namen exportieren</button>
-                    </div>
-                    <div class="controls secondary">
-                        <div>Feste Elemente hinzufügen:    
-                            <button onclick="addFixedElement('desk')"><i class="fa-solid fa-briefcase"></i> Pult</button>
-                            <button onclick="addFixedElement('board')"><i class="fa-solid fa-chalkboard"></i> Tafel</button>
-                            <button onclick="addFixedElement('door')"><i class="fa-solid fa-door-open"></i> Tür</button>
-                            <button onclick="addFixedElement('window')"><i class="fa-solid fa-table"></i> Fenster</button>
+        </div>
+    </header>
+    <div class="flex flex-1 overflow-hidden">
+        <aside class="w-80 border-r border-slate-400 bg-background-light flex flex-col">
+            <div class="flex-1 overflow-y-auto space-y-8 p-6">
+                <section class="space-y-4">
+                    <h2>Konfiguration</h2>
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-slate-700">Anzahl Sitzplätze</label>
+                        <div class="flex gap-2">
+                            <input id="seatCount" class="w-16" type="number" value="0" min="1">
+                            <button onclick="createSeats()" class="btnOLD btn-primary flex-1">
+                                <i class="fa-solid fa-object-ungroup"></i> Sitzplätze neu zeichnen
+                            </button>
+                            <button onclick="clearSeats()" class="btnOLD btn-secondary flex-1 hidden" id="clear-seats">
+                                <i class="fa-solid fa-eraser"></i> Sitzplätze leeren
+                            </button>
                         </div>
                     </div>
-                    <div class="controls">
-                        Countdown bei Auslosung aktivieren:
-                        <input type="checkbox" id="countdown-checkbox">
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-slate-700 flex items-center gap-1">
+                            Namen <span class="text-slate-400 text-xs font-normal">(semikolon-getrennt)</span>
+                        </label>
+                        <div class="relative">
+                            <textarea id="namesInput" class="flex w-full min-h-8 h-8 justify-center px-2 pr-7" placeholder="Antonia; Bernd; Caspar ..." rows="4"></textarea>
+                            <span id="edit-icon" class="absolute bottom-1.5 right-1.5 pl-2 cursor-pointer">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </span>
+                        </div>
+
                     </div>
-                    <div class="controls">
-                        Sitzplatznummern anzeigen:
-                        <input type="checkbox" id="seatNumber-checkbox">
+                </section>
+                <section class="space-y-2">
+                    <h2>Aktionen</h2>
+                    <button onclick="assignNames(false)" class="btnOLD btn-important w-full">
+                        <i class="fa-solid fa-arrows-down-to-people"></i>
+                            Namen übertragen
+                    </button>
+                    <button onclick="assignNames()" class="btnOLD btn-important w-full">
+                        <i class="fa-solid fa-shuffle"></i>
+                            Sitzplätze auslosen
+                    </button>
+                    <button onclick="saveSeats()" class="btnOLD btn-secondary w-full">
+                        <i class="fa-solid fa-floppy-disk"></i> Sitzplätze in Browser speichern
+                    </button>
+                    <button onclick="saveNames()" class="btnOLD btn-secondary w-full">
+                        <i class="fa-solid fa-floppy-disk"></i> Namen in Browser speichern
+                    </button>
+                    <button onclick="deleteLocalStorage()" class="btnOLD btn-secondary w-full">
+                        <i class="fa-solid fa-trash"></i> Browser-Speicher löschen
+                    </button>
+                </section>
+                <div class="space-y-2">
+                    <section class="flex justify-between">
+                        <h2 class="h2-bold">Erweiterte Funktionen</h2>
+                        <label class="switch">
+                            <input type="checkbox" id="advanced-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </section>
+                    <div id="advanced-controls" class="space-y-8 hidden">
+                        <section class="space-y-4">
+                            <h2>Import/Export</h2>
+                            <input id="importFile" type="file" accept=".json" class="hidden">
+                            <div class="flex gap-2">
+                                <button onclick="importSeats()" class="btnOLD btn-secondary w-full">
+                                    <i class="fa-solid fa-file-import"></i> Sitzplätze importieren
+                                </button>
+                                <button onclick="exportSeats()" class="btnOLD btn-primary w-full">
+                                    <i class="fa-solid fa-download"></i> Sitzplätze exportieren</button>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="importNames()" class="btnOLD btn-secondary w-full">
+                                    <i class="fa-solid fa-file-import"></i> Namen importieren</button>
+                                <button onclick="exportNames()" class="btnOLD btn-primary w-full">
+                                    <i class="fa-solid fa-download"></i> Namen exportieren</button>
+                            </div>
+                        </section>
+                        <section class="space-y-4">
+                            <h2>Feste Elemente</h2>
+                            <div class="flex gap-2">
+                                <button onclick="addFixedElement('desk')" class="btnOLD btn-primary w-full">
+                                    <i class="fa-solid fa-briefcase"></i><br/>Pult
+                                </button>
+                                <button onclick="addFixedElement('board')" class="btnOLD btn-primary w-full">
+                                    <i class="fa-solid fa-chalkboard"></i><br/>Tafel
+                                </button>
+                                <button onclick="addFixedElement('door')" class="btnOLD btn-primary w-full">
+                                    <i class="fa-solid fa-door-open"></i><br/>Tür
+                                </button>
+                                <button onclick="addFixedElement('window')" class="btnOLD btn-primary w-full">
+                                    <i class="fa-solid fa-table"></i><br/>Fenster
+                                </button>
+                            </div>
+                        </section>
+                        <section class="space-y-4">
+                            <h2>Anzeigeoptionen</h2>
+                            <label class="flex w-fit items-center gap-3 text-sm text-slate-700 cursor-pointer">
+                                <input id="seatNumber-checkbox" type="checkbox">
+                                Sitzplatznummern anzeigen
+                            </label>
+                            <label class="flex w-fit items-center gap-3 text-sm text-slate-700 cursor-pointer">
+                                <input id="seatConnector-checkbox" type="checkbox">
+                                Sitzplatzverbindungen anzeigen
+                            </label>
+                            <label class="flex w-fit items-center gap-3 text-sm text-slate-700 cursor-pointer">
+                                <input id="countdown-checkbox" type="checkbox">
+                                Countdown bei Auslosung anzeigen
+                            </label>
+                        </section>
                     </div>
-                    <div class="controls">
-                        Sitzplatzverbindungen aktivieren:
-                        <input type="checkbox" id="seatConnector-checkbox">
+                </div>
+            </div>
+            <div class="border-t border-slate-300 px-6 py-4 flex justify-between text-xs">
+                <a href="impressum.html" class="text-slate-400 hover:text-slate-500">
+                    Impressum
+                </a>
+                <a href="datenschutz.html" class="text-slate-400 hover:text-slate-500">
+                    Datenschutzerklärung
+                </a>
+                <a href="https://github.com/mexterng/SeatplanGenerator" class="text-slate-400 hover:text-slate-500">
+                    Quellcode
+                </a>
+            </div>
+        </aside>
+
+        <main id="workspace" class="flex-1 bg-background-light p-6 overflow-auto">
+            <div class="relative w-full h-full">
+                <div id="canvas" class="w-full h-full border-2 border-dashed border-slate-300 rounded-2xl canvas-dot-grid relative flex items-center justify-center overflow-hidden"></div>
+
+                <svg id="connection-layer" class="absolute top-0 left-0 w-full h-full invisible pointer-events-none"></svg>
+
+                <button id="exportBtn" class="btnOLD btn-primary absolute top-4 right-4">
+                    <i class="fa-solid fa-download"></i> PDF Export
+                </button>
+            </div>
+        </main>
+
+        <div id="exportOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden">
+            <div class="bg-white p-5 rounded-lg w-[350px] shadow-lg">
+                <h3 class="mt-0 mb-3 text-lg font-semibold">PDF Export</h3>
+                <div class="flex flex-col gap-4">
+                    <label>
+                        Name der Klasse:<br>
+                        <input type="text" id="className" class="w-full">
+                    </label>
+
+                    <label>
+                        Stand:<br>
+                        <input type="date" id="dateFrom" class="w-full">
+                    </label>
+
+                    <label>
+                        Gültig bis:<br>
+                        <input type="date" id="dateTo" class="w-full">
+                    </label>
+
+                    <label>
+                        Name der Lehrkraft:<br>
+                        <input type="text" id="teacherName" class="w-full">
+                    </label>
+                    
+                    <div class="flex justify-between">
+                        <button id="exportPdfBtn" class="btnOLD btn-primary">Exportieren</button>
+                        <button id="cancelExportBtn" class="btnOLD btn-secondary">Abbrechen</button>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div id="canvas"></div>
-
-    <svg id="connection-layer" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0;"></svg>
-
-
-    <div id="exportOverlay" class="export-overlay" style="display: none;">
-        <div class="export-popup">
-            <h3 class="export-popup-header">PDF Export</h3>
-
-            <label>
-            Name der Klasse:<br>
-            <input type="text" id="className" class="export-input">
-            </label><br><br>
-
-            <label>
-            Stand:<br>
-            <input type="date" id="dateFrom" class="export-input">
-            </label><br><br>
-
-            <label>
-            Gültig bis:<br>
-            <input type="date" id="dateTo" class="export-input">
-            </label><br><br>
-
-            <label>
-            Name der Lehrkraft:<br>
-            <input type="text" id="teacherName" class="export-input">
-            </label><br><br>
-
-            <div class="export-button-section">
-                <button id="exportPdfBtn" class="export-btn primary">Exportieren</button>
-                <button id="cancelExportBtn" class="export-btn cancel secondary">Abbrechen</button>
-            </div>
-
-        </div>
-    </div>
-
-    <div id="footer">
-        <a href="impressum.html">Impressum</a> & <a href="datenschutz.html">Datenschutzerklärung</a>  & <a href="https://github.com/mexterng/SeatplanGenerator">Quellcode</a>
     </div>
 
     <script src="libs/html2canvas.min.js?v=1.4.1"></script>

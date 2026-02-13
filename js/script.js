@@ -408,6 +408,13 @@ document.addEventListener('mouseup', e => {
     dragBlockedSeat = null; // reset reference
 });
 
+function getMousePosInSVG(svg, evt) {
+    const pt = svg.createSVGPoint();
+    pt.x = evt.clientX;
+    pt.y = evt.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+
 function getSeatData(){
     return seats.map(t => {
         const transform = t.element.style.transform || 'rotate(0deg)';
@@ -953,23 +960,34 @@ function buildBezierPath(x1, y1, x2, y2) {
 }
 
 function updateConnectionDynamic(startEl, mouseX, mouseY, pathEl) {
+    const svg = document.getElementById('connection-layer');
+    const mousePos = getMousePosInSVG(svg, { clientX: mouseX, clientY: mouseY });
+    
     const a = startEl.getBoundingClientRect();
     const startX = a.left + a.width / 2;
     const startY = a.top + a.height / 2;
 
-    pathEl.setAttribute("d", buildBezierPath(startX, startY, mouseX, mouseY));
+    const startPt = svg.createSVGPoint();
+    startPt.x = startX;
+    startPt.y = startY;
+    const start = startPt.matrixTransform(svg.getScreenCTM().inverse());
+
+    pathEl.setAttribute("d", buildBezierPath(start.x, start.y, mousePos.x, mousePos.y));
 }
 
 function updateConnectionFixed(startEl, endEl, pathEl) {
-    const a = startEl.getBoundingClientRect();
-    const b = endEl.getBoundingClientRect();
+    const svg = document.getElementById('connection-layer');
 
-    const startX = a.left + a.width / 2;
-    const startY = a.top + a.height / 2;
-    const endX   = b.left + b.width / 2;
-    const endY   = b.top + b.height / 2;
+    const rectA = startEl.getBoundingClientRect();
+    const rectB = endEl.getBoundingClientRect();
 
-    pathEl.setAttribute("d", buildBezierPath(startX, startY, endX, endY));
+    const ptA = svg.createSVGPoint(); ptA.x = rectA.left + rectA.width/2; ptA.y = rectA.top + rectA.height/2;
+    const ptB = svg.createSVGPoint(); ptB.x = rectB.left + rectB.width/2; ptB.y = rectB.top + rectB.height/2;
+
+    const start = ptA.matrixTransform(svg.getScreenCTM().inverse());
+    const end   = ptB.matrixTransform(svg.getScreenCTM().inverse());
+
+    pathEl.setAttribute("d", buildBezierPath(start.x, start.y, end.x, end.y));
 }
 
 function attachConnectorListener(element) {

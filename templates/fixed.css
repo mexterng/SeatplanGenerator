@@ -11,6 +11,7 @@
     touch-action: none;
     transform-origin: center center;
     font-size: 12px;
+    user-select: none;
 }
 
 .desk{
