@@ -145,17 +145,17 @@
                 </a>
             </div>
         </aside>
-
-        <main id="workspace" class="flex-1 p-6 overflow-auto">
-            <div class="relative w-full h-full">
-                <div id="canvas" class="w-full h-full border-2 border-dashed border-slate-300 rounded-2xl canvas-dot-grid relative flex items-center justify-center overflow-hidden"></div>
-
-                <svg id="connection-layer" class="absolute top-0 left-0 w-full h-full invisible pointer-events-none"></svg>
-
-                <button id="exportBtn" class="btn-primary absolute top-4 right-4">
-                    <i class="fa-solid fa-download"></i> PDF Export
-                </button>
+        <main id="workspace" class="relative flex-1 min-w-0 max-w-full p-6 h-full">
+            <div class="w-full h-full overflow-auto">
+                <div class="relative min-w-[1220px] min-h-[1100px]">
+                    <div id="canvas" class="absolute top-0 left-0 w-full h-full border-2 border-dashed border-slate-300 rounded-2xl canvas-dot-grid flex items-center justify-center overflow-hidden"></div>
+                    <svg id="connection-layer" class="absolute top-0 left-0 w-full h-full pointer-events-none"></svg>
+                </div>
             </div>
+
+            <button id="exportBtn" class="btn-primary absolute top-0 right-0 mt-10 mr-10 z-20">
+                <i class="fa-solid fa-download"></i> PDF Export
+            </button>
         </main>
 
         <div id="exportOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden">
