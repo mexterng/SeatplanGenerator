@@ -56,6 +56,10 @@ h2 {
     margin-bottom: 0.5rem;
 }
 
+h2.m-0 {
+    margin: 0;
+}
+
 .h2-bold {
     color: var(--color-slate-900);
 }
