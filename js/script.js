@@ -18,6 +18,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const saved = localStorage.getItem('advancedMode') === 'true';
     advancedToggle.checked = saved;
     advancedControls.style.display = saved ? 'block' : 'none';
+    updateAdvancedLabel(saved);
     await loadData(); // ensure all elements are created
     const countdown = localStorage.getItem('countdown') === 'true';
     document.getElementById('countdown-checkbox').checked = countdown;
@@ -46,8 +47,14 @@ window.addEventListener('resize', () => {
 // Status speichern, wenn Switch geändert wird
 advancedToggle.addEventListener('change', () => {
     advancedControls.style.display = advancedToggle.checked ? 'block' : 'none';
+    updateAdvancedLabel(advancedToggle.checked);
     localStorage.setItem('advancedMode', advancedToggle.checked);
 });
+
+function updateAdvancedLabel(state) {
+    const icon = state ? 'fa-minus' : 'fa-plus';
+    document.getElementById('advanced-toggle-label').innerHTML = `<i class="fa-solid ${icon}"></i>`;
+}
 
 async function loadSeatTemplateFiles() {
     // Load CSS once

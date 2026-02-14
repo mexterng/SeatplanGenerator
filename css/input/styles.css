@@ -92,63 +92,6 @@ h3 {
     pointer-events: all;
 }
 
-
-/* ===============================
-   Header / Controls
-   =============================== */
-.controls {
-    margin-bottom: 1rem;
-}
-
-/* ===============================
-   advanced control switch
-   =============================== */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 1.5rem;
-}
-
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--color-primary);
-    transition: .3s;
-    border-radius: 1.5rem;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: calc(1.5rem - 6px);
-    width: calc(1.5rem - 6px);
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .3s;
-    border-radius: 50%;
-}
-
-input:checked+.slider {
-    background-color: var(--color-primary-dark);
-}
-
-input:checked+.slider:before {
-    transform: translateX(calc(1.5rem + 3px));
-}
-
-
 /* ===============================
    Buttons
    =============================== */
