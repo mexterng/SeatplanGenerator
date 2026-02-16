@@ -714,10 +714,10 @@ async function createSeatElement(x, y, rotate, canvas, id) {
     
     // Append to canvas and register
     canvas.appendChild(seat);
-    seatCountDOM.value = Number(seatCountDOM.value) + 1;
     updateSeatNumbers();
     attachConnectorListener(seat);
     seats.push({ element: seat, id: seat.id, x: x, y: y, rotate: rotate });
+    seatCountDOM.value = seats.length;
 }
 
 /**
@@ -776,7 +776,7 @@ function deleteSeat(seat, canvas) {
     // Remove the seat
     canvas.removeChild(seat);
     seats = seats.filter(t => t.element !== seat);
-    seatCountDOM.value = seatCountDOM.value - 1;
+    seatCountDOM.value = seats.length;
     updateSeatNumbers();
 }
 
