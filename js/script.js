@@ -1926,7 +1926,17 @@ function updateConnectionFixed(startEl, endEl, pathEl) {
  * @param {HTMLElement} element - Seat element
  */
 function attachConnectorListener(element) {
-    element.querySelector('.connector').addEventListener('pointerdown', connectorPointerDown);
+    const connector = element.querySelector('.connector');
+    
+    connector.addEventListener('pointerdown', (e) => {
+        e.stopPropagation(); // Prevents event from bubbling up to the seat
+        connectorPointerDown(e);
+    });
+    
+    // Additional safety for mouse events
+    connector.addEventListener('mousedown', (e) => {
+        e.stopPropagation(); // Also prevents event bubbling
+    });
 }
 
 /**
