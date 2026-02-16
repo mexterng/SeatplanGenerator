@@ -289,6 +289,9 @@
   .mb-10 {
     margin-bottom: calc(var(--spacing) * 10);
   }
+  .ml-10 {
+    margin-left: calc(var(--spacing) * 10);
+  }
   .block {
     display: block;
   }
@@ -573,6 +576,9 @@
   .break-all {
     word-break: break-all;
   }
+  .text-\[var\(--color-important\)\] {
+    color: var(--color-important);
+  }
   .text-slate-400 {
     color: var(--color-slate-400);
   }
@@ -633,6 +639,13 @@
   .duration-300 {
     --tw-duration: 300ms;
     transition-duration: 300ms;
+  }
+  .hover\:text-\[var\(--color-important-hover\)\] {
+    &:hover {
+      @media (hover: hover) {
+        color: var(--color-important-hover);
+      }
+    }
   }
   .hover\:text-slate-800 {
     &:hover {

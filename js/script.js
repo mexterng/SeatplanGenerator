@@ -148,6 +148,8 @@ function initializeCheckboxes() {
  * Initialize zoom controls and panning
  */
 function initializeZoomControls() {
+    // Delete button
+    clearCanvasBtn.addEventListener('click', () => clearCanvas());
     // Zoom buttons
     zoomOutBtn.addEventListener('click', () => zoomOut());
     zoomInBtn.addEventListener('click', () => zoomIn());
@@ -853,6 +855,15 @@ async function createSeats() {
     seatCountDOM.value = count;
 
     fitView();
+}
+
+function clearCanvas() {
+    const proceed = confirm(
+        `Achtung: Es werden nun alle Elemente auf der Zeichenfläche gelöscht. Fortfahren?`
+    );
+    if (!proceed) return;
+    seatCountDOM.value = 0;
+    createSeats();
 }
 
 // ============================================
