@@ -781,18 +781,50 @@ function deleteSeat(seat, canvas) {
 }
 
 /**
- * Duplicate a seat
- * @param {HTMLElement} seat - Seat to duplicate
+ * Get position and rotation data from an element
+ * @param {HTMLElement} element - Element to get data from
+ * @param {HTMLElement} canvas - Canvas element
+ * @returns {{x: number, y: number, angle: number}} Position and rotation
+ */
+function getElementTransformData(element, canvas) {
+        // Get current position from element's style (these are already in canvas coordinates)
+    const currentX = parseFloat(element.style.left) || 0;
+    const currentY = parseFloat(element.style.top) || 0;
+    
+    // Get rotation angle
+    const currentTransform = element.style.transform || "rotate(0deg)";
+    const currentAngle = parseFloat(currentTransform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
+    
+    // Add small offset for duplication (in canvas coordinates)
+    // Offset is independent of zoom because we're in canvas coordinates
+    const offset = 19.1;
+    
+    return {
+        x: currentX + offset,
+        y: currentY + offset,
+        angle: currentAngle
+    };
+}
+
+/**
+ * Duplicate a seat element
+ * @param {HTMLElement} seat - Seat element to duplicate
  * @param {HTMLElement} canvas - Canvas element
  */
 async function duplicateSeat(seat, canvas) {
-    const rect = seat.getBoundingClientRect();
-    const parentRect = canvas.getBoundingClientRect();
-    const currentX = rect.left - parentRect.left;
-    const currentY = rect.top - parentRect.top;
-    const currentTransform = seat.style.transform || "rotate(0deg)";
-    const currentAngle = parseFloat(currentTransform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
-    await createSeatElement(currentX + 19.1, currentY + 19.1, currentAngle, canvas);
+    const { x, y, angle } = getElementTransformData(seat, canvas);
+    await createSeatElement(x, y, angle, canvas);
+}
+
+/**
+ * Duplicate a fixed element
+ * @param {HTMLElement} element - Fixed element to duplicate
+ * @param {string} type - Type of fixed element
+ * @param {HTMLElement} canvas - Canvas element
+ */
+async function duplicateFixedElement(element, type, canvas) {
+    const { x, y, angle } = getElementTransformData(element, canvas);
+    await createFixedElement(type, x, y, angle, canvas);
 }
 
 /**
