@@ -76,6 +76,43 @@ h3 {
 }
 
 /* ===============================
+   Sidebar Footer
+   =============================== */
+aside.closed {
+    width: 3rem;
+}
+
+aside.closed>#sidebar-toggle {
+    width: 100%;
+    right: 0;
+    padding-block: 1rem;
+}
+
+aside.closed>#sidebar-controls {
+    visibility: hidden;
+}
+
+aside.closed>#sidebar-footer {
+    flex-direction: column;
+    gap: 1rem;
+    padding-inline: 0;
+    width: 100%;
+    align-items: center;
+}
+
+.sidebar-footer-link {
+    color: var(--color-slate-400);
+}
+
+.sidebar-footer-link:hover {
+    color: var(--color-slate-500);
+}
+
+.closed .sidebar-footer-link {
+    writing-mode: sideways-lr;
+ }
+
+/* ===============================
    Canvas / Seating Area
    =============================== */
 .canvas-dot-grid {
@@ -106,10 +143,15 @@ button {
     justify-items: center;
     align-items: center;
     cursor: pointer;
+    text-wrap: nowrap;
 }
 
 button.hidden {
     display: none;
+}
+
+button.wrap {
+    text-wrap: wrap;
 }
 
 .btn-primary {

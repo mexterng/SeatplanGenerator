@@ -22,8 +22,9 @@
         </div>
     </header>
     <div class="flex flex-1 overflow-hidden">
-        <aside class="w-80 border-r border-slate-400 flex flex-col">
-            <div class="flex-1 overflow-y-auto space-y-8 p-6">
+        <aside id="sidebar" class="relative w-80 border-r border-slate-400 flex flex-col transition-all duration-300 overflow-hidden">
+            <i id="sidebar-toggle" class="absolute top-1 right-1 fa-solid fa-chevron-left cursor-pointer"></i>
+            <div id="sidebar-controls" class="flex-1 overflow-y-auto space-y-8 p-6">
                 <section class="space-y-4">
                     <h2>Konfiguration</h2>
                     <div class="space-y-2">
@@ -41,7 +42,7 @@
 
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-slate-700 flex items-center gap-1">
-                            Namen <span class="text-slate-400 text-xs font-normal">(semikolon-getrennt)</span>
+                            Namen <span class="text-slate-400 text-xs font-normal">(semikolon&#8209;getrennt)</span>
                         </label>
                         <div class="relative">
                             <textarea id="namesInput" class="flex w-full min-h-8 h-8 justify-center px-2 pr-7" placeholder="Antonia; Bernd; Caspar ..." rows="4"></textarea>
@@ -85,16 +86,16 @@
                             <h2>Import/Export</h2>
                             <input id="importFile" type="file" accept=".json" class="hidden">
                             <div class="flex gap-2">
-                                <button onclick="importSeats()" class="btn-secondary w-full">
+                                <button onclick="importSeats()" class="btn-secondary wrap w-full">
                                     <i class="fa-solid fa-file-import"></i> Sitzplätze importieren
                                 </button>
-                                <button onclick="exportSeats()" class="btn-primary w-full">
+                                <button onclick="exportSeats()" class="btn-primary wrap w-full">
                                     <i class="fa-solid fa-download"></i> Sitzplätze exportieren</button>
                             </div>
                             <div class="flex gap-2">
-                                <button onclick="importNames()" class="btn-secondary w-full">
+                                <button onclick="importNames()" class="btn-secondary wrap w-full">
                                     <i class="fa-solid fa-file-import"></i> Namen importieren</button>
-                                <button onclick="exportNames()" class="btn-primary w-full">
+                                <button onclick="exportNames()" class="btn-primary wrap w-full">
                                     <i class="fa-solid fa-download"></i> Namen exportieren</button>
                             </div>
                         </section>
@@ -133,14 +134,14 @@
                     </div>
                 </div>
             </div>
-            <div class="border-t border-slate-300 px-6 py-4 flex justify-between text-xs">
-                <a href="impressum.html" class="text-slate-400 hover:text-slate-500">
+            <div id="sidebar-footer" class="border-t border-slate-300 px-6 py-4 flex justify-between text-xs">
+                <a href="impressum.html" class="sidebar-footer-link">
                     Impressum
                 </a>
-                <a href="datenschutz.html" class="text-slate-400 hover:text-slate-500">
+                <a href="datenschutz.html" class="sidebar-footer-link">
                     Datenschutzerklärung
                 </a>
-                <a href="https://github.com/mexterng/SeatplanGenerator" class="text-slate-400 hover:text-slate-500">
+                <a href="https://github.com/mexterng/SeatplanGenerator" class="sidebar-footer-link">
                     Quellcode
                 </a>
             </div>

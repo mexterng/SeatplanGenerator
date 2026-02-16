@@ -5,6 +5,8 @@ const personDelimiter = ";";
 const nameDelimiter = ",";
 const lockedSeatTag = "#";
 
+const sidebar = document.getElementById('sidebar');
+const sidebarToggle = document.getElementById('sidebar-toggle');
 const advancedToggle = document.getElementById('advanced-toggle');
 const advancedControls = document.getElementById('advanced-controls');
 // Status beim Laden wiederherstellen
@@ -521,6 +523,19 @@ async function loadData() {
 
     if (nameList) {
         document.getElementById('namesInput').value = nameList.join(personDelimiter + ' ');
+    }
+}
+
+sidebarToggle.addEventListener("click", toggleSidebar);
+
+function toggleSidebar() {
+    let isCollapsed = sidebar.classList.contains('closed');
+    if (isCollapsed) {
+        sidebar.classList.remove("closed");
+        sidebarToggle.classList.replace("fa-chevron-right", "fa-chevron-left");
+    } else {
+        sidebar.classList.add("closed");
+        sidebarToggle.classList.replace("fa-chevron-left", "fa-chevron-right");
     }
 }
 
