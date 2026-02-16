@@ -229,6 +229,9 @@
   .right-1\.5 {
     right: calc(var(--spacing) * 1.5);
   }
+  .bottom-0 {
+    bottom: calc(var(--spacing) * 0);
+  }
   .bottom-1\.5 {
     bottom: calc(var(--spacing) * 1.5);
   }
@@ -282,6 +285,9 @@
   }
   .mb-3 {
     margin-bottom: calc(var(--spacing) * 3);
+  }
+  .mb-10 {
+    margin-bottom: calc(var(--spacing) * 10);
   }
   .block {
     display: block;
@@ -355,9 +361,6 @@
   .min-h-8 {
     min-height: calc(var(--spacing) * 8);
   }
-  .min-h-\[1100px\] {
-    min-height: 1100px;
-  }
   .w-1\/2 {
     width: calc(1/2 * 100%);
   }
@@ -394,9 +397,6 @@
   .min-w-\[350px\] {
     min-width: 350px;
   }
-  .min-w-\[1220px\] {
-    min-width: 1220px;
-  }
   .min-w-full {
     min-width: 100%;
   }
@@ -408,6 +408,9 @@
   }
   .transform {
     transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
+  }
+  .cursor-grab {
+    cursor: grab;
   }
   .cursor-pointer {
     cursor: pointer;
@@ -459,9 +462,6 @@
       margin-block-start: calc(calc(var(--spacing) * 8) * var(--tw-space-y-reverse));
       margin-block-end: calc(calc(var(--spacing) * 8) * calc(1 - var(--tw-space-y-reverse)));
     }
-  }
-  .overflow-auto {
-    overflow: auto;
   }
   .overflow-hidden {
     overflow: hidden;

@@ -147,16 +147,26 @@
             </div>
         </aside>
         <main id="workspace" class="relative flex-1 min-w-0 max-w-full p-6 h-full">
-            <div class="w-full h-full overflow-auto">
-                <div class="relative min-w-[1220px] min-h-[1100px] w-full h-full">
-                    <div id="canvas" class="absolute top-0 left-0 w-full h-full border-2 border-dashed border-slate-300 rounded-2xl canvas-dot-grid flex items-center justify-center overflow-hidden"></div>
-                    <svg id="connection-layer" class="absolute top-0 left-0 w-full h-full pointer-events-none"></svg>
+            <div id="viewport" class="relative w-full h-full overflow-hidden border-2 border-dashed border-slate-300 rounded-2xl canvas-dot-grid flex items-center justify-center overflow-hidden cursor-grab">
+                <div id="transform-container" class="absolute top-0 left-0 w-full h-full" style="transform-origin: 0 0;">         
+                    <div id="canvas" 
+                        class="absolute top-0 left-0 w-full h-full">
+                    </div>
+                    <svg id="connection-layer" 
+                        class="absolute top-0 left-0 w-full h-full pointer-events-none">
+                    </svg>
                 </div>
             </div>
 
-            <button id="exportBtn" class="btn-primary absolute top-0 right-0 mt-10 mr-10 z-20">
-                <i class="fa-solid fa-download"></i> PDF Export
-            </button>
+            <div class="absolute top-0 right-0 mt-10 mr-10 z-20">
+                <button id="exportBtn" class="btn-primary"><i class="fa-solid fa-download"></i> PDF Export</button>
+            </div>
+
+            <div class="absolute bottom-0 right-0 mb-10 mr-10 z-20 flex gap-2">
+                <button id="zoomOutBtn" class="btn-secondary"><i class="fa-solid fa-minus"></i></button>
+                <button id="zoomInBtn" class="btn-secondary"><i class="fa-solid fa-plus"></i></button>
+                <button id="fitViewBtn" class="btn-secondary"><i class="fa-solid fa-expand"></i> Ausrichten</button>
+            </div>
         </main>
 
         <div id="exportOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden">

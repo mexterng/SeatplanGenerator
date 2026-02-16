@@ -12,6 +12,18 @@ const GRID_SIZE = 5;
 const ROTATION_ANGLE = 15;
 const SEAT_GAP = 10;
 
+// Zoom configuration
+const MAX_CANVAS = 5000;
+const ZOOM_STEP = 0.1;
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 2.0;
+
+// State for pinch zoom
+let initialPinchDistance = 0;
+let initialZoomForPinch = 1;
+let pinchCenterX = 0;
+let pinchCenterY = 0;
+
 // ============================================
 // GLOBAL STATE
 // ============================================
@@ -28,6 +40,12 @@ let startY = 0;
 let offsetX = 0;
 let offsetY = 0;
 let dragBlockedSeat = null;
+
+// Zoom state
+let currentZoom = 1.0;
+let panOffset = { x: 0, y: 0 };
+let isPanning = false;
+let panStart = { x: 0, y: 0 };
 
 // Connection lines state
 let currentConnection = null;
@@ -47,7 +65,17 @@ const advancedToggleDOM = document.getElementById('advanced-toggle');
 const advancedControlsDOM = document.getElementById('advanced-controls');
 const seatCountDOM = document.getElementById('seatCount');
 const canvasDOM = document.getElementById('canvas');
+canvasDOM.style.height = `${MAX_CANVAS}px`;
+canvasDOM.style.width = `${MAX_CANVAS}px`;
 const svgConnectionLayerDOM = document.getElementById('connection-layer');
+svgConnectionLayerDOM.style.height = `${MAX_CANVAS}px`;
+svgConnectionLayerDOM.style.width = `${MAX_CANVAS}px`;
+const transformContainerDOM = document.getElementById('transform-container');
+
+// Zoom buttons
+const zoomOutBtn = document.getElementById('zoomOutBtn');
+const zoomInBtn = document.getElementById('zoomInBtn');
+const fitViewBtn = document.getElementById('fitViewBtn');
 
 // ============================================
 // INITIALIZATION
@@ -61,6 +89,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     await initializeAdvancedMode();
     await loadData();
     initializeCheckboxes();
+    initializeZoomControls();
 });
 
 /**
@@ -116,6 +145,238 @@ function initializeCheckboxes() {
 // ============================================
 
 /**
+ * Initialize zoom controls and panning
+ */
+function initializeZoomControls() {
+    // Zoom buttons
+    zoomOutBtn.addEventListener('click', () => zoomOut());
+    zoomInBtn.addEventListener('click', () => zoomIn());
+    fitViewBtn.addEventListener('click', () => fitView());
+
+    // Mouse wheel zoom
+    transformContainerDOM.addEventListener('wheel', handleWheelZoom, { passive: false });
+
+    // Pan with left mouse button
+    transformContainerDOM.addEventListener('mousedown', handleCanvasMouseDown);
+    window.addEventListener('mousemove', handleCanvasMouseMove);
+    window.addEventListener('mouseup', handleCanvasMouseUp);
+
+    // Touch events for mobile devices
+    transformContainerDOM.addEventListener('touchstart', handleTouchStart, { passive: false });
+    transformContainerDOM.addEventListener('touchmove', handleTouchMove, { passive: false });
+    transformContainerDOM.addEventListener('touchend', handleTouchEnd);
+    transformContainerDOM.addEventListener('touchcancel', handleTouchCancel);
+}
+
+// ============================================
+// ZOOM AND PAN FUNCTIONS
+// ============================================
+
+/**
+ * Apply zoom transform to container
+ */
+function applyZoom() {
+    transformContainerDOM.style.transform = `translate(${panOffset.x}px, ${panOffset.y}px) scale(${currentZoom})`;
+    updateAllConnections();
+}
+
+/**
+ * Zoom around a specified point
+ * @param {number} factor - Zoom factor (positive = in, negative = out)
+ * @param {number} centerX - X coordinate of zoom center (in viewport coordinates)
+ * @param {number} centerY - Y coordinate of zoom center (in viewport coordinates)
+ */
+function zoomAt(factor, centerX, centerY) {
+    const newZoom = Math.min(Math.max(currentZoom + factor, MIN_ZOOM), MAX_ZOOM);
+    if (newZoom === currentZoom) return;
+    
+    const zoomFactor = newZoom / currentZoom;
+    
+    // Adjust pan offset to keep the point fixed
+    panOffset.x = centerX - (centerX - panOffset.x) * zoomFactor;
+    panOffset.y = centerY - (centerY - panOffset.y) * zoomFactor;
+    currentZoom = newZoom;
+    
+    applyZoom();
+}
+
+/**
+ * Zoom in (centered)
+ */
+function zoomIn() {
+    const viewport = transformContainerDOM.parentElement;
+    zoomAt(ZOOM_STEP, viewport.clientWidth / 2, viewport.clientHeight / 2);
+}
+
+/**
+ * Zoom out (centered)
+ */
+function zoomOut() {
+    const viewport = transformContainerDOM.parentElement;
+    zoomAt(-ZOOM_STEP, viewport.clientWidth / 2, viewport.clientHeight / 2);
+}
+
+/**
+ * Fit view to show all seats
+ */
+function fitView() {
+    const bounds = calculateBoundingBox();
+    let { minX, maxX, minY, maxY } = bounds;
+
+    // Add padding
+    const padding = 50;
+    minX -= padding;
+    minY -= padding;
+    maxX += padding;
+    maxY += padding;
+
+    const viewportWidth = transformContainerDOM.parentElement.clientWidth;
+    const viewportHeight = transformContainerDOM.parentElement.clientHeight;
+    
+    const contentWidth = maxX - minX;
+    const contentHeight = maxY - minY;
+    
+    // Calculate zoom to fit
+    const zoomX = viewportWidth / contentWidth;
+    const zoomY = viewportHeight / contentHeight;
+    currentZoom = Math.min(zoomX, zoomY, MAX_ZOOM);
+    currentZoom = Math.max(currentZoom, MIN_ZOOM);
+    
+    // Calulate center of group
+    const groupCenterX = (minX + maxX) / 2;
+    const groupCenterY = (minY + maxY) / 2;
+    
+    // Set Pan-Offset
+    panOffset.x = viewportWidth / 2 - groupCenterX * currentZoom;
+    panOffset.y = viewportHeight / 2 - groupCenterY * currentZoom;
+    
+    applyZoom();
+}
+
+
+/**
+ * Calculate bounding box of seats and/or fixed elements
+ * @param {Array} [seatElements] - Array of seat objects (optional, uses global seats if not provided)
+ * @param {Array} [fixedElements] - Array of fixed element DOM nodes (optional)
+ * @returns {{minX: number, minY: number, maxX: number, maxY: number}} Bounding box coordinates
+ */
+function calculateBoundingBox(seatElements, fixedElements) {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let hasElements = false;
+
+    // Process seats if provided, otherwise use global seats
+    const seatsToProcess = seatElements !== undefined ? seatElements : seats;
+    
+    if (seatsToProcess && seatsToProcess.length > 0) {
+        seatsToProcess.forEach(seat => {
+            const x = parseInt(seat.style?.left) || seat.x || 0;
+            const y = parseInt(seat.style?.top) || seat.y || 0;
+            const width = seat.offsetWidth || 110;
+            const height = seat.offsetHeight || 110;
+            
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x + width);
+            maxY = Math.max(maxY, y + height);
+            hasElements = true;
+        });
+    }
+
+    // Process fixed elements if provided
+    const fixedToProcess = fixedElements !== undefined ? fixedElements : document.querySelectorAll('.fixed-element');
+    
+    if (fixedToProcess && fixedToProcess.length > 0) {
+        Array.from(fixedToProcess).forEach(elem => {
+            const x = parseInt(elem.style?.left) || elem.x || 0;
+            const y = parseInt(elem.style?.top) || elem.y || 0;
+            const width = elem.offsetWidth || 140;
+            const height = elem.offsetHeight || 140;
+            
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x + width);
+            maxY = Math.max(maxY, y + height);
+            hasElements = true;
+        });
+    }
+
+    // Return default bounds if no elements found
+    if (!hasElements) {
+        return {
+            minX: MAX_CANVAS/2,
+            minY: MAX_CANVAS/2,
+            maxX: MAX_CANVAS/2,
+            maxY: MAX_CANVAS/2
+        };
+    }
+
+    return { minX, minY, maxX, maxY };
+}
+
+/**
+ * Handle wheel zoom
+ * @param {WheelEvent} e - Wheel event
+ */
+function handleWheelZoom(e) {
+    e.preventDefault();
+    
+    const viewport = transformContainerDOM.parentElement;
+    const rect = viewport.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    const factor = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
+    zoomAt(factor, mouseX, mouseY);
+}
+
+/**
+ * Handle mouse down on canvas for panning
+ * @param {MouseEvent} e - Mouse event
+ */
+function handleCanvasMouseDown(e) {
+    // Only handle left mouse button
+    if (e.button !== 0) return;
+    
+    // Check if we're clicking on a draggable element or its controls
+    const target = e.target;
+    const isDragElement = target.closest('.drag-element') !== null;
+    const isControl = target.closest('.non-drag-element') !== null;
+    const isConnector = target.closest('.connector') !== null;
+    
+    // Only start panning if not clicking on any interactive element
+    if (!isDragElement && !isControl && !isConnector) {
+        e.preventDefault();
+        isPanning = true;
+        panStart.x = e.clientX - panOffset.x;
+        panStart.y = e.clientY - panOffset.y;
+        transformContainerDOM.style.cursor = 'grabbing';
+    }
+}
+
+/**
+ * Handle mouse move for panning
+ * @param {MouseEvent} e - Mouse event
+ */
+function handleCanvasMouseMove(e) {
+    if (!isPanning) return;
+    
+    e.preventDefault();
+    panOffset.x = e.clientX - panStart.x;
+    panOffset.y = e.clientY - panStart.y;
+    applyZoom();
+}
+
+/**
+ * Handle mouse up for panning
+ */
+function handleCanvasMouseUp() {
+    if (isPanning) {
+        isPanning = false;
+        transformContainerDOM.style.cursor = 'grab';
+    }
+}
+
+/**
  * Recalculate all connections on window resize
  */
 window.addEventListener('resize', () => {
@@ -139,6 +400,110 @@ function updateAdvancedLabel(state) {
     const icon = state ? 'fa-minus' : 'fa-plus';
     document.getElementById('advanced-toggle-label').innerHTML = `<i class="fa-solid ${icon}"></i>`;
 }
+
+// ============================================
+// TOUGHANDLING
+// ============================================
+
+/**
+ * Calculate distance between two touches
+ * @param {Touch} touch1 - First touch
+ * @param {Touch} touch2 - Second touch
+ * @returns {number} Distance in pixels
+ */
+function getTouchDistance(touch1, touch2) {
+    const dx = touch1.clientX - touch2.clientX;
+    const dy = touch1.clientY - touch2.clientY;
+    return Math.hypot(dx, dy);
+}
+
+/**
+ * Handle touch start for panning
+ * @param {TouchEvent} e - Touch event
+ */
+function handleTouchStart(e) {
+    const target = e.target;
+    const isSeat = target.closest('.drag-element') !== null;
+    const isControl = target.closest('.non-drag-element') !== null;
+    const isConnector = target.closest('.connector') !== null;
+
+    // Single touch for panning
+    if (e.touches.length === 1 && !isSeat && !isControl && !isConnector) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        isPanning = true;
+        panStart.x = touch.clientX - panOffset.x;
+        panStart.y = touch.clientY - panOffset.y;
+        transformContainerDOM.style.cursor = 'grabbing';
+    }
+    // Double touch for pinch zoom
+    else if (e.touches.length === 2) {
+        e.preventDefault();
+        initialPinchDistance = getTouchDistance(e.touches[0], e.touches[1]);
+        initialZoomForPinch = currentZoom;
+        
+        // Calculate center point between touches for zoom center
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        pinchCenterX = (touch1.clientX + touch2.clientX) / 2;
+        pinchCenterY = (touch1.clientY + touch2.clientY) / 2;
+    }
+}
+
+/**
+ * Handle touch move for panning
+ * @param {TouchEvent} e - Touch event
+ */
+function handleTouchMove(e) {
+    // Single touch panning
+    if (isPanning && e.touches.length === 1) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        panOffset.x = touch.clientX - panStart.x;
+        panOffset.y = touch.clientY - panStart.y;
+        applyZoom();
+    }
+    // Double touch pinch zoom
+    else if (e.touches.length === 2 && initialPinchDistance > 0) {
+        e.preventDefault();
+        
+        const currentDistance = getTouchDistance(e.touches[0], e.touches[1]);
+        const scale = currentDistance / initialPinchDistance;
+        
+        // Calculate new zoom
+        const newZoom = Math.min(Math.max(initialZoomForPinch * scale, MIN_ZOOM), MAX_ZOOM);
+        
+        if (newZoom !== currentZoom) {
+            const zoomFactor = newZoom / currentZoom;
+            
+            // Adjust pan offset to keep pinch center fixed
+            panOffset.x = pinchCenterX - (pinchCenterX - panOffset.x) * zoomFactor;
+            panOffset.y = pinchCenterY - (pinchCenterY - panOffset.y) * zoomFactor;
+            currentZoom = newZoom;
+            
+            applyZoom();
+        }
+    }
+}
+
+/**
+ * Handle touch end
+ */
+function handleTouchEnd() {
+    if (isPanning) {
+        isPanning = false;
+        transformContainerDOM.style.cursor = 'grab';
+    }
+}
+
+/**
+ * Handle touch cancel
+ */
+function handleTouchCancel() {
+    isPanning = false;
+    transformContainerDOM.style.cursor = 'grab';
+}
+
 
 // ============================================
 // TEMPLATE LOADING
@@ -393,9 +758,13 @@ function attachSeatEventListeners(seat, canvas) {
         rotateElement(seat, -ROTATION_ANGLE);
     });
 
-    // Drag events
-    seat.addEventListener('dragstart', dragStart);
-    seat.addEventListener('dragend', dragEnd);
+    // Drag events - use mousedown
+    seat.addEventListener('mousedown', handleElementMouseDown);
+    
+    // Prevent default drag behavior
+    seat.addEventListener('dragstart', (e) => {
+        e.preventDefault();
+    });
 }
 
 /**
@@ -531,9 +900,13 @@ function attachFixedElementListeners(element, type, canvas) {
         rotateElement(element, -ROTATION_ANGLE);
     });
 
-    // Drag events
-    element.addEventListener('dragstart', dragStart);
-    element.addEventListener('dragend', dragEnd);
+    // Drag events - use mousedown
+    element.addEventListener('mousedown', handleElementMouseDown);
+    
+    // Prevent default drag behavior
+    element.addEventListener('dragstart', (e) => {
+        e.preventDefault();
+    });
 }
 
 /**
@@ -576,17 +949,24 @@ function rotateElement(element, rotationAngle) {
 }
 
 // ============================================
-// DRAG AND DROP
+// DRAG AND DROP (for canvas elements)
 // ============================================
 
 /**
- * Handle drag start event
- * @param {DragEvent} e - Drag event
+ * Handle mouse down on drag element (seat or fixed element)
+ * @param {MouseEvent} e - Mouse event
  */
-function dragStart(e) {
+function handleElementMouseDown(e) {
+    // Only handle left mouse button
+    if (e.button !== 0) return;
+    
     const dragElement = e.target.closest('.drag-element');
     if (!dragElement) return;
 
+    // Stop propagation to prevent canvas panning
+    e.stopPropagation();
+    e.preventDefault();
+    
     currentDrag = dragElement;
     const canvasRect = canvasDOM.getBoundingClientRect();
 
@@ -604,17 +984,17 @@ function dragStart(e) {
     startX = e.clientX;
     startY = e.clientY;
 
-    document.addEventListener('pointermove', dragMove);
-    document.addEventListener('pointerup', dragEnd);
-
-    e.preventDefault();
+    // Use pointer events for smooth dragging
+    document.addEventListener('pointermove', handleElementPointerMove);
+    document.addEventListener('pointerup', handleElementPointerUp);
+    document.addEventListener('pointercancel', handleElementPointerUp);
 }
 
 /**
- * Handle drag move event
- * @param {DragEvent} e - Drag event
+ * Handle pointer move during element drag
+ * @param {PointerEvent} e - Pointer event
  */
-function dragMove(e) {
+function handleElementPointerMove(e) {
     if (!currentDrag) return;
 
     const canvasRect = canvasDOM.getBoundingClientRect();
@@ -635,13 +1015,16 @@ function dragMove(e) {
 }
 
 /**
- * Handle drag end event
+ * Handle pointer up during element drag
  */
-function dragEnd() {
-    currentDrag = null;
+function handleElementPointerUp() {
+    if (currentDrag) {
+        currentDrag = null;
+    }
 
-    document.removeEventListener('pointermove', dragMove);
-    document.removeEventListener('pointerup', dragEnd);
+    document.removeEventListener('pointermove', handleElementPointerMove);
+    document.removeEventListener('pointerup', handleElementPointerUp);
+    document.removeEventListener('pointercancel', handleElementPointerUp);
 }
 
 /**
@@ -811,20 +1194,51 @@ async function loadData() {
     namesInputDOM.value = nameList;
     canvasDOM.innerHTML = '';
 
+    // Reset viewport transform
+    const viewport = document.getElementById('viewport');
+    viewport.style.transform = 'none';
+    
+    // Reset zoom and pan
+    currentZoom = 1.0;
+    panOffset = { x: 0, y: 0 };
+    
+    // Calculate bounding box for both seats and fixed elements
+    const bounds = calculateBoundingBox(seatData, fixedData);
+    const { minX, maxX, minY, maxY } = bounds;
+
+    // Calculate center of all elements
+    const groupCenterX = (minX + maxX) / 2;
+    const groupCenterY = (minY + maxY) / 2;
+    
+    // Calculate canvas center
+    const canvasCenterX = canvasDOM.clientWidth / 2;
+    const canvasCenterY = canvasDOM.clientHeight / 2;
+    
+    // Calculate offset to center the group
+    const offsetX = canvasCenterX - groupCenterX;
+    const offsetY = canvasCenterY - groupCenterY;
+
+    // Create fixed elements with offset
     if (fixedData) {
         for (const t of fixedData) {
-            await createFixedElement(t.type, t.x, t.y, t.rotate, canvasDOM);
+            const newX = t.x + offsetX;
+            const newY = t.y + offsetY;
+            await createFixedElement(t.type, newX, newY, t.rotate, canvasDOM);
         }
     }
 
+    // Create seats with offset
     if (seatData) {
         seats = [];
         for (const t of seatData) {
-            await createSeatElement(t.x, t.y, t.rotate, canvasDOM, t.id);
+            const newX = t.x + offsetX;
+            const newY = t.y + offsetY;
+            await createSeatElement(newX, newY, t.rotate, canvasDOM, t.id);
         }
         seatCountDOM.value = seatData.length;
     }
 
+    // Restore connections
     if (connectionsData) {
         for (const connection of connectionsData) {
             const { a, b } = splitPairString(connection);
@@ -834,9 +1248,15 @@ async function loadData() {
         }
     }
 
+    // Restore names
     if (nameList) {
         namesInputDOM.value = nameList.join(personDelimiter + ' ');
     }
+
+    // After everything is loaded, fit view to show all elements
+    setTimeout(() => {
+        fitView();
+    }, 100);
 }
 
 // ============================================
@@ -938,6 +1358,123 @@ async function assignNames(shuffle = true) {
         s.element.querySelector('.seat-firstname').textContent = shuffledNames[i]['firstname'];
         s.element.querySelector('.seat-lastname').textContent = shuffledNames[i]['lastname'];
     });
+}
+
+/**
+ * Generate seat assignment using backtracking algorithm
+ * @param {Array} persons - Nested persons array
+ * @param {Array} edges - Connection edges
+ * @param {number} seatCount - Number of seats
+ * @param {string} nameDelimiter - Name delimiter
+ * @param {string} lockedSeatTag - Locked seat tag
+ * @returns {Array|null} Seat assignment array or null if impossible
+ */
+function generateSeatAssignmentBacktracking(persons, edges, seatCount, nameDelimiter, lockedSeatTag) {
+    // Convert edges to 0-based pairs
+    const edgePairs = edges.map(([a, b]) => [a - 1, b - 1]);
+
+    // Flatten persons and assign stable IDs
+    let idCounter = 0;
+    const flatPersons = [];
+    const clusterIds = [];
+    const clusterMap = {};
+
+    persons.forEach((p, idx) => {
+        if (Array.isArray(p)) {
+            clusterIds.push(idx);
+            clusterMap[idx] = [];
+
+            p.forEach(sub => {
+                const obj = { ...sub, cluster: idx, _pid: idCounter++ };
+                flatPersons.push(obj);
+                clusterMap[idx].push(obj);
+            });
+        } else {
+            const obj = { ...p, cluster: null, _pid: idCounter++ };
+            flatPersons.push(obj);
+        }
+    });
+    
+    const shuffledClusters = shuffle(clusterIds);
+    const seats = Array(seatCount).fill(null);
+
+    // Place locked seats by their seat index
+    let index = 0;
+    flatPersons.forEach(p => {
+        if (p.lockedSeat) {
+            seats[index++] = p;
+        }
+    });
+
+    // Shuffling helper
+    function shuffle(arr) {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+    }
+
+    // Backtracking for cluster pairs
+    function placeCluster(idx, edgesList) {
+        if (Math.random() < 0.2) {
+            edgesList = shuffle(edgesList);
+        }
+
+        if (idx >= shuffledClusters.length) return true;
+
+        const cid = shuffledClusters[idx];
+        const members = shuffle(clusterMap[cid]);
+        const edgesShuffled = shuffle(edgesList);
+
+        for (let e = 0; e < edgesShuffled.length; e++) {
+            const [s1, s2] = edgesShuffled[e];
+
+            if (seats[s1] === null && seats[s2] === null) {
+                seats[s1] = members[0];
+                seats[s2] = members[1];
+
+                const rest = edgesShuffled.filter((_, i) => i !== e);
+
+                if (placeCluster(idx + 1, rest)) return true;
+
+                seats[s1] = null;
+                seats[s2] = null;
+            }
+        }
+
+        return false;
+    }
+
+    const shuffledEdges = shuffle(edgePairs);
+
+    // Try placing all clusters
+    if (!placeCluster(0, shuffledEdges)) {
+        return null;
+    }
+
+    // Collect remaining persons that are not placed
+    const usedIds = new Set(seats.filter(s => s !== null).map(s => s._pid));
+    const remaining = flatPersons.filter(p => !usedIds.has(p._pid));
+
+    // Fill free seats with remaining persons
+    const freeSeats = seats
+        .map((s, i) => s === null ? i : null)
+        .filter(i => i !== null);
+
+    const shuffledFreeSeats = shuffle(freeSeats);
+    const remainingShuffled = shuffle(remaining);
+    
+    remainingShuffled.forEach((p, i) => {
+        seats[shuffledFreeSeats[i]] = p;
+    });
+
+    // Fill leftover seats with dummy if needed
+    const dummyList = getNames('', nameDelimiter, lockedSeatTag);
+    const dummy = dummyList[0];
+
+    return seats.map(s => s === null ? { ...dummy } : s);
 }
 
 /**
@@ -1348,125 +1885,4 @@ function connectSeats(seatA, seatB) {
             pairId: pair
         });
     }
-}
-
-// ============================================
-// BACKTRACKING ALGORITHM
-// ============================================
-
-/**
- * Generate seat assignment using backtracking algorithm
- * @param {Array} persons - Nested persons array
- * @param {Array} edges - Connection edges
- * @param {number} seatCount - Number of seats
- * @param {string} nameDelimiter - Name delimiter
- * @param {string} lockedSeatTag - Locked seat tag
- * @returns {Array|null} Seat assignment array or null if impossible
- */
-function generateSeatAssignmentBacktracking(persons, edges, seatCount, nameDelimiter, lockedSeatTag) {
-    // Convert edges to 0-based pairs
-    const edgePairs = edges.map(([a, b]) => [a - 1, b - 1]);
-
-    // Flatten persons and assign stable IDs
-    let idCounter = 0;
-    const flatPersons = [];
-    const clusterIds = [];
-    const clusterMap = {};
-
-    persons.forEach((p, idx) => {
-        if (Array.isArray(p)) {
-            clusterIds.push(idx);
-            clusterMap[idx] = [];
-
-            p.forEach(sub => {
-                const obj = { ...sub, cluster: idx, _pid: idCounter++ };
-                flatPersons.push(obj);
-                clusterMap[idx].push(obj);
-            });
-        } else {
-            const obj = { ...p, cluster: null, _pid: idCounter++ };
-            flatPersons.push(obj);
-        }
-    });
-    
-    const shuffledClusters = shuffle(clusterIds);
-    const seats = Array(seatCount).fill(null);
-
-    // Place locked seats by their seat index
-    let index = 0;
-    flatPersons.forEach(p => {
-        if (p.lockedSeat) {
-            seats[index++] = p;
-        }
-    });
-
-    // Shuffling helper
-    function shuffle(arr) {
-        const copy = [...arr];
-        for (let i = copy.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [copy[i], copy[j]] = [copy[j], copy[i]];
-        }
-        return copy;
-    }
-
-    // Backtracking for cluster pairs
-    function placeCluster(idx, edgesList) {
-        if (Math.random() < 0.2) {
-            edgesList = shuffle(edgesList);
-        }
-
-        if (idx >= shuffledClusters.length) return true;
-
-        const cid = shuffledClusters[idx];
-        const members = shuffle(clusterMap[cid]);
-        const edgesShuffled = shuffle(edgesList);
-
-        for (let e = 0; e < edgesShuffled.length; e++) {
-            const [s1, s2] = edgesShuffled[e];
-
-            if (seats[s1] === null && seats[s2] === null) {
-                seats[s1] = members[0];
-                seats[s2] = members[1];
-
-                const rest = edgesShuffled.filter((_, i) => i !== e);
-
-                if (placeCluster(idx + 1, rest)) return true;
-
-                seats[s1] = null;
-                seats[s2] = null;
-            }
-        }
-
-        return false;
-    }
-
-    const shuffledEdges = shuffle(edgePairs);
-
-    // Try placing all clusters
-    if (!placeCluster(0, shuffledEdges)) {
-        return null;
-    }
-
-    // Collect remaining persons that are not placed
-    const usedIds = new Set(seats.filter(s => s !== null).map(s => s._pid));
-    const remaining = flatPersons.filter(p => !usedIds.has(p._pid));
-
-    // Fill free seats with remaining persons
-    const freeSeats = seats
-        .map((s, i) => s === null ? i : null)
-        .filter(i => i !== null);
-
-    const shuffledFreeSeats = shuffle(freeSeats);
-    const remainingShuffled = shuffle(remaining);
-    
-    remainingShuffled.forEach((p, i) => {
-        seats[shuffledFreeSeats[i]] = p;
-    });
-
-    // Fill leftover seats with dummy if needed
-    const dummyList = getNames('', nameDelimiter, lockedSeatTag);
-    const dummy = dummyList[0];
-
-    return seats.map(s => s === null ? { ...dummy } : s);
 }
