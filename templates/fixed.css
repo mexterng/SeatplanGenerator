@@ -90,22 +90,11 @@
     right : 4px;
 }
 
-@media (hover: none) and (pointer: coarse) {
-    .del {
-        color : rgba(255, 0, 0, 0.7);
-    }
-    .add {
-        color : rgba(34, 155, 0, 0.7);
-    }
-    .rot {
-        color : rgba(80, 80, 80, 0.7);
-    }    
-}
-
 .fixed-tools {
     position: absolute;
     width: 100%;
     cursor: pointer;
+    visibility: hidden;
 }
 
 .fixed-tools.top {
@@ -118,4 +107,23 @@
     display: flex;
     align-items: flex-end;
     font-size: small;
+}
+
+.fixed-element:hover .fixed-tools {
+    visibility: visible;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .fixed-element .fixed-tools {
+        visibility: visible;
+    }
+    .del {
+        color : rgba(255, 0, 0, 0.7);
+    }
+    .add {
+        color : rgba(34, 155, 0, 0.7);
+    }
+    .rot {
+        color : rgba(80, 80, 80, 0.7);
+    }    
 }
