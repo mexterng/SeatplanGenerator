@@ -13,6 +13,7 @@
     touch-action: none;
     font-size: small;
     transform-origin: center center;
+    user-select: none;
 }
 
 .seat-name {
@@ -96,22 +97,11 @@
     right : 4px;
 }
 
-@media (hover: none) and (pointer: coarse) {
-    .del {
-        color : rgba(255, 0, 0, 0.7);
-    }
-    .add {
-        color : rgba(34, 155, 0, 0.7);
-    }
-    .rot {
-        color : rgba(80, 80, 80, 0.7);
-    }    
-}
-
 .seat-tools {
     position: absolute;
     width: 100%;
     cursor: pointer;
+    visibility: hidden;
 }
 
 .seat-tools.top {
@@ -148,4 +138,26 @@
 
 .seat:hover .connector { 
     opacity: 1; 
+}
+
+.seat:hover .seat-tools {
+    visibility: visible;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .seat .connector { 
+        opacity: 1; 
+    }
+    .seat .seat-tools {
+        visibility: visible;
+    }
+    .del {
+        color : rgba(255, 0, 0, 0.7);
+    }
+    .add {
+        color : rgba(34, 155, 0, 0.7);
+    }
+    .rot {
+        color : rgba(80, 80, 80, 0.7);
+    }    
 }

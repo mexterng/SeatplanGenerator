@@ -1,0 +1,221 @@
+@import "tailwindcss";
+
+/* ===============================
+   Root Variables in style.css theme from tailwindcss
+   =============================== */
+/* Primary Colors */
+:root {
+    --color-important: #BF1A2F;
+    --color-primary: #2B81BE;
+    --color-primary-dark: #0067AA;
+    --color-secondary: #8CCBF7;
+    --color-secondary-dark: #005D93;
+    --color-seat-bg: #EEEEEE;
+    --color-fix-bg: #CCCCCC;
+
+    --color-primary: #2B81BE;
+    --color-primary-hover: #256FA3;
+    --color-primary-dark: #1E3A5F;
+    --color-primary-dark-hover: #254A73;
+    --color-secondary: #E1E8F0;
+    --color-secondary-hover: #CBD5E1;
+    --color-secondary-dark: #1E293B;
+    --color-secondary-dark-hover: #334155;
+    --color-important: #BF1A2F;
+    --color-important-hover: #A51628;
+    --color-important-dark: #7F1120;
+    --color-important-dark-hover: #991429;
+    --color-font-black: #1E293B;
+    --color-font-white: #E1E8F0;
+    --color-background-light: #F8FAFC;
+}
+
+/* ===============================
+   Global Styles
+   =============================== */
+html {
+    background-color: var(--color-background-light);
+}
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    color: var(--color-slate-800);
+    font-size: xx-large;
+    font-weight: 700;
+}
+
+h2 {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-slate-400);
+    margin-bottom: 0.5rem;
+}
+
+h2.m-0 {
+    margin: 0;
+}
+
+.h2-bold {
+    color: var(--color-slate-900);
+}
+
+h3 {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    font-size: x-large;
+    font-weight: 600;
+}
+
+.important {
+    background: var(--color-important) !important;
+}
+
+/* ===============================
+   Sidebar Footer
+   =============================== */
+aside.closed {
+    width: 3rem;
+}
+
+aside.closed>#sidebar-toggle {
+    width: 100%;
+    right: 0;
+    padding-block: 1rem;
+}
+
+aside.closed>#sidebar-controls {
+    visibility: hidden;
+}
+
+aside.closed>#sidebar-footer {
+    flex-direction: column;
+    gap: 1rem;
+    padding-inline: 0;
+    width: 100%;
+    align-items: center;
+}
+
+.sidebar-footer-link {
+    color: var(--color-slate-400);
+}
+
+.sidebar-footer-link:hover {
+    color: var(--color-slate-500);
+}
+
+.closed .sidebar-footer-link {
+    writing-mode: sideways-lr;
+ }
+
+/* ===============================
+   Canvas / Seating Area
+   =============================== */
+.canvas-dot-grid {
+    background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px);
+    background-size: 10px 10px;
+}
+
+#connection-layer path {
+    pointer-events: stroke;
+}
+
+#connection-layer circle,
+#connection-layer line {
+    pointer-events: all;
+}
+
+/* ===============================
+   Buttons
+   =============================== */
+button {
+    color: var(--color-font-black);
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    transition: background-color 0.3s, color 0.3s;
+    font-weight: 500;
+    justify-items: center;
+    align-items: center;
+    cursor: pointer;
+    text-wrap: nowrap;
+}
+
+button.hidden {
+    display: none;
+}
+
+button.wrap {
+    text-wrap: wrap;
+}
+
+.btn-primary {
+    color: var(--color-font-white);
+    background-color: var(--color-primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.btn-secondary {
+    background-color: var(--color-secondary);
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-secondary-hover);
+}
+
+.btn-important {
+    font-weight: 600;
+    color: white;
+    background-color: var(--color-important);
+}
+
+.btn-important:hover {
+    background-color: var(--color-important-hover);
+}
+
+/* ===============================
+   Inputs
+   =============================== */
+input,
+select,
+textarea {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    border-width: 1px;
+    border-radius: 0.5rem;
+    border-color: var(--color-slate-400);
+}
+
+input, select {
+    padding: 0.25rem 0.5rem;
+}
+
+input[type="checkbox"] {
+    cursor: pointer;
+}
+
+/* ===============================
+   Countdown
+   =============================== */
+#countdown-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 10vw;
+    z-index: 9999;
+    transition: opacity 0.5s ease;
+}
