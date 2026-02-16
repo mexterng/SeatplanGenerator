@@ -264,40 +264,31 @@ function calculateBoundingBox(seatElements, fixedElements) {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     let hasElements = false;
 
+    // Helper function to process a single element
+    const processElement = (item, defaultWidth = 110, defaultHeight = 60) => {
+        const element = item.element || item;
+        const x = element?.offsetLeft ?? item.x ?? 0;
+        const y = element?.offsetTop ?? item.y ?? 0;
+        const width = element?.offsetWidth ?? defaultWidth;
+        const height = element?.offsetHeight ?? defaultHeight;
+        
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x + width);
+        maxY = Math.max(maxY, y + height);
+        hasElements = true;
+    };
+
     // Process seats if provided, otherwise use global seats
     const seatsToProcess = seatElements !== undefined ? seatElements : seats;
-    
-    if (seatsToProcess && seatsToProcess.length > 0) {
-        seatsToProcess.forEach(seat => {
-            const x = parseInt(seat.style?.left) || seat.x || 0;
-            const y = parseInt(seat.style?.top) || seat.y || 0;
-            const width = seat.offsetWidth || 110;
-            const height = seat.offsetHeight || 110;
-            
-            minX = Math.min(minX, x);
-            minY = Math.min(minY, y);
-            maxX = Math.max(maxX, x + width);
-            maxY = Math.max(maxY, y + height);
-            hasElements = true;
-        });
+    if (seatsToProcess?.length) {
+        seatsToProcess.forEach(seat => processElement(seat, 110, 60));
     }
 
     // Process fixed elements if provided
     const fixedToProcess = fixedElements !== undefined ? fixedElements : document.querySelectorAll('.fixed-element');
-    
-    if (fixedToProcess && fixedToProcess.length > 0) {
-        Array.from(fixedToProcess).forEach(elem => {
-            const x = parseInt(elem.style?.left) || elem.x || 0;
-            const y = parseInt(elem.style?.top) || elem.y || 0;
-            const width = elem.offsetWidth || 140;
-            const height = elem.offsetHeight || 140;
-            
-            minX = Math.min(minX, x);
-            minY = Math.min(minY, y);
-            maxX = Math.max(maxX, x + width);
-            maxY = Math.max(maxY, y + height);
-            hasElements = true;
-        });
+    if (fixedToProcess?.length) {
+        Array.from(fixedToProcess).forEach(elem => processElement(elem, 140, 50));
     }
 
     // Return default bounds if no elements found
