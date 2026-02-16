@@ -1,4 +1,6 @@
+#!/bin/bash
 # stop on error
+echo "Starting ..."
 set -e
 
 cd "$(dirname "$0")"
