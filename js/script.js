@@ -839,18 +839,20 @@ async function createSeats() {
     lastSeatID = 0;
     
     const count = parseInt(seatCountDOM.value);
-    let x = SEAT_GAP;
-    let y = SEAT_GAP;
+    let x = MAX_CANVAS / 2;
+    let y = MAX_CANVAS / 2;
 
     for (let i = 0; i < count; i++) {
         if (x + seatWidth > canvasWidth || (i > 1 && i % 10 === 0)) {
-            x = SEAT_GAP;
+            x = MAX_CANVAS / 2;
             y += seatHeight + SEAT_GAP;
         }
         await createSeatElement(x, y, 0, canvasDOM);
         x += seatWidth + SEAT_GAP;
     }
     seatCountDOM.value = count;
+
+    fitView();
 }
 
 // ============================================
