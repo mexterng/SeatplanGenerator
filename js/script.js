@@ -968,18 +968,32 @@ function handleElementMouseDown(e) {
     e.preventDefault();
     
     currentDrag = dragElement;
+
+    // Get canvas rect in viewport coordinates
     const canvasRect = canvasDOM.getBoundingClientRect();
+
+
+    // Get transform container's current transform
+    const transform = new DOMMatrix(transformContainerDOM.style.transform);
+    const currentScale = transform.a;
+    const currentTranslateX = transform.e;
+    const currentTranslateY = transform.f;
+
+    // Convert mouse coordinates from viewport to canvas coordinates
+    const mouseXCanvas = e.clientX - canvasRect.left;
+    const mouseYCanvas = e.clientY - canvasRect.top;
+    
+    const canvasX = (mouseXCanvas - currentTranslateX) / currentScale;
+    const canvasY = (mouseYCanvas - currentTranslateY) / currentScale;
 
     const style = window.getComputedStyle(dragElement);
     const matrix = new DOMMatrix(style.transform);
     const translateX = matrix.m41;
     const translateY = matrix.m42;
 
-    const mouseX = e.clientX - canvasRect.left;
-    const mouseY = e.clientY - canvasRect.top;
-
-    offsetX = mouseX - (dragElement.offsetLeft + translateX);
-    offsetY = mouseY - (dragElement.offsetTop + translateY);
+    // Calculate offset in canvas coordinates
+    offsetX = canvasX - (dragElement.offsetLeft + translateX);
+    offsetY = canvasY - (dragElement.offsetTop + translateY);
 
     startX = e.clientX;
     startY = e.clientY;
@@ -997,10 +1011,25 @@ function handleElementMouseDown(e) {
 function handleElementPointerMove(e) {
     if (!currentDrag) return;
 
+    // Get canvas rect in viewport coordinates
     const canvasRect = canvasDOM.getBoundingClientRect();
 
-    let newX = e.clientX - canvasRect.left - offsetX;
-    let newY = e.clientY - canvasRect.top - offsetY;
+    // Get transform container's current transform
+    const transform = new DOMMatrix(transformContainerDOM.style.transform);
+    const currentScale = transform.a;
+    const currentTranslateX = transform.e;
+    const currentTranslateY = transform.f;
+
+    // Convert mouse coordinates from viewport to canvas coordinates
+    // Get mouse position relative to canvas
+    const mouseXCanvas = e.clientX - canvasRect.left;
+    const mouseYCanvas = e.clientY - canvasRect.top;
+    // Apply inverse transform to get actual canvas coordinates
+    const canvasX = (mouseXCanvas - currentTranslateX) / currentScale;
+    const canvasY = (mouseYCanvas - currentTranslateY) / currentScale;
+    // Calculate new position using canvas coordinates
+    let newX = canvasX - offsetX;
+    let newY = canvasY - offsetY;
 
     let { x: correctedX, y: correctedY } = keepInsideCanvas(currentDrag, newX, newY, canvasDOM);
 
