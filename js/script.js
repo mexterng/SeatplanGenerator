@@ -1342,9 +1342,7 @@ function shuffleNamesWithoutPairs(array) {
  * Assign random names to seats
  * @param {boolean} [shuffle=true] - Whether to shuffle names
  */
-async function assignNames(shuffle = true) {
-    document.getElementById('clear-seats').style.display = "inline";
-    
+async function assignNames(shuffle = true) {  
     const nameListNested = parseNames(
         namesInputDOM.value, 
         personDelimiter, 
@@ -1410,6 +1408,9 @@ async function assignNames(shuffle = true) {
         s.element.querySelector('.seat-firstname').textContent = shuffledNames[i]['firstname'];
         s.element.querySelector('.seat-lastname').textContent = shuffledNames[i]['lastname'];
     });
+
+    document.getElementById('clear-seats').style.display = "inline";
+    document.getElementById('draw-seats').style.display = "none";
 }
 
 /**
@@ -1602,6 +1603,7 @@ function clearSeats() {
         s.element.querySelector('.seat-lastname').textContent = "";
     });
     document.getElementById('clear-seats').style.display = "none";
+    document.getElementById('draw-seats').style.display = "inline";
 }
 
 // ============================================

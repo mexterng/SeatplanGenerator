@@ -31,10 +31,10 @@
                         <label class="block text-sm font-medium text-slate-700">Anzahl Sitzplätze</label>
                         <div class="flex gap-2">
                             <input id="seatCount" class="w-16" type="number" value="0" min="1">
-                            <button onclick="createSeats()" class="btn-primary flex-1">
+                            <button id="draw-seats" onclick="createSeats()" class="btn-primary flex-1">
                                 <i class="fa-solid fa-object-ungroup"></i> Sitzplätze neu zeichnen
                             </button>
-                            <button onclick="clearSeats()" class="btn-secondary flex-1 hidden" id="clear-seats">
+                            <button id="clear-seats" onclick="clearSeats()" class="btn-primary flex-1 hidden">
                                 <i class="fa-solid fa-eraser"></i> Sitzplätze leeren
                             </button>
                         </div>
