@@ -21,7 +21,7 @@
 
 .board{
     width: 178px;
-    height: 28px;
+    height: 33px;
 }
 
 .door{
@@ -31,7 +31,7 @@
 
 .window{
     width: 108px;
-    height: 28px;
+    height: 33px;
 }
 
 #fixed-name {
