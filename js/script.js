@@ -71,6 +71,7 @@ const svgConnectionLayerDOM = document.getElementById('connection-layer');
 svgConnectionLayerDOM.style.height = `${MAX_CANVAS}px`;
 svgConnectionLayerDOM.style.width = `${MAX_CANVAS}px`;
 const transformContainerDOM = document.getElementById('transform-container');
+const viewportDOM = document.getElementById('viewport');
 
 // Zoom buttons
 const zoomOutBtn = document.getElementById('zoomOutBtn');
@@ -796,14 +797,10 @@ function getElementTransformData(element, canvas) {
     // Get rotation angle
     const currentTransform = element.style.transform || "rotate(0deg)";
     const currentAngle = parseFloat(currentTransform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
-    
-    // Add small offset for duplication (in canvas coordinates)
-    // Offset is independent of zoom because we're in canvas coordinates
-    const offset = 19.1;
-    
+        
     return {
-        x: currentX + offset,
-        y: currentY + offset,
+        x: currentX,
+        y: currentY,
         angle: currentAngle
     };
 }
@@ -815,7 +812,10 @@ function getElementTransformData(element, canvas) {
  */
 async function duplicateSeat(seat, canvas) {
     const { x, y, angle } = getElementTransformData(seat, canvas);
-    await createSeatElement(x, y, angle, canvas);
+    // Add small offset for duplication (in canvas coordinates)
+    // Offset is independent of zoom because we're in canvas coordinates
+    const offset = 19.1;
+    await createSeatElement(x + offset, y + offset, angle, canvas);
 }
 
 /**
@@ -826,7 +826,10 @@ async function duplicateSeat(seat, canvas) {
  */
 async function duplicateFixedElement(element, type, canvas) {
     const { x, y, angle } = getElementTransformData(element, canvas);
-    await createFixedElement(type, x, y, angle, canvas);
+    // Add small offset for duplication (in canvas coordinates)
+    // Offset is independent of zoom because we're in canvas coordinates
+    const offset = 19.1;
+    await createFixedElement(type, x + offset, y + offset, angle, canvas);
 }
 
 /**
@@ -869,6 +872,42 @@ function clearCanvas() {
 // ============================================
 // FIXED ELEMENTS
 // ============================================
+/**
+ * Create a new fixed element in view
+ * @param {string} type - Element type
+ * @param {number} rotate - Rotation angle
+ * @param {HTMLElement} canvas - Canvas element
+ */
+async function createFixedElementInView(type, rotate, canvas) {
+    const rect = viewportDOM.getBoundingClientRect();
+    const viewportWidth = rect.width;
+    const viewportHeight = rect.height;
+    
+    const style = window.getComputedStyle(transformContainerDOM);
+    const transform = style.transform;
+
+    let translateX = 0;
+    let translateY = 0;
+    let scale = 1;
+
+    if (transform !== "none") {
+        const matrix = new DOMMatrix(transform);
+
+        translateX = matrix.m41; // translateX
+        translateY = matrix.m42; // translateY
+        scale = matrix.a;        // scaleX (bei uniform scale auch scaleY)
+    }
+
+    // screen center (viewport space)
+    const screenCenterX = viewportWidth / 2;
+    const screenCenterY = viewportHeight / 2;
+
+    // convert screen -> world (inverse transform)
+    const worldCenterX = (screenCenterX - translateX) / scale;
+    const worldCenterY = (screenCenterY - translateY) / scale;
+
+    createFixedElement(type, worldCenterX, worldCenterY, rotate, canvas);
+}
 
 /**
  * Create a new fixed element
@@ -943,22 +982,6 @@ function attachFixedElementListeners(element, type, canvas) {
     element.addEventListener('dragstart', (e) => {
         e.preventDefault();
     });
-}
-
-/**
- * Duplicate a fixed element
- * @param {HTMLElement} element - Element to duplicate
- * @param {string} type - Element type
- * @param {HTMLElement} canvas - Canvas element
- */
-async function duplicateFixedElement(element, type, canvas) {
-    const rect = element.getBoundingClientRect();
-    const parentRect = canvas.getBoundingClientRect();
-    const currentX = rect.left - parentRect.left;
-    const currentY = rect.top - parentRect.top;
-    const currentTransform = element.style.transform || "rotate(0deg)";
-    const currentAngle = parseFloat(currentTransform.match(/rotate\(([-\d.]+)deg\)/)?.[1] || 0);
-    await createFixedElement(type, currentX + 19.1, currentY + 19.1, currentAngle, canvas);
 }
 
 // ============================================
