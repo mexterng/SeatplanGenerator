@@ -370,6 +370,9 @@
   .h-8 {
     height: calc(var(--spacing) * 8);
   }
+  .h-dvh {
+    height: 100dvh;
+  }
   .h-full {
     height: 100%;
   }
@@ -761,6 +764,7 @@ aside.closed>#sidebar-footer {
   pointer-events: all;
 }
 button {
+  display: flex;
   color: var(--color-font-black);
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
@@ -768,7 +772,7 @@ button {
   font-size: 0.875rem;
   transition: background-color 0.3s, color 0.3s;
   font-weight: 500;
-  justify-items: center;
+  justify-content: center;
   align-items: center;
   cursor: pointer;
   text-wrap: nowrap;
