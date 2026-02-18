@@ -177,7 +177,7 @@ function collectNamesData() {
 
 async function addFixedElement(type) {
     const canvas = document.getElementById('canvas');
-    await createFixedElement(type, 20, 20, 0, canvas);
+    await createFixedElementInView(type, 0, canvas);
 }
 
 // ===============================
