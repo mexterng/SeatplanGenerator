@@ -884,7 +884,10 @@ function clearCanvas() {
     );
     if (!proceed) return;
     seatCountDOM.value = 0;
-    createSeats();
+    canvasDOM.innerHTML = '';
+    seats = [];
+    lastSeatID = 0;
+    fitView();
 }
 
 // ============================================
