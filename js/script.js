@@ -996,8 +996,10 @@ function handleElementMouseDown(e) {
     // Only handle left mouse button
     if (e.button !== 0) return;
     
+    const isDragElement = e.target.classList.contains('drag-element');
+    if (!isDragElement) return;
+
     const dragElement = e.target.closest('.drag-element');
-    if (!dragElement) return;
 
     // Stop propagation to prevent canvas panning
     e.stopPropagation();
