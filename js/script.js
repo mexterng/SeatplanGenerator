@@ -839,7 +839,7 @@ async function createSeats() {
     const canvasWidth = canvasDOM.clientWidth;
     const { width: seatWidth, height: seatHeight } = await getSeatSize();
     
-    canvasDOM.innerHTML = '';
+    canvasDOM.querySelectorAll(".seat").forEach(el => el.remove());
     seats = [];
     lastSeatID = 0;
     
