@@ -1510,11 +1510,10 @@ function generateSeatAssignmentBacktracking(persons, edges, seatCount, nameDelim
     const shuffledClusters = shuffle(clusterIds);
     const seats = Array(seatCount).fill(null);
 
-    // Place locked seats by their seat index
-    let index = 0;
-    flatPersons.forEach(p => {
+    // --- Place locked seats by their seat index ---
+    flatPersons.forEach((p, idx) => {
         if (p.lockedSeat) {
-            seats[index++] = p;
+            seats[idx] = p;
         }
     });
 
