@@ -353,10 +353,28 @@ function handleCanvasMouseDown(e) {
  */
 function handleCanvasMouseMove(e) {
     if (!isPanning) return;
-    
+
     e.preventDefault();
-    panOffset.x = e.clientX - panStart.x;
-    panOffset.y = e.clientY - panStart.y;
+
+    const rect = viewportDOM.getBoundingClientRect();
+    const viewportWidth = rect.width;
+    const viewportHeight = rect.height;
+
+    const scaledWidth = MAX_CANVAS * currentZoom;
+    const scaledHeight = MAX_CANVAS * currentZoom;
+
+    const minX = viewportWidth - scaledWidth;
+    const maxX = 0;
+
+    const minY = viewportHeight - scaledHeight;
+    const maxY = 0;
+
+    const newX = e.clientX - panStart.x;
+    const newY = e.clientY - panStart.y;
+
+    panOffset.x = Math.max(minX, Math.min(maxX, newX));
+    panOffset.y = Math.max(minY, Math.min(maxY, newY));
+
     applyZoom();
 }
 
@@ -866,7 +884,10 @@ function clearCanvas() {
     );
     if (!proceed) return;
     seatCountDOM.value = 0;
-    createSeats();
+    canvasDOM.innerHTML = '';
+    seats = [];
+    lastSeatID = 0;
+    fitView();
 }
 
 // ============================================
