@@ -30,12 +30,12 @@
                     <h2>Konfiguration</h2>
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-slate-700">Anzahl Sitzplätze</label>
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 w-full">
                             <input id="seatCount" class="w-16" type="number" value="0" min="1">
-                            <button id="draw-seats" onclick="createSeats()" class="btn-primary flex-1">
+                            <button id="create-seats-btn" class="btn-primary flex-1">
                                 <i class="fa-solid fa-object-ungroup"></i>Sitzplätze neu zeichnen
                             </button>
-                            <button id="clear-seats" onclick="clearSeats()" class="btn-primary flex-1 hidden">
+                            <button id="clear-seats-btn" class="btn-primary flex-1 hidden">
                                 <i class="fa-solid fa-eraser"></i>Sitzplätze leeren
                             </button>
                         </div>
@@ -56,19 +56,19 @@
                 </section>
                 <section class="space-y-2">
                     <h2>Aktionen</h2>
-                    <button onclick="assignNames(false)" class="btn-important w-full">
+                    <button id="assign-names-btn" class="btn-important w-full">
                         <i class="fa-solid fa-arrows-down-to-people"></i>Namen übertragen
                     </button>
-                    <button onclick="assignNames()" class="btn-important w-full">
+                    <button id="shuffle-names-btn" class="btn-important w-full">
                         <i class="fa-solid fa-shuffle"></i>Sitzplätze auslosen
                     </button>
-                    <button onclick="saveSeats()" class="btn-secondary w-full">
+                    <button id="save-seats-btn" class="btn-secondary w-full">
                         <i class="fa-solid fa-floppy-disk"></i>Sitzplätze in Browser speichern
                     </button>
-                    <button onclick="saveNames()" class="btn-secondary w-full">
+                    <button id="save-names-btn" class="btn-secondary w-full">
                         <i class="fa-solid fa-floppy-disk"></i>Namen in Browser speichern
                     </button>
-                    <button onclick="deleteLocalStorage()" class="btn-secondary w-full">
+                    <button id="delete-loacalstorage-btn" class="btn-secondary w-full">
                         <i class="fa-solid fa-trash"></i>Browser-Speicher löschen
                     </button>
                 </section>
@@ -85,18 +85,18 @@
                             <h2>Import/Export</h2>
                             <input id="importFile" type="file" accept=".json" class="hidden">
                             <div class="flex gap-2">
-                                <button onclick="importSeats()" class="btn-secondary wrap w-full">
+                                <button id="import-seats-btn" class="btn-secondary wrap w-full">
                                     <i class="fa-solid fa-file-import"></i>Sitzplätze importieren
                                 </button>
-                                <button onclick="exportSeats()" class="btn-primary wrap w-full">
+                                <button id="export-seats-btn" class="btn-primary wrap w-full">
                                     <i class="fa-solid fa-download"></i>Sitzplätze exportieren
                                 </button>
                             </div>
                             <div class="flex gap-2">
-                                <button onclick="importNames()" class="btn-secondary wrap w-full">
+                                <button id="import-names-btn" class="btn-secondary wrap w-full">
                                     <i class="fa-solid fa-file-import"></i>Namen importieren
                                 </button>
-                                <button onclick="exportNames()" class="btn-primary wrap w-full">
+                                <button id="export-names-btn" class="btn-primary wrap w-full">
                                     <i class="fa-solid fa-download"></i>Namen exportieren
                                 </button>
                             </div>
@@ -104,16 +104,16 @@
                         <section class="space-y-4">
                             <h2>Feste Elemente</h2>
                             <div class="flex gap-2">
-                                <button onclick="addFixedElement('desk')" class="btn-primary w-full flex-col">
+                                <button id="add-desk-btn" class="btn-primary w-full flex-col">
                                     <i class="fa-solid fa-briefcase"></i>Pult
                                 </button>
-                                <button onclick="addFixedElement('board')" class="btn-primary w-full flex-col">
+                                <button id="add-board-btn" class="btn-primary w-full flex-col">
                                     <i class="fa-solid fa-chalkboard"></i>Tafel
                                 </button>
-                                <button onclick="addFixedElement('door')" class="btn-primary w-full flex-col">
+                                <button id="add-door-btn" class="btn-primary w-full flex-col">
                                     <i class="fa-solid fa-door-open"></i>Tür
                                 </button>
-                                <button onclick="addFixedElement('window')" class="btn-primary w-full flex-col">
+                                <button id="add-window-btn" class="btn-primary w-full flex-col">
                                     <i class="fa-solid fa-table"></i>Fenster
                                 </button>
                             </div>
@@ -167,7 +167,7 @@
             </div>
 
             <div class="absolute bottom-0 left-0 mb-10 ml-10 z-20 flex gap-2">
-                <i id="clearCanvasBtn" class="fa-solid fa-trash cursor-pointer text-[var(--color-important)] hover:text-[var(--color-important-hover)]"></i>
+                <i id="clear-canvas-btn" class="fa-solid fa-trash cursor-pointer text-[var(--color-important)] hover:text-[var(--color-important-hover)]"></i>
             </div>
 
             <div class="absolute bottom-0 right-0 mb-10 mr-10 z-20 flex gap-2">
@@ -209,13 +209,7 @@
             </div>
         </div>
     </div>
-
-    <script src="libs/html2canvas.min.js?v=1.4.1"></script>
-    <script src="libs/jspdf.umd.min.js?v=2.5.1"></script>
-    <script src="js/general.js"></script>
-    <script src="js/script.js"></script>
-    <script src="js/advanced-tools.js"></script>
-    <script src="js/pdf-export.js"></script>
+    <script type="module" src="./js/main.js"></script>
 </body>
 
 </html>
