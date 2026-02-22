@@ -149,12 +149,12 @@ export async function importSeats() {
 
             // Recreate fixed elements
             for (const t of fixedData) {
-                await createFixedElement(t.type, t.x, t.y, t.rotate, DOM.canvas);
+                await createFixedElement(t.type, t.x, t.y, t.rotate);
             }
 
             // Recreate seat elements
             for (const t of seatData) {
-                await createSeatElement(t.x, t.y, t.rotate, DOM.canvas, t.id);
+                await createSeatElement(t.x, t.y, t.rotate, t.id);
             }
 
             // Recreate seat connections

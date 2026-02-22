@@ -89,7 +89,7 @@ export async function createFixedElementInView(type, rotate = 0) {
     const worldX = (rect.width / 2 - tx) / scale;
     const worldY = (rect.height / 2 - ty) / scale;
 
-    await createFixedElement(type, worldX, worldY, rotate, DOM.canvas);
+    await createFixedElement(type, worldX, worldY, rotate);
 }
 
 /**
@@ -99,10 +99,9 @@ export async function createFixedElementInView(type, rotate = 0) {
  * @param {number} x - X position in canvas coordinates.
  * @param {number} y - Y position in canvas coordinates.
  * @param {number} rotate - Initial rotation angle.
- * @param {HTMLElement} canvas - Target canvas.
  * @returns {Promise<void>}
  */
-export async function createFixedElement(type, x, y, rotate = 0, canvas = DOM.canvas) {
+export async function createFixedElement(type, x, y, rotate = 0) {
     await loadFixedTemplateFiles();
 
     const element = window.fixedTemplate.cloneNode(true);
@@ -110,7 +109,7 @@ export async function createFixedElement(type, x, y, rotate = 0, canvas = DOM.ca
     const { width, height } = await getFixedSize(type);
 
     // Ensure element remains inside canvas boundaries
-    ({ x, y } = guaranteeCanvasBoundaries(x, y, width, height, canvas));
+    ({ x, y } = guaranteeCanvasBoundaries(x, y, width, height));
 
     // Set visible German label
     element.querySelector('#fixed-name').textContent = FIXED_ELEMENT_LABELS[type] || 'Unbekannt';
@@ -120,9 +119,9 @@ export async function createFixedElement(type, x, y, rotate = 0, canvas = DOM.ca
     element.style.top = y + 'px';
     element.style.transform = `rotate(${rotate}deg)`;
 
-    attachFixedElementListeners(element, type, canvas);
+    attachFixedElementListeners(element, type);
 
-    canvas.appendChild(element);
+    DOM.canvas.appendChild(element);
 }
 
 // ============================================
@@ -134,19 +133,18 @@ export async function createFixedElement(type, x, y, rotate = 0, canvas = DOM.ca
  *
  * @param {HTMLElement} element - Fixed element.
  * @param {string} type - Fixed element type.
- * @param {HTMLElement} canvas - Canvas element.
  */
-function attachFixedElementListeners(element, type, canvas) {
+function attachFixedElementListeners(element, type) {
     // Delete button
     element.querySelector('.del').addEventListener('click', e => {
         e.stopPropagation();
-        canvas.removeChild(element);
+        DOM.canvas.removeChild(element);
     });
 
     // Duplicate button
     element.querySelector('.add').addEventListener('click', e => {
         e.stopPropagation();
-        duplicateFixedElement(element, type, canvas);
+        duplicateFixedElement(element, type);
     });
 
     // Rotate left
@@ -173,19 +171,12 @@ function attachFixedElementListeners(element, type, canvas) {
  *
  * @param {HTMLElement} element - Source element.
  * @param {string} type - Fixed element type.
- * @param {HTMLElement} canvas - Target canvas.
  * @returns {Promise<void>}
  */
-export async function duplicateFixedElement(element, type, canvas = DOM.canvas) {
+export async function duplicateFixedElement(element, type) {
     const { x, y, angle } = getElementTransformData(element);
 
-    await createFixedElement(
-        type,
-        x + DUPLICATE_OFFSET,
-        y + DUPLICATE_OFFSET,
-        angle,
-        canvas
-    );
+    await createFixedElement(type, x + DUPLICATE_OFFSET, y + DUPLICATE_OFFSET, angle);
 }
 
 // ============================================

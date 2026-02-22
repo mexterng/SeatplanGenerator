@@ -74,7 +74,7 @@ export async function getSeatSize() {
  * @param {number} [id] - Optional predefined seat ID.
  * @returns {Promise<void>}
  */
-export async function createSeatElement(x, y, rotate, canvas, id) {
+export async function createSeatElement(x, y, rotate, id) {
     await loadSeatTemplateFiles();
 
     const seat = window.seatTemplate.cloneNode(true);
@@ -82,7 +82,7 @@ export async function createSeatElement(x, y, rotate, canvas, id) {
     const { width: sw, height: sh } = await getSeatSize();
 
     // Ensure seat remains within canvas boundaries
-    ({ x, y } = guaranteeCanvasBoundaries(x, y, sw, sh, canvas));
+    ({ x, y } = guaranteeCanvasBoundaries(x, y, sw, sh));
 
     seat.style.left = x + 'px';
     seat.style.top = y + 'px';
@@ -100,7 +100,7 @@ export async function createSeatElement(x, y, rotate, canvas, id) {
         }
     }
 
-    attachSeatEventListeners(seat, canvas);
+    attachSeatEventListeners(seat);
 
     canvas.appendChild(seat);
 
@@ -127,19 +127,18 @@ export async function createSeatElement(x, y, rotate, canvas, id) {
  * Attaches UI interaction listeners to a seat element.
  *
  * @param {HTMLElement} seat - Seat element.
- * @param {HTMLElement} canvas - Canvas element.
  */
-function attachSeatEventListeners(seat, canvas) {
+function attachSeatEventListeners(seat) {
     // Delete button
     seat.querySelector('.del').addEventListener('click', e => {
         e.stopPropagation();
-        deleteSeat(seat, canvas);
+        deleteSeat(seat);
     });
 
     // Duplicate button
     seat.querySelector('.add').addEventListener('click', e => {
         e.stopPropagation();
-        duplicateSeat(seat, canvas);
+        duplicateSeat(seat);
     });
 
     // Rotate left
@@ -169,9 +168,8 @@ function attachSeatEventListeners(seat, canvas) {
  * Deletes a seat and all associated connections.
  *
  * @param {HTMLElement} seat - Seat element to remove.
- * @param {HTMLElement} canvas - Canvas element.
  */
-export function deleteSeat(seat, canvas) {
+export function deleteSeat(seat) {
     // Remove related connection visuals and state
     state.fixedConnections
         .filter(c => c.startConnector.closest('.seat') === seat || c.endConnector.closest('.seat') === seat)
@@ -190,7 +188,7 @@ export function deleteSeat(seat, canvas) {
         c.startConnector.closest('.seat') !== seat && c.endConnector.closest('.seat') !== seat
     );
 
-    canvas.removeChild(seat);
+    DOM.canvas.removeChild(seat);
 
     state.seats = state.seats.filter(t => t.element !== seat);
 
@@ -207,17 +205,15 @@ export function deleteSeat(seat, canvas) {
  * Duplicates a seat with position offset.
  *
  * @param {HTMLElement} seat - Source seat.
- * @param {HTMLElement} canvas - Target canvas.
  * @returns {Promise<void>}
  */
-export async function duplicateSeat(seat, canvas) {
+export async function duplicateSeat(seat) {
     const { x, y, angle } = getElementTransformData(seat);
 
     await createSeatElement(
         x + DUPLICATE_OFFSET,
         y + DUPLICATE_OFFSET,
-        angle,
-        canvas
+        angle
     );
 }
 
@@ -252,7 +248,7 @@ export async function createSeats() {
             y += sh + SEAT_GAP;
         }
 
-        await createSeatElement(x, y, 0, DOM.canvas);
+        await createSeatElement(x, y, 0);
 
         x += sw + SEAT_GAP;
     }

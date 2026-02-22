@@ -62,12 +62,7 @@ export function rotateElement(element, rotationAngle) {
     element.style.transform = `rotate(${currentAngle + rotationAngle}deg)`;
 
     // Ensure rotated element stays fully inside canvas
-    const { x: cx, y: cy } = keepInsideCanvas(
-        element,
-        parseFloat(element.style.left),
-        parseFloat(element.style.top),
-        DOM.canvas
-    );
+    const { x: cx, y: cy } = keepInsideCanvas(element, parseFloat(element.style.left), parseFloat(element.style.top));
 
     element.style.left = cx + 'px';
     element.style.top = cy + 'px';
@@ -88,12 +83,11 @@ export function rotateElement(element, rotationAngle) {
  * @param {number} y - Proposed Y coordinate.
  * @param {number} elementWidth - Element width.
  * @param {number} elementHeight - Element height.
- * @param {HTMLElement} canvas - Canvas element.
  * @returns {{x: number, y: number}} Corrected position.
  */
-export function guaranteeCanvasBoundaries(x, y, elementWidth, elementHeight, canvas) {
-    x = Math.max(0, Math.min(x, canvas.clientWidth - elementWidth));
-    y = Math.max(0, Math.min(y, canvas.clientHeight - elementHeight));
+export function guaranteeCanvasBoundaries(x, y, elementWidth, elementHeight) {
+    x = Math.max(0, Math.min(x, DOM.canvas.clientWidth - elementWidth));
+    y = Math.max(0, Math.min(y, DOM.canvas.clientHeight - elementHeight));
 
     return { x, y };
 }
@@ -105,10 +99,9 @@ export function guaranteeCanvasBoundaries(x, y, elementWidth, elementHeight, can
  * @param {HTMLElement} element - Target element.
  * @param {number} newX - Proposed X coordinate.
  * @param {number} newY - Proposed Y coordinate.
- * @param {HTMLElement} canvas - Canvas element.
  * @returns {{x: number, y: number}} Corrected position.
  */
-export function keepInsideCanvas(element, newX, newY, canvas) {
+export function keepInsideCanvas(element, newX, newY) {
     const w = element.offsetWidth;
     const h = element.offsetHeight;
 
@@ -142,12 +135,12 @@ export function keepInsideCanvas(element, newX, newY, canvas) {
     if (minX < 0) corrX += -minX;
     if (minY < 0) corrY += -minY;
 
-    if (maxX > canvas.clientWidth) {
-        corrX -= (maxX - canvas.clientWidth);
+    if (maxX > DOM.canvas.clientWidth) {
+        corrX -= (maxX - DOM.canvas.clientWidth);
     }
 
-    if (maxY > canvas.clientHeight) {
-        corrY -= (maxY - canvas.clientHeight);
+    if (maxY > DOM.canvas.clientHeight) {
+        corrY -= (maxY - DOM.canvas.clientHeight);
     }
 
     return { x: corrX, y: corrY };

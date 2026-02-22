@@ -160,14 +160,14 @@ export async function loadData() {
     // Recreate fixed elements
     if (fixedData) {
         for (const t of fixedData) {
-            await createFixedElement(t.type, t.x + loadOffsetX, t.y + loadOffsetY, t.rotate, DOM.canvas);
+            await createFixedElement(t.type, t.x + loadOffsetX, t.y + loadOffsetY, t.rotate);
         }
     }
 
     // Recreate seats
     if (seatData) {
         for (const t of seatData) {
-            await createSeatElement(t.x + loadOffsetX, t.y + loadOffsetY, t.rotate, DOM.canvas, t.id);
+            await createSeatElement(t.x + loadOffsetX, t.y + loadOffsetY, t.rotate, t.id);
         }
         DOM.seatCount.value = seatData.length;
     }

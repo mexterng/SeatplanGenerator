@@ -89,7 +89,7 @@ function handleElementPointerMove(event) {
     let newY = canvasY - state.dragOffsetY;
 
     // Keep element inside canvas (including rotation)
-    const { x: boundedX, y: boundedY } = keepInsideCanvas(state.currentDrag, newX, newY, DOM.canvas);
+    const { x: boundedX, y: boundedY } = keepInsideCanvas(state.currentDrag, newX, newY);
 
     // Snap movement to grid
     const snappedX = Math.round(boundedX / GRID_SIZE) * GRID_SIZE;
