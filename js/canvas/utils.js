@@ -41,6 +41,7 @@ export function clearCanvas() {
 
     // Remove all elements from canvas
     DOM.canvas.innerHTML = '';
+    DOM.svgConnectionLayer.innerHTML = '';
 
     // Reset seat-related state
     state.seats = [];
