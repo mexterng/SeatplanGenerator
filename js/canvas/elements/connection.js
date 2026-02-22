@@ -85,13 +85,14 @@ function createConnectionPath() {
  * @param {SVGPathElement} path - Connection path.
  * @returns {SVGGElement} Delete button group.
  */
-export function addDeleteButtonOnConnection(startSeat, endSeat, path) {
+export function createDeleteButton(path, pairId) {
     const btnGroup = document.createElementNS(SVG_NS, 'g');
     btnGroup.style.cursor = 'pointer';
 
-    // Create "X" icon using two lines
-    [0, 1].forEach(() => {
-        const line = document.createElementNS(SVG_NS, 'line');
+    const line1 = document.createElementNS(SVG_NS, 'line');
+    const line2 = document.createElementNS(SVG_NS, 'line');
+
+    [line1, line2].forEach(line => {
         line.setAttribute('stroke', 'red');
         line.setAttribute('stroke-width', '2');
         line.setAttribute('pointer-events', 'all');
@@ -100,31 +101,9 @@ export function addDeleteButtonOnConnection(startSeat, endSeat, path) {
 
     DOM.svgConnectionLayer.appendChild(btnGroup);
 
-    const pairId = makePairId(startSeat.id, endSeat.id);
-
     btnGroup.addEventListener('click', () => {
-        // Remove visual elements
-        path.remove();
-        btnGroup.remove();
-
-        // Remove connection from state
-        state.seatConnectionSet.delete(pairId);
-        state.fixedConnections = state.fixedConnections.filter(c => c.pairId !== pairId);
+        removeConnection(pairId);
     });
-
-    const existing = state.fixedConnections.find(c => c.path === path);
-
-    if (existing) {
-        existing.deleteBtn = btnGroup;
-    } else {
-        state.fixedConnections.push({
-            startConnector: startSeat.querySelector('.connector'),
-            endConnector: endSeat.querySelector('.connector'),
-            path,
-            pairId,
-            deleteBtn: btnGroup
-        });
-    }
 
     _updateDeleteButtonPosition(path, btnGroup);
 
@@ -155,6 +134,19 @@ function _updateDeleteButtonPosition(pathEl, btnGroup) {
     lines[1].setAttribute('y1', mid.y + size);
     lines[1].setAttribute('x2', mid.x + size);
     lines[1].setAttribute('y2', mid.y - size);
+}
+
+function removeConnection(pairId) {
+    const index = state.fixedConnections.findIndex(c => c.pairId === pairId);
+    if (index === -1) return;
+
+    const connection = state.fixedConnections[index];
+
+    connection.path.remove();
+    connection.deleteBtn?.remove();
+
+    state.fixedConnections.splice(index, 1);
+    state.seatConnectionSet.delete(pairId);
 }
 
 // ============================================
@@ -286,6 +278,35 @@ function updateConnectionFixed(startEl, endEl, pathEl) {
     pathEl.setAttribute('d', buildBezierPath(start.x, start.y, end.x, end.y));
 }
 
+function createFixedConnection(startSeat, endSeat) {
+    const pairId = makePairId(startSeat.id, endSeat.id);
+    if (state.seatConnectionSet.has(pairId)) return null;
+
+    const connectorA = startSeat.querySelector('.connector');
+    const connectorB = endSeat.querySelector('.connector');
+    if (!connectorA || !connectorB) return null;
+
+    const path = createConnectionPath();
+    DOM.svgConnectionLayer.appendChild(path);
+
+    updateConnectionFixed(connectorA, connectorB, path);
+
+    const deleteBtn = createDeleteButton(path, pairId);
+
+    const connection = {
+        startConnector: connectorA,
+        endConnector: connectorB,
+        path,
+        pairId,
+        deleteBtn
+    };
+
+    state.seatConnectionSet.add(pairId);
+    state.fixedConnections.push(connection);
+
+    return connection;
+}
+
 // ============================================
 // PUBLIC HANDLER
 // ============================================
@@ -297,11 +318,7 @@ function updateConnectionFixed(startEl, endEl, pathEl) {
  */
 export function attachConnectorListener(element) {
     const connector = element.querySelector('.connector');
-
-    connector.addEventListener('pointerdown', e => {
-        e.stopPropagation();
-        _connectorPointerDown(e);
-    });
+    connector.addEventListener('pointerdown', _connectorPointerDown);
 }
 
 /**
@@ -315,7 +332,7 @@ function _connectorPointerDown(e) {
     const path = createConnectionPath();
     DOM.svgConnectionLayer.appendChild(path);
 
-    const startConnector = e.target;
+    const startConnector = e.currentTarget;
     const startSeat = startConnector.closest('.seat');
 
     state.currentConnection = { path, startConnector };
@@ -336,31 +353,11 @@ function _connectorPointerDown(e) {
         const endConnector = ev.target.closest?.('.connector') ?? null;
         const endSeat = endConnector?.closest('.seat') ?? null;
 
-        const valid = endConnector && endConnector !== startConnector && endSeat && endSeat !== startSeat;
-
-        if (valid) {
-            const pair = makePairId(startSeat.id, endSeat.id);
-
-            if (state.seatConnectionSet.has(pair)) {
-                // Prevent duplicate connections
-                path.remove();
-            } else {
-                state.seatConnectionSet.add(pair);
-
-                updateConnectionFixed(startConnector, endConnector, path);
-                addDeleteButtonOnConnection(startSeat, endSeat, path);
-
-                state.fixedConnections.push({
-                    startConnector,
-                    endConnector,
-                    path,
-                    pairId: pair
-                });
-            }
-        } else {
-            // Remove temporary path if invalid drop target
-            path.remove();
+        if (endConnector && endConnector !== startConnector && endSeat && endSeat !== startSeat) {
+            // valid connection
+            createFixedConnection(startSeat, endSeat);
         }
+        path.remove(); // remove temp path
 
         state.currentConnection = null;
     }
@@ -380,26 +377,6 @@ function _connectorPointerDown(e) {
  * @param {HTMLElement} seatB - Second seat.
  */
 export function connectSeats(seatA, seatB) {
-    if (!seatA || !seatB) return;
-
-    const pair = makePairId(seatA.id, seatB.id);
-    if (state.seatConnectionSet.has(pair)) return;
-
-    const path = createConnectionPath();
-    const connectorA = seatA.querySelector('.connector');
-    const connectorB = seatB.querySelector('.connector');
-
-    DOM.svgConnectionLayer.appendChild(path);
-
-    state.seatConnectionSet.add(pair);
-
-    updateConnectionFixed(connectorA, connectorB, path);
-    addDeleteButtonOnConnection(seatA, seatB, path);
-
-    state.fixedConnections.push({
-        startConnector: connectorA,
-        endConnector: connectorB,
-        path,
-        pairId: pair
-    });
+    if (!seatA || !seatB || seatA === seatB) return;
+    createFixedConnection(seatA, seatB);
 }
