@@ -15,7 +15,7 @@
 
 import { ROTATION_ANGLE, DUPLICATE_OFFSET } from '../../state.js';
 import { handleElementPointerDown } from '../drag-elements.js';
-import { guaranteeCanvasBoundaries, getElementTransformData, rotateElement } from './utils.js';
+import { loadTemplateOnce, guaranteeCanvasBoundaries, getElementTransformData, rotateElement } from './utils.js';
 import { DOM } from '../../dom.js';
 
 // ============================================
@@ -41,33 +41,10 @@ export const FIXED_ELEMENT_LABELS = {
  * Loads and caches fixed element HTML template and CSS.
  * Ensures resources are only loaded once.
  *
- * @returns {Promise<void>}
+ * @returns {Promise<HTMLElement>} The cloned fixed template element.
  */
 async function loadFixedTemplateFiles() {
-    // Inject CSS once
-    if (!document.getElementById('fixedCSS')) {
-        const link = document.createElement('link');
-        link.id = 'fixedCSS';
-        link.rel = 'stylesheet';
-        link.href = 'templates/fixed.css';
-        document.head.appendChild(link);
-    }
-
-    // Cache HTML template globally
-    if (!window.fixedTemplate) {
-        const html = await fetch('templates/fixed.html')
-            .then(r => {
-                if (!r.ok) {
-                    throw new Error(`Fixed template not found (${r.status})`);
-                }
-                return r.text();
-            });
-
-        const div = document.createElement('div');
-        div.innerHTML = html.trim();
-
-        window.fixedTemplate = div.firstElementChild;
-    }
+    return loadTemplateOnce('fixedCSS', 'templates/fixed.css', 'templates/fixed.html', 'fixedTemplate');
 }
 
 // ============================================

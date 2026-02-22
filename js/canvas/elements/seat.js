@@ -16,7 +16,7 @@
 
 import { state, MAX_CANVAS, ROTATION_ANGLE, SEAT_GAP, DUPLICATE_OFFSET } from '../../state.js';
 import { attachConnectorListener } from './connection.js';
-import { guaranteeCanvasBoundaries, getElementTransformData, rotateElement } from './utils.js';
+import { loadTemplateOnce, guaranteeCanvasBoundaries, getElementTransformData, rotateElement } from './utils.js';
 import { handleElementPointerDown } from '../drag-elements.js';
 import { DOM } from '../../dom.js';
 import { fitView } from '../zoom.js';
@@ -33,32 +33,10 @@ import { fitView } from '../zoom.js';
  * Loads and caches seat HTML template and CSS.
  * Ensures resources are only loaded once.
  *
- * @returns {Promise<void>}
+ * @returns {Promise<HTMLElement>} The cloned seat template element.
  */
 async function loadSeatTemplateFiles() {
-    // Inject CSS once
-    if (!document.getElementById('seatCSS')) {
-        const link = document.createElement('link');
-        link.id = 'seatCSS';
-        link.rel = 'stylesheet';
-        link.href = 'templates/seat.css';
-        document.head.appendChild(link);
-    }
-
-    // Cache HTML template globally
-    if (!window.seatTemplate) {
-        const html = await fetch('templates/seat.html')
-            .then(r => {
-                if (!r.ok) {
-                    throw new Error(`Seat template not found (${r.status})`);
-                }
-                return r.text();
-            });
-
-        const div = document.createElement('div');
-        div.innerHTML = html.trim();
-        window.seatTemplate = div.firstElementChild;
-    }
+    return loadTemplateOnce('seatCSS', 'templates/seat.css', 'templates/seat.html', 'seatTemplate');
 }
 
 // ============================================

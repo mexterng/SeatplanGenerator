@@ -18,6 +18,32 @@ import { DOM } from '../../dom.js';
 // FILE LOCAL CONSTANTS
 // ============================================
 
+
+// ============================================
+// TEMPLATE LOADING
+// ============================================
+export async function loadTemplateOnce(id, cssHref, htmlPath, globalCacheName) {
+    if (!document.getElementById(id)) {
+        const link = document.createElement('link');
+        link.id = id;
+        link.rel = 'stylesheet';
+        link.href = cssHref;
+        document.head.appendChild(link);
+    }
+
+    if (!window[globalCacheName]) {
+        const html = await fetch(htmlPath).then(r => {
+            if (!r.ok) throw new Error(`${htmlPath} not found (${r.status})`);
+            return r.text();
+        });
+
+        const div = document.createElement('div');
+        div.innerHTML = html.trim();
+        window[globalCacheName] = div.firstElementChild;
+    }
+    return window[globalCacheName];
+}
+
 // ============================================
 // ROTATION
 // ============================================
