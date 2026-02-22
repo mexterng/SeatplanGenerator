@@ -172,6 +172,29 @@ export function getElementTransformData(element) {
 }
 
 // ============================================
+// ELEMENT SIZE HELPERS
+// ============================================
+
+/**
+ * Measures rendered width and height of a given element type.
+ * Inserts a hidden temporary element into the DOM for accurate size calculation.
+ *
+ * @param {string} className - CSS class of the element (e.g. 'seat', 'fixed-element desk').
+ * @returns {{width: number, height: number}} Measured size in pixels.
+ */
+export function measureElementSize(className) {
+    const tmp = document.createElement('div');
+    tmp.className = className;
+    tmp.style.cssText = 'position:absolute;visibility:hidden';
+
+    document.body.appendChild(tmp);
+    const size = { width: tmp.offsetWidth, height: tmp.offsetHeight };
+    document.body.removeChild(tmp);
+
+    return size;
+}
+
+// ============================================
 // PRIVATE HELPERS
 // ============================================
 

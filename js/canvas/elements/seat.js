@@ -16,7 +16,7 @@
 
 import { state, MAX_CANVAS, ROTATION_ANGLE, SEAT_GAP, DUPLICATE_OFFSET } from '../../state.js';
 import { attachConnectorListener } from './connection.js';
-import { loadTemplateOnce, guaranteeCanvasBoundaries, getElementTransformData, rotateElement } from './utils.js';
+import { loadTemplateOnce, guaranteeCanvasBoundaries, getElementTransformData, rotateElement, measureElementSize } from './utils.js';
 import { handleElementPointerDown } from '../drag-elements.js';
 import { DOM } from '../../dom.js';
 import { fitView } from '../zoom.js';
@@ -57,15 +57,7 @@ export async function getSeatSize() {
 
     await loadSeatTemplateFiles();
 
-    const tmp = document.createElement('div');
-    tmp.className = 'seat';
-    tmp.style.cssText = 'position:absolute;visibility:hidden';
-
-    document.body.appendChild(tmp);
-    const size = { width: tmp.offsetWidth, height: tmp.offsetHeight };
-    document.body.removeChild(tmp);
-
-    return size;
+    return measureElementSize('seat');
 }
 
 // ============================================

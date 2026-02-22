@@ -15,7 +15,7 @@
 
 import { ROTATION_ANGLE, DUPLICATE_OFFSET } from '../../state.js';
 import { handleElementPointerDown } from '../drag-elements.js';
-import { loadTemplateOnce, guaranteeCanvasBoundaries, getElementTransformData, rotateElement } from './utils.js';
+import { loadTemplateOnce, guaranteeCanvasBoundaries, getElementTransformData, rotateElement, measureElementSize } from './utils.js';
 import { DOM } from '../../dom.js';
 
 // ============================================
@@ -61,15 +61,7 @@ async function loadFixedTemplateFiles() {
 export async function getFixedSize(type) {
     await loadFixedTemplateFiles();
 
-    const tmp = document.createElement('div');
-    tmp.classList.add('fixed-element', type);
-    tmp.style.cssText = 'position:absolute;visibility:hidden';
-
-    document.body.appendChild(tmp);
-    const size = { width: tmp.offsetWidth, height: tmp.offsetHeight };
-    document.body.removeChild(tmp);
-
-    return size;
+    return measureElementSize(`fixed-element ${type}`);
 }
 
 // ============================================
