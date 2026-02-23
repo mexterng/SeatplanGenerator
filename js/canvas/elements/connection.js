@@ -350,7 +350,8 @@ function _connectorPointerDown(e) {
         document.removeEventListener('pointermove', moveHandler);
         document.removeEventListener('pointerup', upHandler);
 
-        const endConnector = ev.target.closest?.('.connector') ?? null;
+        const elements = document.elementsFromPoint(ev.clientX, ev.clientY);
+        const endConnector = elements.find(el => el.classList?.contains('connector')) ?? null;
         const endSeat = endConnector?.closest('.seat') ?? null;
 
         if (endConnector && endConnector !== startConnector && endSeat && endSeat !== startSeat) {
