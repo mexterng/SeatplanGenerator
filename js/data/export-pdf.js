@@ -4,15 +4,19 @@
 
 /**
  * Provides vector-based PDF export for the seating plan.
-*
-* Responsibilities:
-* - Handle export popup interactions
-* - Calculate rotated bounding boxes
-* - Render seats and fixed elements into a vector PDF
-* - Register and apply custom fonts
-*/
+ * Responsibilities:
+ * - Handle export popup interactions
+ * - Calculate rotated bounding boxes
+ * - Render seats and fixed elements into a vector PDF
+ * - Register and apply custom fonts
+ */
+
+// ============================================
+// IMPORTS
+// ============================================
 
 import { state } from '../state.js';
+import { openModal } from '../ui/modal-manager.js';
 
 // ============================================
 // FILE LOCAL CONSTANTS
@@ -22,25 +26,6 @@ const PDF_MARGIN_TOP = 25;
 const PDF_MARGIN_RIGHT = 15;
 const PDF_MARGIN_BOTTOM = 10;
 const PDF_MARGIN_LEFT = 15;
-
-const exportOverlay = document.getElementById('exportOverlay');
-
-// ============================================
-// INITIALIZATION
-// ============================================
-
-/**
- * Initializes export-related DOM event listeners.
- *
- * @returns {void}
- */
-function initExportUI() {
-    document.getElementById('cancelExportBtn').addEventListener('click', closeExportPopup);
-    document.getElementById('exportPdfBtn').addEventListener('click', handleExportClick);
-    document.addEventListener('keydown', handleEscapeKey);
-}
-
-document.addEventListener('DOMContentLoaded', initExportUI);
 
 // ============================================
 // PUBLIC EXPORT FUNCTION
@@ -134,52 +119,44 @@ function _loadJsPDF() {
 // ============================================
 
 /**
- * Opens the export popup and initializes default values.
+ * Opens a modal popup for exporting seat assignments as a PDF.
+ * Collects the class, date range, and teacher from user input
+ * and triggers the PDF export process.
  *
  * @returns {void}
  */
-export function openExportPopup() {
-    exportOverlay.style.display = 'flex';
-    document.getElementById('dateFrom').value = new Date().toLocaleDateString('en-CA');
-    document.getElementById('className')?.focus();
-}
+export async function openExportPopup() {
 
-/**
- * Closes the export popup.
- *
- * @returns {void}
- */
-function closeExportPopup() {
-    exportOverlay.style.display = 'none';
-}
+    const content = `
+        <div class="flex flex-col gap-4">
+            <label>Klasse:<br><input id="className" class="w-full"></label>
+            <label>Stand:<br><input id="dateFrom" type="date" class="w-full"></label>
+            <label>Gültig bis:<br><input id="dateTo" type="date" class="w-full"></label>
+            <label>Lehrkraft:<br><input id="teacherName" class="w-full"></label>
+        </div>
+    `;
 
-/**
- * Handles click on export confirmation button.
- *
- * @returns {void}
- */
-function handleExportClick() {
-    const className = document.getElementById('className').value;
-    const dateFrom = document.getElementById('dateFrom').value;
-    const dateTo = document.getElementById('dateTo').value;
-    const teacherName =
-        document.getElementById('teacherName').value;
+    const result = await openModal({
+        title: "PDF Export",
+        content,
+        buttons: [
+            { label: "Abbrechen", value: null, className: "btn-secondary" },
+            { label: "Exportieren", value: "export", className: "btn-primary" }
+        ],
+        onOpen: (modal) => {
+            modal.querySelector("#dateFrom").value = new Date().toLocaleDateString('en-CA');
+        },
+        onSubmit: (modal) => ({
+            className: modal.querySelector("#className").value ?? "",
+            dateFrom: modal.querySelector("#dateFrom").value ?? "",
+            dateTo: modal.querySelector("#dateTo").value ?? "",
+            teacher: modal.querySelector("#teacherName").value ?? ""
+        })
+    });
 
-    exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName);
+    if (!result) return;
 
-    closeExportPopup();
-}
-
-/**
- * Closes popup when Escape key is pressed.
- *
- * @param {KeyboardEvent} e - Keydown event.
- * @returns {void}
- */
-function handleEscapeKey(e) {
-    if (e.key === 'Escape' && exportOverlay?.style.display !== 'none') {
-        closeExportPopup();
-    }
+    exportSeatsVectorPDF(result.className, result.dateFrom, result.dateTo, result.teacher);
 }
 
 // ============================================

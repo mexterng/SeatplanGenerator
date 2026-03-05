@@ -181,38 +181,6 @@
                 <button id="fitViewBtn" class="btn-secondary"><i class="fa-solid fa-expand"></i></button>
             </div>
         </main>
-
-        <div id="exportOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden">
-            <div class="bg-white p-5 rounded-lg w-[350px] shadow-lg">
-                <h3 class="mt-0 mb-3 text-lg font-semibold">PDF Export</h3>
-                <div class="flex flex-col gap-4">
-                    <label>
-                        Name der Klasse:<br>
-                        <input type="text" id="className" class="w-full">
-                    </label>
-
-                    <label>
-                        Stand:<br>
-                        <input type="date" id="dateFrom" class="w-full">
-                    </label>
-
-                    <label>
-                        Gültig bis:<br>
-                        <input type="date" id="dateTo" class="w-full">
-                    </label>
-
-                    <label>
-                        Name der Lehrkraft:<br>
-                        <input type="text" id="teacherName" class="w-full">
-                    </label>
-                    
-                    <div class="flex justify-between">
-                        <button id="exportPdfBtn" class="btn-primary">Exportieren</button>
-                        <button id="cancelExportBtn" class="btn-secondary">Abbrechen</button>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
     <script type="module" src="./js/main.js"></script>
 </body>
