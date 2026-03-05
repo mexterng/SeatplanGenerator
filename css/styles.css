@@ -718,8 +718,6 @@ h2.m-0 {
   color: var(--color-slate-900);
 }
 h3 {
-  margin-top: 0;
-  margin-bottom: 0.75rem;
   font-size: x-large;
   font-weight: 600;
 }
