@@ -11,7 +11,7 @@
 
 <body class="mx-6 my-4 text-slate-900 flex flex-col gap-4">
     <h1>Namen bearbeiten</h1>
-    <button id="openCsvPopUp" class="btn-primary" onclick="startCsvImport()">
+    <button id="start-csv-import-btn" class="btn-primary">
         <i class="fa-solid fa-file-import"></i>Namen aus csv-Datei importieren
     </button>
     <input id="csvImportFile" class="hidden" type="file" accept=".csv">
@@ -55,20 +55,19 @@
         </tbody>
     </table>
 
-    <button id="addRowBtn" class="btn-primary" onclick="addRow()">
+    <button id="add-row-btn" class="btn-primary">
         <i class="fa-solid fa-plus"></i>Zeile hinzufügen
     </button>
     <div class="flex justify-between">
-        <button id="cancelBtn" class="btn-secondary" onclick="cancel()">
+        <button id="cancel-btn" class="btn-secondary">
             Abbrechen
         </button>
-        <button id="okBtn" class="btn-important" onclick="confirm()">
+        <button id="confirm-btn" class="btn-important">
             Bestätigen
         </button>
     </div>
 
-    <script src="js/general.js"></script>
-    <script src="js/name-editor.js"></script>
+    <script type="module" src="./js/ui/name-editor.js"></script>
 </body>
 
 </html>

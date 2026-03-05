@@ -148,6 +148,7 @@
 @media (hover: none) and (pointer: coarse) {
     .seat .connector { 
         opacity: 1; 
+        padding: 1rem; 
     }
     .seat .seat-tools {
         visibility: visible;

@@ -1,9 +1,41 @@
-var personDelimiter = ";";
-var nameDelimiter = ",";
-var lockedSeatTag = "#";
-var csvFiletext = "";
-var fields = [];
+// ============================================
+// File: ui/name-editor.js
+// ============================================
 
+/**
+ * Handles UI for name table, including:
+ * - Adding, deleting and reordering rows
+ * - Lock/unlock seat controls
+ * - Neighbor inputs and buttons
+ * - CSV import for names
+ * - Persisting data to main page
+ */
+
+// ============================================
+// IMPORTS
+// ============================================
+
+import { parseNames } from "./../data/names.js";
+
+// ============================================
+// FILE-LOCAL CONSTANTS
+// ============================================
+
+let personDelimiter = ";";
+let nameDelimiter = ",";
+let lockedSeatTag = "#";
+
+let csvFiletext = "";
+let fields = [];
+let draggedRow = null;
+
+// ============================================
+// PUBLIC HANDLER — INITIALIZATION
+// ============================================
+
+/**
+ * Adjusts body width to fit the first 6 columns of the table.
+ */
 function resizeBody() {
     const table = document.getElementById('nameTable');
     const firstRow = table.rows[0];
@@ -17,32 +49,63 @@ function resizeBody() {
     document.body.style.width = width + "px";
 }
 
+// Initialize table on DOMContentLoaded
 window.addEventListener('DOMContentLoaded', () => {
-    const { person, name, lockedSeat} = JSON.parse(localStorage.getItem('delimiter'));
+    const delimiterData = JSON.parse(localStorage.getItem('delimiter'));
+    if (delimiterData) {
+        const { person, name, lockedSeat} = delimiterData;
+        personDelimiter = person;
+        nameDelimiter = name;
+        lockedSeatTag = lockedSeat;
+    }
+
     const nameStr = localStorage.getItem('namesStr');
-    personDelimiter = person;
-    nameDelimiter = name;
-    lockedSeatTag = lockedSeat;
-    if (nameStr === "") {
+    if (!nameStr) {
         addRow();
-    }else {
+    } else {
         initRows(nameStr);
     }
     resizeBody();
 });
 
-function initRows(names){
+/**
+ * Binds all buttons to their respective actions.
+ */
+document.getElementById('start-csv-import-btn').addEventListener('click', startCsvImport);
+document.getElementById('add-row-btn').addEventListener('click', () => {addRow();});
+document.getElementById('cancel-btn').addEventListener('click', cancel);
+document.getElementById('confirm-btn').addEventListener('click', confirm);
+
+/**
+ * Initializes table rows from a names string.
+ *
+ * @param {string} names - Raw names input string
+ */
+function initRows(names) {
     const nameList = parseNames(names, personDelimiter, nameDelimiter, lockedSeatTag);
     nameList.forEach((p) => {
         if (Array.isArray(p)) {
             addRow(p[0].firstname, p[0].lastname, false, p[1].firstname, p[1].lastname);
-        } else{
+        } else {
             addRow(p.firstname, p.lastname, p.lockedSeat);
         }
     });
 }
 
-function addRow(firstname = '', lastname = '', lockedSeat = false, neighborFirstname = '', neighborLastname = ''){
+// ============================================
+// PUBLIC HANDLER — TABLE ROW MANAGEMENT
+// ============================================
+
+/**
+ * Adds a row to the name table with optional neighbor.
+ *
+ * @param {string} firstname - First name
+ * @param {string} lastname - Last name
+ * @param {boolean} lockedSeat - Whether seat is locked
+ * @param {string} neighborFirstname - Neighbor first name
+ * @param {string} neighborLastname - Neighbor last name
+ */
+function addRow(firstname = '', lastname = '', lockedSeat = false, neighborFirstname = '', neighborLastname = '') {
     const tbody = document.querySelector('#nameTable tbody');
     const rowCount = tbody.rows.length + 1;
     const tr = document.createElement('tr');
@@ -56,14 +119,15 @@ function addRow(firstname = '', lastname = '', lockedSeat = false, neighborFirst
         <td><input type="text" class="firstName" placeholder="Vorname" value="${firstname}"></td>
         <td><input type="text" class="lastName" placeholder="Nachname" value="${lastname}"></td>
     `;
-    if (neighborFirstname === '' && neighborLastname === '') {
+
+    if (!neighborFirstname && !neighborLastname) {
         addNeighborButtonTdToTr(tr);
     } else {
         window.resizeTo(760, window.outerHeight);
         addNeighborInputTdsToTr(tr, neighborFirstname, neighborLastname);
-        const lock = tr.querySelector(".lock");
-        lock.classList.add('deactivate');
+        tr.querySelector(".lock").classList.add('deactivate');
     }
+
     tbody.appendChild(tr);
     enableLockControls(tr);
     enableRowControls(tbody, tr);
@@ -71,27 +135,44 @@ function addRow(firstname = '', lastname = '', lockedSeat = false, neighborFirst
     resizeBody();
 }
 
-
-function deleteRow(row){
+/**
+ * Deletes a table row and updates numbering.
+ *
+ * @param {HTMLElement} row - Row element to delete
+ */
+function deleteRow(row) {
     row.remove();
     updateRowNumbers();
     resizeBody();
 }
 
-function confirm(){
+/**
+ * Updates numbering in the "#"-column for all rows.
+ */
+function updateRowNumbers() {
+    let idx = 1;
+    document.querySelectorAll("#nameTable tbody tr").forEach(row => {
+        row.querySelectorAll(".rowCount").forEach(cell => {
+            cell.textContent = idx++;
+        });
+    });
+}
+
+// ============================================
+// PUBLIC HANDLER — CONFIRM / CANCEL / CLOSE
+// ============================================
+
+/**
+ * Confirms table data and sends it to main window input.
+ */
+function confirm() {
     const rows = document.querySelectorAll('#nameTable tbody tr');
     const values = [];
 
     function generateNameString(first, last, lockedStr) {
-        if (first && last == '') {
-            return `${first} ${lockedStr}`.trim();
-        }
-        else if (first || last) {
-            return `${last}${nameDelimiter} ${first} ${lockedStr}`.trim();
-        }
-        else {
-            return '';
-        }        
+        if (first && last == '') return `${first} ${lockedStr}`.trim();
+        if (first || last) return `${last}${nameDelimiter} ${first} ${lockedStr}`.trim();
+        return '';
     }
     
     rows.forEach(row => {
@@ -102,6 +183,7 @@ function confirm(){
         const neighbor = row.querySelector('.neighbor') !== null;
         const neighborFirst = neighbor ? row.querySelector('.firstName.neighbor').value.trim() : '';
         const neighborLast = neighbor ? row.querySelector('.lastName.neighbor').value.trim() : '';
+
         if (neighbor) {
             values.push("[" + generateNameString(first, last, ''));
             values.push(generateNameString(neighborFirst, neighborLast, '') + "]");
@@ -109,9 +191,9 @@ function confirm(){
             values.push(generateNameString(first, last, lockedStr));        
         }
     });
-    // remove trailing empty values
+
     while (values.length > 0 && (values[values.length - 1] === "" || values[values.length - 1] == null)) {
-        values.pop(); // remove last element
+        values.pop();
     }
 
     const result = values.join(personDelimiter + ' ');
@@ -131,24 +213,42 @@ function confirm(){
     closeWindow();
 }
 
-function cancel(){
+/**
+ * Cancels the table and closes window.
+ */
+function cancel() {
     closeWindow();
 }
 
-function closeWindow(){
+/**
+ * Closes the popup window and clears local storage.
+ */
+function closeWindow() {
     localStorage.removeItem('namesStr');
     window.close();
 }
 
+// ============================================
+// PUBLIC HANDLER — CSV IMPORT
+// ============================================
+
+/**
+ * Starts CSV file import by opening file picker.
+ */
 function startCsvImport() {
     openCsvFilepicker();
 }
 
-// Close popup
+/**
+ * Closes the import overlay popup.
+ */
 function closeImportPopup() {
-  document.getElementById("importOverlay").style.display = "none";
+    document.getElementById("importOverlay").style.display = "none";
 }
 
+/**
+ * Opens file picker and reads CSV content.
+ */
 async function openCsvFilepicker() {
     const input = document.getElementById('csvImportFile');
     input.click();
@@ -170,7 +270,11 @@ async function openCsvFilepicker() {
     }
 }
 
-// Open popup to collect import data
+/**
+ * Opens the import popup and fills select options.
+ *
+ * @param {Array} fields - Header fields from CSV
+ */
 function openImportPopup(fields) {
     let allFields = ["---", ...fields];
 
@@ -178,9 +282,8 @@ function openImportPopup(fields) {
     const firstnameSelect = document.getElementById("firstnameSelect");
     const lastnameSelect = document.getElementById("lastnameSelect");
 
-    // Optionen füllen
     [firstnameSelect, lastnameSelect].forEach(select => {
-        select.innerHTML = ""; // vorherige Optionen entfernen
+        select.innerHTML = "";
         allFields.forEach(f => {
             const option = document.createElement("option");
             option.text = f;
@@ -188,57 +291,57 @@ function openImportPopup(fields) {
             select.add(option);
         });
     });
-
 }
 
-// Cancel button
+// Cancel button listener
 document.getElementById("cancelImportBtn").addEventListener("click", closeImportPopup);
 
-// ESC-key
-document.addEventListener("keydown", function (event) {
+// ESC key closes popup
+document.addEventListener("keydown", event => {
     if (event.key === "Escape" && document.getElementById("importOverlay").style.display !== "none") {
         closeImportPopup();
     }
 });
 
-// Import button
+// CSV import button
 document.getElementById("importCsvBtn").addEventListener("click", () => {
-    // clear all rows in window
-    document.querySelector('#nameTable tbody').querySelectorAll('tr').forEach(tr => tr.remove());
+    const tbody = document.querySelector('#nameTable tbody');
+    tbody.querySelectorAll('tr').forEach(tr => tr.remove());
 
     const firstnameCol = firstnameSelect.value;
     const lastnameCol = lastnameSelect.value;
-
     const csvData = csvFiletext.split('\n').map(r => r.replace('\r', '').split(','));
 
-    // find the index of the selected columns in the header array  
     const firstnameIndex = fields.indexOf(firstnameCol);
     const lastnameIndex = fields.indexOf(lastnameCol);
 
-    // map CSV data to objects, ignore if "---" is selected
-    // skip header and only add rows with at least one non-empty field
     csvData.slice(1).forEach(row => {
         const firstname = firstnameIndex >= 0 ? row[firstnameIndex] : '';
         const lastname  = lastnameIndex  >= 0 ? row[lastnameIndex]  : '';
-
-        if (firstname || lastname) {
-            addRow(firstname, lastname);
-        }
+        if (firstname || lastname) addRow(firstname, lastname);
     });
+
     closeImportPopup();
 });
 
-// Make table rows draggable
+// ============================================
+// PUBLIC HANDLER — ROW DRAG & LOCK
+// ============================================
+
+/**
+ * Enables drag, delete, and input prevention for a row.
+ *
+ * @param {HTMLElement} tbody - Table body
+ * @param {HTMLElement} row - Row element
+ */
 function enableRowControls(tbody, row) {
     const tds = row.querySelectorAll("td");
 
     tds.forEach(td => {
-        // Delete row event
         if (td.classList.contains("delete-row")) {
             td.addEventListener("click", () => deleteRow(row));
-        };
-        
-        // Skip TDs mit Input
+        }
+
         if (!td.classList.contains("draggable")) return;
 
         td.setAttribute("draggable", "true");
@@ -251,7 +354,7 @@ function enableRowControls(tbody, row) {
             e.dataTransfer.effectAllowed = "move";
         });
 
-        td.addEventListener("dragend", e => {
+        td.addEventListener("dragend", () => {
             row.classList.remove("dragging");
             draggedRow = null;
             updateRowNumbers();
@@ -265,44 +368,44 @@ function enableRowControls(tbody, row) {
             const offset = e.clientY - rect.top;
             const middle = rect.height / 2;
 
-            if (offset < middle) {
-                tbody.insertBefore(draggedRow, row);
-            } else {
-                tbody.insertBefore(draggedRow, row.nextSibling);
-            }
+            if (offset < middle) tbody.insertBefore(draggedRow, row);
+            else tbody.insertBefore(draggedRow, row.nextSibling);
         });
     });
 
-    // Inputs dürfen Drag nicht starten
     row.querySelectorAll("input").forEach(input => {
         input.setAttribute("draggable", "false");
         input.addEventListener("dragstart", e => e.preventDefault());
     });
 }
 
+/**
+ * Enables click event on lock icon to toggle locked state.
+ *
+ * @param {HTMLElement} tr - Table row element
+ */
 function enableLockControls(tr) {
     const lock = tr.querySelector(".lock");
-    const lockIcon = tr.querySelector(".lock i");
+    const lockIcon = lock.querySelector("i");
     lockIcon.addEventListener('click', () => {
-        if(lock.classList.contains('deactivate')) return;
-        if (lockIcon.classList.contains('fa-lock-open')) {
-            lockIcon.classList.remove('fa-lock-open');
-            lockIcon.classList.add('fa-lock');
-        } else {
-            lockIcon.classList.remove('fa-lock');
-            lockIcon.classList.add('fa-lock-open');
-        }
+        if (lock.classList.contains('deactivate')) return;
+        lockIcon.classList.toggle('fa-lock-open');
+        lockIcon.classList.toggle('fa-lock');
     });
 }
 
-// seat neighbor
+// ============================================
+// PUBLIC HANDLER — SEAT NEIGHBOR MANAGEMENT
+// ============================================
 
 function addNeighborButtonTdToTr(tr){
-    tr.appendChild(createNeighborButtonTd());
-    const neighborBtn = tr.querySelector(".seat-neighbor button");
+    const neighborTd = createNeighborButtonTd();
+    tr.appendChild(neighborTd);
+    const neighborBtn = neighborTd.querySelector("button");
     addEventListenerNeighborButton(tr, neighborBtn);
 }
-function createNeighborButtonTd(){
+
+function createNeighborButtonTd() {
     const neighborTd = document.createElement('td');
     neighborTd.classList.add("seat-neighbor");
     neighborTd.colSpan ="3";
@@ -310,75 +413,49 @@ function createNeighborButtonTd(){
     return neighborTd;
 }
 
-function addNeighborInputTdsToTr(tr, firstname = '', lastname = ''){
+function addNeighborInputTdsToTr(tr, firstname = '', lastname = '') {
     const tds = createNeighborInputTds(tr, firstname, lastname);
-    tds.forEach(td => {
-        tr.appendChild(td);
-    });
+    tds.forEach(td => tr.appendChild(td));
     updateRowNumbers();
 }
-function createNeighborInputTds(tr, firstname = '', lastname = ''){
-    const rowCountNeighborTd = document.createElement('td');
-    rowCountNeighborTd.classList.add('rowCount');
 
+function createNeighborInputTds(tr, firstname = '', lastname = '') {
+    const rowCountNeighborTd = document.createElement('td'); rowCountNeighborTd.classList.add('rowCount');
     const firstNameNeighborTd = document.createElement('td');
     firstNameNeighborTd.innerHTML = `<input type="text" class="firstName neighbor" placeholder="Vorname" value="${firstname}">`;
-
     const lastNameNeighborTd = document.createElement('td');
     lastNameNeighborTd.innerHTML = `<input type="text" class="lastName neighbor" placeholder="Nachname" value="${lastname}">`;
-
-    const deleteNeighborTd = document.createElement('td');
-    deleteNeighborTd.classList.add('delete-neighbor');
+    const deleteNeighborTd = document.createElement('td'); deleteNeighborTd.classList.add('delete-neighbor');
     deleteNeighborTd.innerHTML = '<i class="fa-solid fa-circle-minus"></i>';
 
-    
+    addEventListenerNeighborInputs(tr, {rowCountNeighborTd, firstNameNeighborTd, lastNameNeighborTd, deleteNeighborTd}, deleteNeighborTd.querySelector('i'));
 
-    const deleteNeighborBtn = deleteNeighborTd.querySelector('i');
-    const newTds = {rowCountNeighborTd, firstNameNeighborTd, lastNameNeighborTd, deleteNeighborTd};
-    addEventListenerNeighborInputs(tr, newTds, deleteNeighborBtn);
-
-    return Object.values(newTds);;
+    return [rowCountNeighborTd, firstNameNeighborTd, lastNameNeighborTd, deleteNeighborTd];
 }
+
 function addEventListenerNeighborInputs(tr, newTds, elem) {
     elem.addEventListener('click', () => {
-        newTds.rowCountNeighborTd.remove();
-        newTds.firstNameNeighborTd.remove();
-        newTds.lastNameNeighborTd.remove();
-        newTds.deleteNeighborTd.remove();
+        Object.values(newTds).forEach(td => td.remove());
         updateRowNumbers();
-
         addNeighborButtonTdToTr(tr);
-        const lock = tr.querySelector(".lock");
-        lock.classList.remove('deactivate');
+        tr.querySelector(".lock").classList.remove('deactivate');
     });
 }
-
 
 function addEventListenerNeighborButton(tr, elem) {
     const seatNeighbor = tr.querySelector(".seat-neighbor");
     const lock = tr.querySelector(".lock");
-    const lockIcon = tr.querySelector(".lock i");
+    const lockIcon = lock.querySelector("i");
+
     elem.addEventListener('click', () => {
-        lockIcon.classList.remove('fa-lock-open');
-        lockIcon.classList.remove('fa-lock');
+        lockIcon.classList.remove('fa-lock-open', 'fa-lock');
         lockIcon.classList.add('fa-lock-open');
         lock.classList.add('deactivate');
+
         elem.remove();
         seatNeighbor.remove();
-        
-        // new seat neighbor
+
         window.resizeTo(760, window.outerHeight);
-
         addNeighborInputTdsToTr(tr);
-    });
-}
-
-// Update numbering in column "#"
-function updateRowNumbers() {
-    let idx = 1;
-    document.querySelectorAll("#nameTable tbody tr").forEach(row => {
-        row.querySelectorAll(".rowCount").forEach(cell => {
-            cell.textContent = idx ++;
-        });
     });
 }

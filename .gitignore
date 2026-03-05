@@ -420,3 +420,4 @@ FodyWeavers.xsd
 # private files
 impressum.html
 datenschutz.html
+private/
