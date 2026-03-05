@@ -15,29 +15,6 @@
         <i class="fa-solid fa-file-import"></i>Namen aus csv-Datei importieren
     </button>
     <input id="csvImportFile" class="hidden" type="file" accept=".csv">
-    <div id="importOverlay" class="fixed inset-0 bg-black/50 flex justify-center items-center z-40 hidden">
-        <div class="bg-white px-6 py-4 text-slate-900 rounded-lg w-1/2 min-w-[350px]">
-            <h3>CSV Import</h3>
-            <div class=" flex flex-col gap-2">
-                <p>Ordnen Sie jeweils die richtige Spalte der csv-Datei zu oder wählen Sie "---".</p>
-                <div class="flex items-center">
-                    <label class="w-24">Vorname:</label>
-                    <select id="firstnameSelect" class="flex-1 min-w-16">
-                    </select>
-                </div>
-
-                <div class="flex items-center">
-                    <label class="w-24">Nachname:</label>
-                    <select id="lastnameSelect" class=" flex-1 min-w-16">
-                    </select>
-                </div>
-                <div class="flex justify-between">
-                    <button id="cancelImportBtn" class="btn-secondary">Abbrechen</button>
-                    <button id="importCsvBtn" class="btn-primary">Importieren</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <table id="nameTable" class="border-collapse">
         <thead>
