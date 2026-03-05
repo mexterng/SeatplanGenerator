@@ -226,9 +226,12 @@ export function clearSeats() {
 function _toggleClearCreateSeatsButton(namesAssigned) {
     const createBtn = document.getElementById('create-seats-btn');
     const clearBtn = document.getElementById('clear-seats-btn');
+    const clearCanvasBtn = document.getElementById('clear-seats-canvas-btn');
 
     clearBtn.style.display = namesAssigned ? 'flex' : 'none';
     createBtn.style.display = namesAssigned ? 'none' : 'flex';
+
+    clearCanvasBtn.classList.toggle('hidden', !namesAssigned);
 }
 
 // ============================================

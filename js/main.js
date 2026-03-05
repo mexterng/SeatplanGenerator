@@ -25,6 +25,7 @@ import { initPointerEvents } from './canvas/pointer-events.js';
 import { initializeAdvancedMode, initializeCheckboxes, initializeSidebarButtons } from './ui/sidebar.js';
 import { openExportPopup } from './data/export-pdf.js';
 import { loadData } from './data/localStorage.js';
+import { assignNames, clearSeats } from './data/names.js';
 
 // ============================================
 // FILE LOCAL CONSTANTS
@@ -35,6 +36,8 @@ const zoomOutBtn     = document.getElementById('zoomOutBtn');
 const zoomInBtn      = document.getElementById('zoomInBtn');
 const fitViewBtn     = document.getElementById('fitViewBtn');
 const pdfExportBtn   = document.getElementById('exportBtn');
+const assignNamesBtn = document.getElementById('shuffle-canvas-btn');
+const clearSeatsBtn  = document.getElementById('clear-seats-canvas-btn');
 
 // ============================================
 // CANVAS INITIALIZATION
@@ -74,6 +77,8 @@ function _initializeCanvasButtons() {
     zoomInBtn.addEventListener('click', zoomIn);
     fitViewBtn.addEventListener('click', fitView);
     clearCanvasBtn.addEventListener('click', clearCanvas);
+    assignNamesBtn.addEventListener('click', () => assignNames(true));
+    clearSeatsBtn.addEventListener('click', clearSeats)
     pdfExportBtn.addEventListener('click', openExportPopup);
 }
 
