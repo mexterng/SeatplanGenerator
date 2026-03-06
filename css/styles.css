@@ -724,6 +724,9 @@ h3 {
 .important {
   background: var(--color-important) !important;
 }
+.important-text {
+  color: var(--color-important) !important;
+}
 aside.closed {
   width: 3rem;
 }

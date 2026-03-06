@@ -73,6 +73,10 @@ h3 {
     background: var(--color-important) !important;
 }
 
+.important-text {
+    color: var(--color-important) !important;
+}
+
 /* ===============================
    Sidebar Footer
    =============================== */
