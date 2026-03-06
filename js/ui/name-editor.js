@@ -17,6 +17,7 @@
 
 import { parseNames } from "./../data/names.js";
 import { openModal } from './modal-manager.js';
+import { showInfo, showError } from "./modal-template.js";
 
 // ============================================
 // FILE-LOCAL CONSTANTS
@@ -166,7 +167,7 @@ function updateRowNumbers() {
 /**
  * Confirms table data and sends it to main window input.
  */
-function confirm() {
+async function confirm() {
     const rows = document.querySelectorAll('#nameTable tbody tr');
     const values = [];
 
@@ -203,7 +204,7 @@ function confirm() {
         const mainInput = window.opener.document.getElementById('namesInput');
         if (mainInput) mainInput.value = result;
     } else {
-        alert("Hauptseite nicht gefunden oder geschlossen.\n" +
+        await showInfo("Hauptseite nicht gefunden oder geschlossen.\n" +
             "Ergebnis:\n" +
             "\n---------------------------------\n" + 
             result + 
@@ -249,7 +250,7 @@ async function openCsvFilepicker() {
     input.onchange = async () => {
         const file = input.files[0];
         if (!file) {
-            alert('Keine Datei ausgewählt (Import abgebrochen).');
+            await showInfo('Keine Datei ausgewählt (Import abgebrochen).');
             return;
         }
 
@@ -259,7 +260,7 @@ async function openCsvFilepicker() {
             fields = headLine.split(',');
             await openCsvImportModal(fields);
         } catch (err) {
-            alert('Fehler beim Import: ' + err.message);
+            await showError('Fehler beim Import: ' + err.message);
         }
     }
 }

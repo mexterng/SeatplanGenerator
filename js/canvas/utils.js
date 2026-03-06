@@ -16,6 +16,7 @@
 import { DOM } from '../dom.js';
 import { state, MAX_CANVAS } from '../state.js';
 import { fitView } from './zoom.js';
+import { showConfirm } from '../ui/modal-template.js';
 
 // ============================================
 // FILE LOCAL CONSTANTS
@@ -31,8 +32,11 @@ import { fitView } from './zoom.js';
  *
  * @returns {void}
  */
-export function clearCanvas() {
-    const confirmed = confirm('Achtung: Es werden nun alle Elemente auf der Zeichenfläche gelöscht. Fortfahren?');
+export async function clearCanvas() {
+    const confirmed = await showConfirm(
+        'Achtung: Es werden nun alle Elemente auf der Zeichenfläche gelöscht. Fortfahren?',
+        'Elemente löschen'
+    );
 
     if (!confirmed) return;
 

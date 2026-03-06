@@ -23,6 +23,7 @@ import { createFixedElement } from '../canvas/elements/fixed.js';
 import { connectSeats, splitPairString } from '../canvas/elements/connection.js';
 import { calculateBoundingBox } from '../canvas/utils.js';
 import { fitView } from '../canvas/zoom.js';
+import { showInfo } from '../ui/modal-template.js';
 
 // ============================================
 // FILE-LOCAL CONSTANTS
@@ -90,11 +91,11 @@ export function getSeatConnectionsData() {
  * @param {boolean} [alertMessage=true] - Whether to show alert after saving.
  * @returns {void}
  */
-export function saveSeats(alertMessage = true) {
+export async function saveSeats(alertMessage = true) {
     localStorage.setItem('seats', JSON.stringify(getSeatData()));
     localStorage.setItem('fixed', JSON.stringify(getFixedData()));
     localStorage.setItem('connections', JSON.stringify(getSeatConnectionsData()));
-    if (alertMessage) alert('Sitzplätze gespeichert!');
+    if (alertMessage) await showInfo('Sitzplätze gespeichert!');
 }
 
 /**
@@ -106,7 +107,7 @@ export function saveSeats(alertMessage = true) {
 export function saveNames(alertMessage = true) {
     const nameList = DOM.namesInput.value.split(PERSON_DELIMITER).map(n => n.trim());
     localStorage.setItem('names', JSON.stringify(nameList));
-    if (alertMessage) alert('Namen gespeichert!');
+    if (alertMessage) showInfo('Namen gespeichert!');
 }
 
 /**
@@ -119,7 +120,7 @@ export function deleteLocalStorage(alertMessage = true) {
     localStorage.removeItem('seats');
     localStorage.removeItem('fixed');
     localStorage.removeItem('names');
-    if (alertMessage) alert('Browser-Speicher gelöscht!');
+    if (alertMessage) showInfo('Browser-Speicher gelöscht!');
 }
 
 // ============================================
