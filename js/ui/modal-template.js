@@ -57,7 +57,7 @@ export function showInfo(message, title = "Information") {
 export function showError(message, title = "Fehler") {
     return openModal({
         title,
-        content: `<p class="text-red-600">${message}</p>`,
+        content: `<p class="important-text">${message}</p>`,
         buttons: [
             { label: "OK", value: true, className: "btn-primary" }
         ]
