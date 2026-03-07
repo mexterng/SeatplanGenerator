@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../../**/*.{html,js}"; 
 
 /* ===============================
    Root Variables in style.css theme from tailwindcss
