@@ -16,7 +16,6 @@
     --color-black: #000;
     --color-white: #fff;
     --spacing: 0.25rem;
-    --container-3xs: 16rem;
     --container-xs: 20rem;
     --text-xs: 0.75rem;
     --text-xs--line-height: calc(1 / 0.75);
@@ -334,6 +333,9 @@
   }
   .h-full {
     height: 100%;
+  }
+  .max-h-\[calc\(80vh-13\.5rem\)\] {
+    max-height: calc(80vh - 13.5rem);
   }
   .min-h-8 {
     min-height: calc(var(--spacing) * 8);
