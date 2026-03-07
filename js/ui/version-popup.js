@@ -127,7 +127,7 @@ export async function showVersionPopup() {
         },
         buttons: [
             {
-                label: "OK",
+                label: "Los geht's",
                 value: true,
                 className: "btn-primary"
             }
