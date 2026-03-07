@@ -81,11 +81,17 @@ export async function showVersionPopup() {
                 <li>Sitzplätze erstellen, verschieben, drehen, duplizieren und löschen</li>
                 <li>Namen automatisch auslosen oder manuell zuweisen</li>
                 <li>Für einzelne Personen feste Sitzplatznummern oder Nachbarschaften festlegen</li>
-                <li>Daten (Sitzplan, Namen, etc.) werden ausschließlich lokal im Browser gespeichert</li>
+                <li>Daten (Sitzplan, Namen, etc.) werden ausschließlich lokal im Browser gespeichert (<a href="datenschutz.html" class="sidebar-footer-link">Datenschutzerklärung</a>)</li>
                 <li>Daten (Sitzplan, Namen) können exportiert und geteilt werden</li>
                 <li>Sitzpläne als PDF exportieren</li>
             </ul>
             <p class="mt-2">Alle neuen Features werden nach Updates hier angezeigt.</p>
+            <a href="help.html">
+                <b>Zur ausführlichen Anleitung &rarr;</b>
+                <span class="cursor-pointer text-slate-500 hover:text-slate-800" title="Benutzungsanleitung">
+                    <i class="fa-solid fa-lightbulb text-xl"></i>
+                </span>
+            </a>
         `;
     }
     // Version in storage kleiner als aktuelle -> show release notes
