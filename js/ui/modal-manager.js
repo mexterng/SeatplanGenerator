@@ -113,6 +113,8 @@ export async function openModal(options) {
         // Create buttons
         (options.buttons ?? []).forEach(btnConfig => {
             const button = createButton(btnConfig);
+            
+            if (options.buttons.length === 1) button.classList.add("ml-auto");
 
             button.addEventListener('click', () => {
                 let value = btnConfig.value;

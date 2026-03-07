@@ -297,6 +297,9 @@
   .ml-10 {
     margin-left: calc(var(--spacing) * 10);
   }
+  .ml-auto {
+    margin-left: auto;
+  }
   .block {
     display: block;
   }
