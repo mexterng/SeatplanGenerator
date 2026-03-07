@@ -42,7 +42,7 @@ const PDF_MARGIN_LEFT = 15;
  */
 export async function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherName) {
     if (!state.seats?.length) {
-        alert('Keine Sitzplätze vorhanden!');
+        await showError('Keine Sitzplätze vorhanden!');
         return;
     }
 
