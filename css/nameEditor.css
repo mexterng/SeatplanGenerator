@@ -1,20 +1,6 @@
-html,
-body {
-    display: flex;
-    flex-direction: column;
-    width: fit-content;
-}
-
-#name-fields {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-}
-
-table {
-    border-collapse: collapse;
-}
-
+/* ===============================
+   Table
+   =============================== */
 th,
 td {
     border: 1px solid #ccc;
@@ -22,35 +8,38 @@ td {
     text-align: center;
 }
 
-td.delete-row, td.delete-neighbor {
+th.border-none,
+td.border-none {
+    border: none;
+}
+
+td.delete-row,
+td.delete-neighbor {
     cursor: pointer;
     color: red;
 }
 
-td.seat-neighbor, th.seat-neighbor {
-    border: none;
-    white-space: nowrap;
-}
-th.seat-neighbor {
-    background-color: transparent;
-    text-align: center;
-}
-.seat-neighbor button {
-    margin: 0;
-}
-
-th {
-    background-color: #f0f0f0;
-}
-
-th:first-of-type, td:first-of-type {
+th:first-of-type,
+td:first-of-type {
     border-right: none;
     padding-right: 4px;
 }
 
-th:nth-of-type(2), td:nth-of-type(2) {
+th:nth-of-type(2),
+td:nth-of-type(2) {
     border-left: none;
     padding-left: 4px;
+}
+
+tr.dragging {
+    opacity: 0.5;
+    background: #aaa;
+}
+
+td.seat-neighbor,
+th.seat-neighbor {
+    border: none;
+    white-space: nowrap;
 }
 
 .lock i {
@@ -60,12 +49,9 @@ th:nth-of-type(2), td:nth-of-type(2) {
 .lock.deactivate {
     color: #aaa;
 }
+
 .lock.deactivate i {
     cursor: default;
-}
-
-button {
-    margin: 10px;
 }
 
 .firstName {
@@ -74,89 +60,4 @@ button {
 
 .lastName {
     width: 120px;
-}
-
-.controls {
-    display: grid;
-    align-items: center;
-}
-
-#navigation {
-    display: flex;
-    justify-content: space-between;
-}
-
-/* ===============================
-   Import Popup
-   =============================== */
-
-#importOverlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-#import-popup {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  width: 250px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
-
-#import-button-section {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-}
-
-#import-popup-header {
-    margin-top: 0;
-}
-
-#import-input {
-    width: 100%;
-}
-
-#import-btn {
-    padding: 6px 12px;
-    cursor: pointer;
-}
-
-#import-btn.cancel {
-    margin-left: 10px;
-}
-
-.field-row {
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-}
-
-.field-row label {
-    width: 100px;
-}
-
-.field-row select {
-}
-
-select {
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    font-size: 14px;
-    padding: 6px 10px;
-    border: 1px solid var(--color-primary);
-    border-radius: 6px;
-    outline: none;
-    transition: all 0.2s ease-in-out;
-    box-sizing: border-box;
-    background-color: white;
-}
-
-tr.dragging {
-    opacity: 0.5;
-    background: #aaa;
 }
