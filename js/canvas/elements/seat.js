@@ -20,6 +20,7 @@ import { loadTemplateOnce, guaranteeCanvasBoundaries, getElementTransformData, r
 import { handleElementPointerDown } from '../drag-elements.js';
 import { DOM } from '../../dom.js';
 import { fitView } from '../zoom.js';
+import { showConfirm } from '../../ui/modal-template.js';
 
 // ============================================
 // FILE LOCAL CONSTANTS
@@ -228,6 +229,13 @@ export async function duplicateSeat(seat) {
  * @returns {Promise<void>}
  */
 export async function createSeats() {
+    const confirmed = await showConfirm(
+        'Achtung: Es werden nun alle Sitzplätze auf der Zeichenfläche gelöscht und neu gezeichnet. Fortfahren?',
+        'Sitzplätze neu zeichnen'
+    );
+
+    if (!confirmed) return;
+
     const { width: sw, height: sh } = await getSeatSize();
 
     // Remove existing seat elements from canvas
