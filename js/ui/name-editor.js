@@ -16,6 +16,8 @@
 // ============================================
 
 import { parseNames } from "./../data/names.js";
+import { openModal } from './modal-manager.js';
+import { showInfo, showError } from "./modal-template.js";
 
 // ============================================
 // FILE-LOCAL CONSTANTS
@@ -165,7 +167,7 @@ function updateRowNumbers() {
 /**
  * Confirms table data and sends it to main window input.
  */
-function confirm() {
+async function confirm() {
     const rows = document.querySelectorAll('#nameTable tbody tr');
     const values = [];
 
@@ -202,7 +204,7 @@ function confirm() {
         const mainInput = window.opener.document.getElementById('namesInput');
         if (mainInput) mainInput.value = result;
     } else {
-        alert("Hauptseite nicht gefunden oder geschlossen.\n" +
+        await showInfo("Hauptseite nicht gefunden oder geschlossen.\n" +
             "Ergebnis:\n" +
             "\n---------------------------------\n" + 
             result + 
@@ -240,13 +242,6 @@ function startCsvImport() {
 }
 
 /**
- * Closes the import overlay popup.
- */
-function closeImportPopup() {
-    document.getElementById("importOverlay").style.display = "none";
-}
-
-/**
  * Opens file picker and reads CSV content.
  */
 async function openCsvFilepicker() {
@@ -255,7 +250,7 @@ async function openCsvFilepicker() {
     input.onchange = async () => {
         const file = input.files[0];
         if (!file) {
-            alert('Keine Datei ausgewählt (Import abgebrochen).');
+            await showInfo('Keine Datei ausgewählt (Import abgebrochen).');
             return;
         }
 
@@ -263,66 +258,79 @@ async function openCsvFilepicker() {
             csvFiletext = await file.text();
             const headLine = csvFiletext.split('\n')[0].replace('\r', '');
             fields = headLine.split(',');
-            openImportPopup(fields);
+            await openCsvImportModal(fields);
         } catch (err) {
-            alert('Fehler beim Import: ' + err.message);
+            await showError('Fehler beim Import: ' + err.message);
         }
     }
 }
 
-/**
- * Opens the import popup and fills select options.
- *
- * @param {Array} fields - Header fields from CSV
- */
-function openImportPopup(fields) {
-    let allFields = ["---", ...fields];
+async function openCsvImportModal(fields) {
+    const allFields = ["---", ...fields];
 
-    document.getElementById("importOverlay").style.display = "flex";
-    const firstnameSelect = document.getElementById("firstnameSelect");
-    const lastnameSelect = document.getElementById("lastnameSelect");
+    const content = `
+        <div class="flex flex-col gap-2">
+            <p>Ordnen Sie jeweils die richtige Spalte der CSV-Datei zu oder wählen Sie "---".</p>
+            <div class="flex items-center">
+                <label class="w-24">Vorname:</label>
+                <select id="firstnameSelect" class="flex-1 min-w-16"></select>
+            </div>
+            <div class="flex items-center">
+                <label class="w-24">Nachname:</label>
+                <select id="lastnameSelect" class="flex-1 min-w-16"></select>
+            </div>
+        </div>
+    `;
 
-    [firstnameSelect, lastnameSelect].forEach(select => {
-        select.innerHTML = "";
-        allFields.forEach(f => {
-            const option = document.createElement("option");
-            option.text = f;
-            option.value = f;
-            select.add(option);
-        });
+    const result = await openModal({
+        title: "CSV Import",
+        content,
+        buttons: [
+            { label: "Abbrechen", value: null, className: "btn-secondary" },
+            { label: "Importieren", value: "import", className: "btn-primary" }
+        ],
+        onOpen: (modal) => {
+            // populate selects
+            const firstnameSelect = modal.querySelector("#firstnameSelect");
+            const lastnameSelect = modal.querySelector("#lastnameSelect");
+
+            [firstnameSelect, lastnameSelect].forEach(select => {
+                select.innerHTML = "";
+                allFields.forEach(f => {
+                    const option = document.createElement("option");
+                    option.text = f;
+                    option.value = f;
+                    select.add(option);
+                });
+            });
+
+            // focus first input/select
+            firstnameSelect.focus();
+        },
+        onSubmit: (modal) => {
+            const firstnameCol = modal.querySelector("#firstnameSelect").value;
+            const lastnameCol = modal.querySelector("#lastnameSelect").value;
+            return { firstnameCol, lastnameCol };
+        }
     });
-}
 
-// Cancel button listener
-document.getElementById("cancelImportBtn").addEventListener("click", closeImportPopup);
+    if (!result) return; // Abbrechen
 
-// ESC key closes popup
-document.addEventListener("keydown", event => {
-    if (event.key === "Escape" && document.getElementById("importOverlay").style.display !== "none") {
-        closeImportPopup();
-    }
-});
-
-// CSV import button
-document.getElementById("importCsvBtn").addEventListener("click", () => {
+    // CSV verarbeiten
     const tbody = document.querySelector('#nameTable tbody');
     tbody.querySelectorAll('tr').forEach(tr => tr.remove());
 
-    const firstnameCol = firstnameSelect.value;
-    const lastnameCol = lastnameSelect.value;
-    const csvData = csvFiletext.split('\n').map(r => r.replace('\r', '').split(','));
+    const firstnameIndex = fields.indexOf(result.firstnameCol);
+    const lastnameIndex = fields.indexOf(result.lastnameCol);
 
-    const firstnameIndex = fields.indexOf(firstnameCol);
-    const lastnameIndex = fields.indexOf(lastnameCol);
+    const csvData = csvFiletext.split('\n').map(r => r.replace('\r', '').split(','));
 
     csvData.slice(1).forEach(row => {
         const firstname = firstnameIndex >= 0 ? row[firstnameIndex] : '';
         const lastname  = lastnameIndex  >= 0 ? row[lastnameIndex]  : '';
         if (firstname || lastname) addRow(firstname, lastname);
     });
-
-    closeImportPopup();
-});
+}
 
 // ============================================
 // PUBLIC HANDLER — ROW DRAG & LOCK

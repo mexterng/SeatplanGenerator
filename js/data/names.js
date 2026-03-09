@@ -18,6 +18,7 @@
 
 import { DOM } from '../dom.js';
 import { state, PERSON_DELIMITER, NAME_DELIMITER, LOCKED_SEAT_TAG } from '../state.js';
+import { showConfirm, showError } from '../ui/modal-template.js';
 
 // ============================================
 // FILE-LOCAL CONSTANTS
@@ -157,15 +158,22 @@ export async function assignNames(doShuffle = false) {
     const nameList = nameListNested.flatMap(flattenNames);
 
     if (!nameList[0] || nameList[0].firstname === '' || state.seats.length === 0) {
-        alert('Keine Namen oder Sitzplätze zum Zuordnen!');
+        await showError('Keine gültigen Namen oder Sitzplätze zum Zuordnen!');
         return;
     }
 
     if (nameList.length < state.seats.length) {
-        if (!confirm(`Achtung: Es werden nicht alle Sitzplätze besetzt werden. Es gibt ${state.seats.length} Sitzplätze, aber nur ${nameList.length} Personen. Fortfahren?`)) return;
+        const confirmed = await showConfirm(`Achtung: Es werden nicht alle Sitzplätze besetzt werden. Es gibt ${state.seats.length} Sitzplätze, aber nur ${nameList.length} Personen. Fortfahren?`, "Zu viele Sitzplätze");    
+        if (!confirmed) return;
     }
     if (nameList.length > state.seats.length) {
-        alert(`Achtung: Es fehlen ${nameList.length - state.seats.length} Sitzplätze.`);
+        const missingSeats = nameList.length - state.seats.length;
+        if (missingSeats === 1){
+            await showError("Es fehlt 1 Sitzplatz.");
+        }
+        else {
+            await showError(`Es fehlen ${missingSeats} Sitzplätze.`);
+        }
         return;
     }
 
@@ -185,7 +193,7 @@ export async function assignNames(doShuffle = false) {
             if (solution) {
                 shuffledNames = solution;
             } else {
-                alert('Achtung: Es kann keine gültige Besetzung gefunden werden. Beachten Sie vorgegebene Sitznachbarn und als benachbart gekennzeichnete Sitzplätze.');
+                await showError('Es kann keine gültige Besetzung gefunden werden. Beachten Sie vorgegebene Sitznachbarn und als benachbart gekennzeichnete Sitzplätze.');
                 return;
             }
         }

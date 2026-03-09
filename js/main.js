@@ -26,6 +26,7 @@ import { initializeAdvancedMode, initializeCheckboxes, initializeSidebarButtons 
 import { openExportPopup } from './data/export-pdf.js';
 import { loadData } from './data/localStorage.js';
 import { assignNames, clearSeats } from './data/names.js';
+import { showVersionPopup } from "./ui/version-popup.js";
 
 // ============================================
 // FILE LOCAL CONSTANTS
@@ -113,4 +114,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // Load saved seating and names from localStorage
     await loadData();
+
+    // Show version popup
+    showVersionPopup();
 });

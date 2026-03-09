@@ -22,6 +22,7 @@ import { getSeatData, getFixedData, getSeatConnectionsData } from './localStorag
 import { createSeatElement } from '../canvas/elements/seat.js';
 import { createFixedElement } from '../canvas/elements/fixed.js';
 import { connectSeats, splitPairString } from '../canvas/elements/connection.js';
+import { showError, showInfo } from '../ui/modal-template.js';
 
 // ============================================
 // FILE-LOCAL CONSTANTS
@@ -89,11 +90,11 @@ function collectNamesData() {
  *
  * @returns {void} Triggers download or shows alert on error.
  */
-export function exportSeats() {
+export async function exportSeats() {
     try {
         exportJSON(collectElementsData(), 'sitzplan_elements');
     } catch (err) {
-        alert('Export fehlgeschlagen: ' + err.message);
+        await showError('Export fehlgeschlagen: ' + err.message);
     }
 }
 
@@ -102,11 +103,11 @@ export function exportSeats() {
  *
  * @returns {void} Triggers download or shows alert on error.
  */
-export function exportNames() {
+export async function exportNames() {
     try {
         exportJSON(collectNamesData(), 'sitzplan_names');
     } catch (err) {
-        alert('Export fehlgeschlagen: ' + err.message);
+        await showError('Export fehlgeschlagen: ' + err.message);
     }
 }
 
@@ -125,8 +126,8 @@ export async function importSeats() {
 
     input.onchange = async () => {
         const file = input.files[0];
-        if (!file) { 
-            alert('Keine Datei ausgewählt (Import abgebrochen).'); 
+        if (!file) {
+            await showError('Keine Datei ausgewählt (Import abgebrochen).'); 
             return; 
         }
 
@@ -137,7 +138,7 @@ export async function importSeats() {
             const connectionsData = allData.connections;
 
             if (!Array.isArray(seatData) || !Array.isArray(fixedData) || !Array.isArray(connectionsData)) {
-                alert('Ungültiges Dateiformat!');
+                await showError('Ungültiges Dateiformat!'); 
                 return;
             }
 
@@ -163,9 +164,9 @@ export async function importSeats() {
                 connectSeats(document.getElementById(a), document.getElementById(b));
             }
 
-            alert('Sitzplätze erfolgreich importiert!');
+            await showInfo('Sitzplätze erfolgreich importiert!'); 
         } catch (err) {
-            alert('Fehler beim Import: ' + err.message);
+            await showError('Fehler beim Import: ' + err.message); 
         }
     };
 }
@@ -182,7 +183,7 @@ export async function importNames() {
     input.onchange = async () => {
         const file = input.files[0];
         if (!file) { 
-            alert('Keine Datei ausgewählt (Import abgebrochen).'); 
+            await showError('Keine Datei ausgewählt (Import abgebrochen).'); 
             return; 
         }
 
@@ -192,7 +193,7 @@ export async function importNames() {
             const seatNames = namesData['seat-names'];
 
             if (!Array.isArray(seatNames)) {
-                alert('Ungültiges Dateiformat!');
+                await showError('Ungültiges Dateiformat!'); 
                 return;
             }
 
@@ -200,16 +201,17 @@ export async function importNames() {
             const seatEls = document.querySelectorAll('#canvas .seat');
 
             if (seatEls.length === 0) { 
-                alert('Keine Sitzplätze zum Zuordnen!'); 
+                await showError('Keine Sitzplätze zum Zuordnen!'); 
                 return; 
             }
 
             if (seatNames.length < seatEls.length) {
-                if (!confirm(`Achtung: Es werden nicht alle Sitzplätze besetzt werden. Es gibt ${seatEls.length} Sitzplätze, aber nur ${seatNames.length} Personen. Fortfahren?`)) return;
+                const confirmed = await showConfirm(`Achtung: Es werden nicht alle Sitzplätze besetzt werden. Es gibt ${state.seats.length} Sitzplätze, aber nur ${nameList.length} Personen. Fortfahren?`, "Zu viele Sitzplätze");    
+                if (!confirmed) return;
             }
 
             if (seatNames.length > seatEls.length) {
-                alert(`Achtung: Es fehlen ${seatNames.length - seatEls.length} Sitzplätze.`);
+                await showError(`Es fehlen ${seatNames.length - seatEls.length} Sitzplätze.`);
                 return;
             }
 
@@ -220,9 +222,9 @@ export async function importNames() {
                 seat.querySelector('.seat-lastname').textContent = nameObj?.lastname || '';
             });
 
-            alert('Namen erfolgreich importiert!');
+            await showInfo('Namen erfolgreich importiert!');
         } catch (err) {
-            alert('Fehler beim Import: ' + err.message);
+            await showError('Fehler beim Import: ' + err.message);
         }
     };
 }

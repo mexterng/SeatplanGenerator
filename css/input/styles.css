@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../../**/*.{html,js}"; 
 
 /* ===============================
    Root Variables in style.css theme from tailwindcss
@@ -65,14 +66,16 @@ h2.m-0 {
 }
 
 h3 {
-    margin-top: 0;
-    margin-bottom: 0.75rem;
     font-size: x-large;
     font-weight: 600;
 }
 
 .important {
     background: var(--color-important) !important;
+}
+
+.important-text {
+    color: var(--color-important) !important;
 }
 
 /* ===============================
