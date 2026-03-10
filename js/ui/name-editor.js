@@ -174,11 +174,13 @@ async function confirm() {
     let isValid = true;
     for (const [index, row] of rows.entries()) {
         const rowNumber = index + 1;
+        row.classList.remove("error-row");
         const first = row.querySelector('.firstName').value.trim();
         const last = row.querySelector('.lastName').value.trim();
         if (first + last === '') {
             await showError(`Achtung: In Zeile ${rowNumber} wurde kein Name eingegeben. Bitte lösche die Zeilen ohne Eintrag. Beachte dabei, dass sich dadurch möglicherweise die verankerten Sitzplatznummern ändern können.`);
             isValid = false;
+            row.classList.add("error-row");
             break;
         } 
         const neighbor = row.querySelector('.neighbor') !== null;
@@ -188,6 +190,7 @@ async function confirm() {
             if (neighborFirst + neighborLast === '') {
             await showError(`Achtung: In Zeile ${rowNumber} wurde ein Nachbar aktiviert, aber kein Name eingegeben. Bitte ergänze den Namen oder entferne den Nachbarn. Beachte dabei, dass sich dadurch möglicherweise die verankerten Sitzplatznummern ändern können.`);
                 isValid = false;
+                row.classList.add("error-row");
                 break;
             }
         }
