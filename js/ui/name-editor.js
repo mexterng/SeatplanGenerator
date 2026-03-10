@@ -169,6 +169,31 @@ function updateRowNumbers() {
  */
 async function confirm() {
     const rows = document.querySelectorAll('#nameTable tbody tr');
+
+    // check all input fields
+    let isValid = true;
+    for (const row of rows) {
+        const first = row.querySelector('.firstName').value.trim();
+        const last = row.querySelector('.lastName').value.trim();
+        if (first + last === '') {
+            await showError("Achtung: Es wurden nicht alle Namen eingegeben. Bitte lösche die Zeilen ohne Eintrag. Beachte dabei, dass sich dadurch möglicherweise die verankerten Sitzplatznummern ändern können.");
+            isValid = false;
+            break;
+        } 
+        const neighbor = row.querySelector('.neighbor') !== null;
+        if (neighbor) {
+            const neighborFirst = row.querySelector('.firstName.neighbor').value.trim();
+            const neighborLast = row.querySelector('.lastName.neighbor').value.trim();
+            if (neighborFirst + neighborLast === '') {
+                await showError("Achtung: Es wurden nicht alle Nachbarn eingegeben. Bitte lösche die Nachbarn ohne Eintrag. Beachte dabei, dass sich dadurch möglicherweise die verankerten Sitzplatznummern ändern können.");
+                isValid = false;
+                break;
+            }
+        }
+    }
+
+    if (!isValid) return;
+
     const values = [];
 
     function generateNameString(first, last, lockedStr) {
