@@ -172,11 +172,12 @@ async function confirm() {
 
     // check all input fields
     let isValid = true;
-    for (const row of rows) {
+    for (const [index, row] of rows.entries()) {
+        const rowNumber = index + 1;
         const first = row.querySelector('.firstName').value.trim();
         const last = row.querySelector('.lastName').value.trim();
         if (first + last === '') {
-            await showError("Achtung: Es wurden nicht alle Namen eingegeben. Bitte lösche die Zeilen ohne Eintrag. Beachte dabei, dass sich dadurch möglicherweise die verankerten Sitzplatznummern ändern können.");
+            await showError(`Achtung: In Zeile ${rowNumber} wurde kein Name eingegeben. Bitte lösche die Zeilen ohne Eintrag. Beachte dabei, dass sich dadurch möglicherweise die verankerten Sitzplatznummern ändern können.`);
             isValid = false;
             break;
         } 
@@ -185,7 +186,7 @@ async function confirm() {
             const neighborFirst = row.querySelector('.firstName.neighbor').value.trim();
             const neighborLast = row.querySelector('.lastName.neighbor').value.trim();
             if (neighborFirst + neighborLast === '') {
-                await showError("Achtung: Es wurden nicht alle Nachbarn eingegeben. Bitte lösche die Nachbarn ohne Eintrag. Beachte dabei, dass sich dadurch möglicherweise die verankerten Sitzplatznummern ändern können.");
+            await showError(`Achtung: In Zeile ${rowNumber} wurde ein Nachbar aktiviert, aber kein Name eingegeben. Bitte ergänze den Namen oder entferne den Nachbarn. Beachte dabei, dass sich dadurch möglicherweise die verankerten Sitzplatznummern ändern können.`);
                 isValid = false;
                 break;
             }
