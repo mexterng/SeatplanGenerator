@@ -17,7 +17,7 @@
 // ============================================
 
 import { DOM } from '../dom.js';
-import { state, PERSON_DELIMITER, NAME_DELIMITER, LOCKED_SEAT_TAG } from '../state.js';
+import { state, SYMBOLS } from '../state.js';
 import { showConfirm, showError } from '../ui/modal-template.js';
 
 // ============================================
@@ -34,16 +34,14 @@ import { showConfirm, showError } from '../ui/modal-template.js';
  * Splits a fullname string into lastname, firstname, and lockedSeat flag.
  *
  * @param {string} fullname - Full name string
- * @param {string} nameDelimiter - Delimiter between lastname and firstname
- * @param {string} lockedSeatTag - Suffix indicating seat is locked
  * @returns {Object} Object with {lastname, firstname, lockedSeat}
  */
-export function getNames(fullname, nameDelimiter = NAME_DELIMITER, lockedSeatTag = LOCKED_SEAT_TAG) {
-    const [name, lockedSeat] = fullname.endsWith(lockedSeatTag)
+export function getNames(fullname) {
+    const [name, lockedSeat] = fullname.endsWith(SYMBOLS.LOCKED_SEAT_TAG)
         ? [fullname.slice(0, -1), true]
         : [fullname, false];
-    const [lastname, firstname] = name.includes(nameDelimiter)
-        ? name.split(nameDelimiter).map(n => n.trim())
+    const [lastname, firstname] = name.includes(SYMBOLS.NAME_DELIMITER)
+        ? name.split(SYMBOLS.NAME_DELIMITER).map(n => n.trim())
         : ['', name];
     return { lastname, firstname, lockedSeat };
 }
@@ -52,34 +50,31 @@ export function getNames(fullname, nameDelimiter = NAME_DELIMITER, lockedSeatTag
  * Parses an input string containing individual or grouped names.
  *
  * @param {string} namesInput - Raw names input
- * @param {string} personDelimiter - Separator between names
- * @param {string} nameDelimiter - Separator between lastname and firstname
- * @param {string} lockedSeatTag - Suffix indicating locked seats
  * @returns {Array} Nested array of parsed name objects
  */
-export function parseNames(namesInput, personDelimiter = PERSON_DELIMITER, nameDelimiter = NAME_DELIMITER, lockedSeatTag = LOCKED_SEAT_TAG) {
+export function parseNames(namesInput) {
     const nameList = [];
     let buffer = '';
     let inGroup = false;
 
     for (const char of namesInput) {
-        if (char === '[') {
+        if (char === SYMBOLS.GROUP_START) {
             inGroup = true;
             buffer = '';
-        } else if (char === ']') {
+        } else if (char === SYMBOLS.GROUP_END) {
             inGroup = false;
             const groupEntries = buffer
-                .split(personDelimiter)
+                .split(SYMBOLS.PERSON_DELIMITER)
                 .map(n => n.trim())
                 .filter(n => n.length > 0)
-                .map(n => getNames(n, nameDelimiter, lockedSeatTag));
+                .map(n => getNames(n));
             nameList.push(groupEntries);
             buffer = '';
         } else if (inGroup) {
             buffer += char;
-        } else if (char === personDelimiter) {
+        } else if (char === SYMBOLS.PERSON_DELIMITER) {
             const entry = buffer.trim();
-            if (entry) nameList.push(getNames(entry, nameDelimiter, lockedSeatTag));
+            if (entry) nameList.push(getNames(entry));
             buffer = '';
         } else {
             buffer += char;
@@ -87,7 +82,7 @@ export function parseNames(namesInput, personDelimiter = PERSON_DELIMITER, nameD
     }
 
     if (buffer.trim()) {
-        nameList.push(getNames(buffer.trim(), nameDelimiter, lockedSeatTag));
+        nameList.push(getNames(buffer.trim()));
     }
 
     return nameList;
@@ -149,12 +144,7 @@ export function shuffleNamesWithoutPairs(array) {
  * @returns {Promise<void>}
  */
 export async function assignNames(doShuffle = false) {
-    const nameListNested = parseNames(
-        DOM.namesInput.value,
-        PERSON_DELIMITER,
-        NAME_DELIMITER,
-        LOCKED_SEAT_TAG
-    );
+    const nameListNested = parseNames(DOM.namesInput.value);
     const nameList = nameListNested.flatMap(flattenNames);
 
     if (!nameList[0] || nameList[0].firstname === '' || state.seats.length === 0) {
@@ -180,7 +170,7 @@ export async function assignNames(doShuffle = false) {
     // Fill missing slots with empty names
     const fullNameList = [...nameList];
     while (fullNameList.length < state.seats.length) {
-        fullNameList.push(getNames('', NAME_DELIMITER, LOCKED_SEAT_TAG));
+        fullNameList.push(getNames(''));
     }
 
     let shuffledNames = fullNameList;
@@ -189,7 +179,7 @@ export async function assignNames(doShuffle = false) {
             shuffledNames = shuffleNamesWithoutPairs(fullNameList);
         } else {
             const edges = getNormalizedSeatConnectionSet(state.seats);
-            const solution = generateSeatAssignmentBacktracking(nameListNested, edges, state.seats.length, NAME_DELIMITER, LOCKED_SEAT_TAG);
+            const solution = generateSeatAssignmentBacktracking(nameListNested, edges, state.seats.length);
             if (solution) {
                 shuffledNames = solution;
             } else {
@@ -252,11 +242,9 @@ function _toggleClearCreateSeatsButton(namesAssigned) {
  * @param {Array} persons - Nested array of person objects or groups
  * @param {Array} edges - Array of seat adjacency pairs
  * @param {number} seatCount - Total number of seats
- * @param {string} nameDelimiter - Delimiter between lastname and firstname
- * @param {string} lockedSeatTag - Suffix indicating locked seats
  * @returns {Array|null} Assigned seat array or null if impossible
  */
-export function generateSeatAssignmentBacktracking(persons, edges, seatCount, nameDelimiter, lockedSeatTag) {
+export function generateSeatAssignmentBacktracking(persons, edges, seatCount) {
     const edgePairs = edges.map(([a, b]) => [a - 1, b - 1]);
 
     let idCounter = 0;
@@ -316,7 +304,7 @@ export function generateSeatAssignmentBacktracking(persons, edges, seatCount, na
 
     remaining.forEach((p, i) => { seatSlots[freeSlots[i]] = p; });
 
-    const dummy = getNames('', nameDelimiter, lockedSeatTag);
+    const dummy = getNames('');
     return seatSlots.map(s => s ?? { ...dummy });
 }
 

@@ -18,7 +18,7 @@
 // ============================================
 
 import { DOM } from './dom.js';
-import { MAX_CANVAS, PERSON_DELIMITER, NAME_DELIMITER, LOCKED_SEAT_TAG } from './state.js';
+import { MAX_CANVAS } from './state.js';
 import { zoomIn, zoomOut, fitView } from './canvas/zoom.js';
 import { clearCanvas } from './canvas/utils.js';
 import { initPointerEvents } from './canvas/pointer-events.js';
@@ -58,19 +58,6 @@ function _initializeCanvasSize() {
 }
 
 /**
- * Store delimiter configuration in localStorage for name parsing.
- */
-function _initializeDelimiters() {
-    const delimiterConfig = {
-        person: PERSON_DELIMITER,
-        name: NAME_DELIMITER,
-        lockedSeat: LOCKED_SEAT_TAG
-    };
-
-    localStorage.setItem('delimiter', JSON.stringify(delimiterConfig));
-}
-
-/**
  * Bind event listeners for canvas control buttons.
  */
 function _initializeCanvasButtons() {
@@ -95,7 +82,6 @@ function _initializeCanvasButtons() {
  */
 window.addEventListener('DOMContentLoaded', async () => {
     _initializeCanvasSize();
-    _initializeDelimiters();
 
     // Initialize sidebar buttons and controls
     initializeSidebarButtons();

@@ -15,6 +15,7 @@
 // IMPORTS
 // ============================================
 
+import { SYMBOLS } from "../state.js";
 import { parseNames } from "./../data/names.js";
 import { openModal } from './modal-manager.js';
 import { showInfo, showError } from "./modal-template.js";
@@ -22,10 +23,6 @@ import { showInfo, showError } from "./modal-template.js";
 // ============================================
 // FILE-LOCAL CONSTANTS
 // ============================================
-
-let personDelimiter = ";";
-let nameDelimiter = ",";
-let lockedSeatTag = "#";
 
 let csvFiletext = "";
 let fields = [];
@@ -53,12 +50,11 @@ function resizeBody() {
 
 // Initialize table on DOMContentLoaded
 window.addEventListener('DOMContentLoaded', () => {
+    // LEGACY CLEANUP: remove in a future release
+    // deletes obsolete "delimiter" entry from localStorage (no longer used)
     const delimiterData = JSON.parse(localStorage.getItem('delimiter'));
     if (delimiterData) {
-        const { person, name, lockedSeat} = delimiterData;
-        personDelimiter = person;
-        nameDelimiter = name;
-        lockedSeatTag = lockedSeat;
+        localStorage.removeItem('delimiter');
     }
 
     const nameStr = localStorage.getItem('namesStr');
@@ -84,7 +80,7 @@ document.getElementById('confirm-btn').addEventListener('click', confirm);
  * @param {string} names - Raw names input string
  */
 function initRows(names) {
-    const nameList = parseNames(names, personDelimiter, nameDelimiter, lockedSeatTag);
+    const nameList = parseNames(names);
     nameList.forEach((p) => {
         if (Array.isArray(p)) {
             addRow(p[0].firstname, p[0].lastname, false, p[1].firstname, p[1].lastname);
@@ -202,7 +198,7 @@ async function confirm() {
 
     function generateNameString(first, last, lockedStr) {
         if (first && last == '') return `${first} ${lockedStr}`.trim();
-        if (first || last) return `${last}${nameDelimiter} ${first} ${lockedStr}`.trim();
+        if (first || last) return `${last}${SYMBOLS.NAME_DELIMITER} ${first} ${lockedStr}`.trim();
         return '';
     }
     
@@ -210,14 +206,14 @@ async function confirm() {
         const first = row.querySelector('.firstName').value.trim();
         const last = row.querySelector('.lastName').value.trim();
         const locked = row.querySelector('.lock i').classList.contains('fa-lock');
-        const lockedStr = locked ? '#' : '';
+        const lockedStr = locked ? SYMBOLS.LOCKED_SEAT_TAG : '';
         const neighbor = row.querySelector('.neighbor') !== null;
         const neighborFirst = neighbor ? row.querySelector('.firstName.neighbor').value.trim() : '';
         const neighborLast = neighbor ? row.querySelector('.lastName.neighbor').value.trim() : '';
 
         if (neighbor) {
-            values.push("[" + generateNameString(first, last, ''));
-            values.push(generateNameString(neighborFirst, neighborLast, '') + "]");
+            values.push(SYMBOLS.GROUP_START + generateNameString(first, last, ''));
+            values.push(generateNameString(neighborFirst, neighborLast, '') + SYMBOLS.GROUP_END);
         } else {
             values.push(generateNameString(first, last, lockedStr));        
         }
@@ -227,7 +223,7 @@ async function confirm() {
         values.pop();
     }
 
-    const result = values.join(personDelimiter + ' ');
+    const result = values.join(SYMBOLS.PERSON_DELIMITER + ' ');
 
     if (window.opener && !window.opener.closed) {
         const mainInput = window.opener.document.getElementById('namesInput');

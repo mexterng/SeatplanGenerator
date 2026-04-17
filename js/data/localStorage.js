@@ -17,7 +17,7 @@
 // ============================================
 
 import { DOM } from '../dom.js';
-import { state, PERSON_DELIMITER } from '../state.js';
+import { state, SYMBOLS } from '../state.js';
 import { createSeatElement } from '../canvas/elements/seat.js';
 import { createFixedElement } from '../canvas/elements/fixed.js';
 import { connectSeats, splitPairString } from '../canvas/elements/connection.js';
@@ -105,7 +105,7 @@ export async function saveSeats(alertMessage = true) {
  * @returns {void}
  */
 export function saveNames(alertMessage = true) {
-    const nameList = DOM.namesInput.value.split(PERSON_DELIMITER).map(n => n.trim());
+    const nameList = DOM.namesInput.value.split(SYMBOLS.PERSON_DELIMITER).map(n => n.trim());
     localStorage.setItem('names', JSON.stringify(nameList));
     if (alertMessage) showInfo('Namen gespeichert!');
 }
@@ -185,7 +185,7 @@ export async function loadData() {
 
     // Restore names
     if (nameList) {
-        DOM.namesInput.value = nameList.join(PERSON_DELIMITER + ' ');
+        DOM.namesInput.value = nameList.join(SYMBOLS.PERSON_DELIMITER + ' ');
     }
 
     setTimeout(fitView, 100); // Adjust view after load
