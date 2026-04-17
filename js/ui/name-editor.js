@@ -103,7 +103,7 @@ function initRows(names) {
  * @param {string} neighborFirstname - Neighbor first name
  * @param {string} neighborLastname - Neighbor last name
  */
-function addRow(firstname = '', lastname = '', lockedSeat = false, neighborFirstname = '', neighborLastname = '') {
+function addRow(firstname = '', lastname = '', lockedSeat = false, neighborFirstname = '', neighborLastname = '', mustBeNeighbors = true) {
     const tbody = document.querySelector('#nameTable tbody');
     const rowCount = tbody.rows.length + 1;
     const tr = document.createElement('tr');
@@ -121,8 +121,8 @@ function addRow(firstname = '', lastname = '', lockedSeat = false, neighborFirst
     if (!neighborFirstname && !neighborLastname) {
         addNeighborButtonTdToTr(tr);
     } else {
-        window.resizeTo(760, window.outerHeight);
-        addNeighborInputTdsToTr(tr, neighborFirstname, neighborLastname);
+        window.resizeTo(800, window.outerHeight);
+        addNeighborInputTdsToTr(tr, neighborFirstname, neighborLastname, mustBeNeighbors);
         tr.querySelector(".lock").classList.add('deactivate');
     }
 
@@ -427,6 +427,20 @@ function enableLockControls(tr) {
     });
 }
 
+/**
+ * Enables click event on link icon to toggle neighbor state.
+ *
+ * @param {HTMLElement} tr - Table row element
+ */
+function enableNeighborControls(tr) {
+    const link = tr.querySelector(".link");
+    const linkIcon = link.querySelector("i");
+    linkIcon.addEventListener('click', () => {
+        linkIcon.classList.toggle('fa-link');
+        linkIcon.classList.toggle('fa-link-slash');
+    });
+}
+
 // ============================================
 // PUBLIC HANDLER — SEAT NEIGHBOR MANAGEMENT
 // ============================================
@@ -441,19 +455,23 @@ function addNeighborButtonTdToTr(tr){
 function createNeighborButtonTd() {
     const neighborTd = document.createElement('td');
     neighborTd.classList.add("seat-neighbor");
-    neighborTd.colSpan ="3";
+    neighborTd.colSpan ="4";
     neighborTd.innerHTML = '<button class="btn-secondary"><i class="fa-solid fa-plus"></i> Sitznachbar</button>';
     return neighborTd;
 }
 
-function addNeighborInputTdsToTr(tr, firstname = '', lastname = '') {
-    const tds = createNeighborInputTds(tr, firstname, lastname);
+function addNeighborInputTdsToTr(tr, firstname = '', lastname = '', mustBeNeighbors = true) {
+    const tds = createNeighborInputTds(tr, firstname, lastname, mustBeNeighbors);
     tds.forEach(td => tr.appendChild(td));
+    enableNeighborControls(tr);
     updateRowNumbers();
 }
 
-function createNeighborInputTds(tr, firstname = '', lastname = '') {
+function createNeighborInputTds(tr, firstname = '', lastname = '', mustBeNeighbors = true) {
     const rowCountNeighborTd = document.createElement('td'); rowCountNeighborTd.classList.add('rowCount');
+    const mustBeNeighborsTd = document.createElement('td'); mustBeNeighborsTd.classList.add('link');
+    const linkIcon = mustBeNeighbors ? 'fa-link' : 'fa-link-slash';
+    mustBeNeighborsTd.innerHTML = `<i class="fa-solid ${linkIcon}"></i>`;
     const firstNameNeighborTd = document.createElement('td');
     firstNameNeighborTd.innerHTML = `<input type="text" class="firstName neighbor" placeholder="Vorname" value="${firstname}">`;
     const lastNameNeighborTd = document.createElement('td');
@@ -461,9 +479,9 @@ function createNeighborInputTds(tr, firstname = '', lastname = '') {
     const deleteNeighborTd = document.createElement('td'); deleteNeighborTd.classList.add('delete-neighbor');
     deleteNeighborTd.innerHTML = '<i class="fa-solid fa-circle-minus"></i>';
 
-    addEventListenerNeighborInputs(tr, {rowCountNeighborTd, firstNameNeighborTd, lastNameNeighborTd, deleteNeighborTd}, deleteNeighborTd.querySelector('i'));
+    addEventListenerNeighborInputs(tr, {mustBeNeighborsTd, rowCountNeighborTd, firstNameNeighborTd, lastNameNeighborTd, deleteNeighborTd}, deleteNeighborTd.querySelector('i'));
 
-    return [rowCountNeighborTd, firstNameNeighborTd, lastNameNeighborTd, deleteNeighborTd];
+    return [mustBeNeighborsTd, rowCountNeighborTd, firstNameNeighborTd, lastNameNeighborTd, deleteNeighborTd];
 }
 
 function addEventListenerNeighborInputs(tr, newTds, elem) {
@@ -488,7 +506,7 @@ function addEventListenerNeighborButton(tr, elem) {
         elem.remove();
         seatNeighbor.remove();
 
-        window.resizeTo(760, window.outerHeight);
+        window.resizeTo(800, window.outerHeight);
         addNeighborInputTdsToTr(tr);
     });
 }
