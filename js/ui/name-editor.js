@@ -3,20 +3,20 @@
 // ============================================
 
 /**
- * Handles UI for name table, including:
- * - Adding, deleting and reordering rows
- * - Lock/unlock seat controls
- * - Neighbor inputs and buttons
- * - CSV import for names
- * - Persisting data to main page
+ * UI logic for name table
+ *
+ * Responsibilities:
+ * - Row management (add, delete, reorder)
+ * - Locking and pairing (neighbors)
+ * - CSV import
+ * - Export to main window (JSON format)
  */
 
 // ============================================
 // IMPORTS
 // ============================================
 
-import { SYMBOLS } from "../state.js";
-import { parseNames } from "./../data/names.js";
+import { inputToUIjson, createSingle, createPair, createUIjson, jsonToString} from "./../data/names-json.js";
 import { openModal } from './modal-manager.js';
 import { showInfo, showError } from "./modal-template.js";
 
@@ -48,20 +48,38 @@ function resizeBody() {
     document.body.style.width = width + "px";
 }
 
-// Initialize table on DOMContentLoaded
-window.addEventListener('DOMContentLoaded', () => {
-    // LEGACY CLEANUP: remove in a future release
-    // deletes obsolete "delimiter" entry from localStorage (no longer used)
-    const delimiterData = JSON.parse(localStorage.getItem('delimiter'));
-    if (delimiterData) {
-        localStorage.removeItem('delimiter');
-    }
+/**
+ * Initializes the UI on DOM load.
+ *
+ * - Restores data from localStorage
+ * - Parses input into UI JSON
+ * - Builds initial table rows
+ *
+ * @returns {Promise<void>}
+ */
+window.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // LEGACY CLEANUP: remove in a future release
+        // deletes obsolete "delimiter" entry from localStorage (no longer used)
+        const delimiterData = JSON.parse(localStorage.getItem('delimiter'));
+        if (delimiterData) {
+            localStorage.removeItem('delimiter');
+        }
 
-    const nameStr = localStorage.getItem('namesStr');
-    if (!nameStr) {
-        addRow();
-    } else {
-        initRows(nameStr);
+        const nameStr = localStorage.getItem('namesStr');
+        if (!nameStr) {
+            addRow();
+        } 
+        else {
+            const uiJSON = await inputToUIjson(nameStr);
+            if (!uiJSON.entries || !Array.isArray(uiJSON.entries)) {
+                throw new Error("Ungültige Datenstruktur");
+            }
+            await initRowsUIjson(uiJSON);
+        }
+    } catch (err) {
+        await showError("Fehler beim Laden: " + err.message);
+        addRow(); // fallback
     }
     resizeBody();
 });
@@ -75,19 +93,30 @@ document.getElementById('cancel-btn').addEventListener('click', cancel);
 document.getElementById('confirm-btn').addEventListener('click', confirm);
 
 /**
- * Initializes table rows from a names string.
+ * Initializes table rows from a UI JSON object.
  *
- * @param {string} names - Raw names input string
+ * @param {Object} uiJSON - Parsed UI JSON containing entries
+ * @returns {Promise<void>}
  */
-function initRows(names) {
-    const nameList = parseNames(names);
-    nameList.forEach((p) => {
-        if (Array.isArray(p)) {
-            addRow(p[0].firstname, p[0].lastname, false, p[1].firstname, p[1].lastname);
-        } else {
-            addRow(p.firstname, p.lastname, p.lockedSeat);
-        }
-    });
+async function initRowsUIjson(uiJSON) {
+    const entries = uiJSON.entries;
+    if (uiJSON.version == 1){
+        for (const entry of entries) {
+            if (entry.type == 'single') {
+                addRow(entry.firstname, entry.lastname, entry.lockedSeat);
+            }
+            else if (entry.type == 'pair') {
+                addRow(entry.members[0].firstname, entry.members[0].lastname, false, entry.members[1].firstname, entry.members[1].lastname, entry.mustBeNeighbors);
+            }
+            else {
+                await showError(`Unbekannter Typ '${entry.type}' wurde ignoriert.`);
+            }
+        };
+    }
+    else {
+        await showError("Diese JSON Version wird leider nicht mehr unterstützt!");
+        addRow();
+    }
 }
 
 // ============================================
@@ -161,7 +190,9 @@ function updateRowNumbers() {
 // ============================================
 
 /**
- * Confirms table data and sends it to main window input.
+ * Validates input, converts table data to UI JSON and exports it.
+ *
+ * @returns {Promise<void>}
  */
 async function confirm() {
     const rows = document.querySelectorAll('#nameTable tbody tr');
@@ -179,8 +210,8 @@ async function confirm() {
             row.classList.add("error-row");
             break;
         } 
-        const neighbor = row.querySelector('.neighbor') !== null;
-        if (neighbor) {
+        const pair = row.querySelector('.neighbor') !== null;
+        if (pair) {
             const neighborFirst = row.querySelector('.firstName.neighbor').value.trim();
             const neighborLast = row.querySelector('.lastName.neighbor').value.trim();
             if (neighborFirst + neighborLast === '') {
@@ -194,45 +225,49 @@ async function confirm() {
 
     if (!isValid) return;
 
-    const values = [];
-
-    function generateNameString(first, last, lockedStr) {
-        if (first && last == '') return `${first} ${lockedStr}`.trim();
-        if (first || last) return `${last}${SYMBOLS.NAME_DELIMITER} ${first} ${lockedStr}`.trim();
-        return '';
-    }
+    const entries = [];
     
     rows.forEach(row => {
-        const first = row.querySelector('.firstName').value.trim();
-        const last = row.querySelector('.lastName').value.trim();
-        const locked = row.querySelector('.lock i').classList.contains('fa-lock');
-        const lockedStr = locked ? SYMBOLS.LOCKED_SEAT_TAG : '';
-        const neighbor = row.querySelector('.neighbor') !== null;
-        const neighborFirst = neighbor ? row.querySelector('.firstName.neighbor').value.trim() : '';
-        const neighborLast = neighbor ? row.querySelector('.lastName.neighbor').value.trim() : '';
-
-        if (neighbor) {
-            values.push(SYMBOLS.GROUP_START + generateNameString(first, last, ''));
-            values.push(generateNameString(neighborFirst, neighborLast, '') + SYMBOLS.GROUP_END);
+        const firstname = row.querySelector('.firstName').value.trim();
+        const lastname = row.querySelector('.lastName').value.trim();
+        const lockedSeat = row.querySelector('.lock i').classList.contains('fa-lock');
+        const pair = row.querySelector('.neighbor') !== null;
+        if (pair) {
+            const mustBeNeighbors = row.querySelector('.link i').classList.contains('fa-link');
+            const firstnameNeighbor = row.querySelector('.firstName.neighbor').value.trim();
+            const lastnameNeighbor = row.querySelector('.lastName.neighbor').value.trim();
+            entries.push(
+                createPair(
+                    [
+                        createSingle(firstname, lastname, false),
+                        createSingle(firstnameNeighbor, lastnameNeighbor, false)
+                    ],
+                    mustBeNeighbors
+                )
+            );
         } else {
-            values.push(generateNameString(first, last, lockedStr));        
+            entries.push(
+                createSingle(firstname, lastname, lockedSeat)
+            );
         }
     });
 
-    while (values.length > 0 && (values[values.length - 1] === "" || values[values.length - 1] == null)) {
-        values.pop();
+    const uiJSON = createUIjson(entries);
+    
+    // defensive validation before export
+    if (!uiJSON.entries || !Array.isArray(uiJSON.entries)) {
+        await showError("Interner Fehler: Ungültige Daten");
+        return;
     }
-
-    const result = values.join(SYMBOLS.PERSON_DELIMITER + ' ');
 
     if (window.opener && !window.opener.closed) {
         const mainInput = window.opener.document.getElementById('namesInput');
-        if (mainInput) mainInput.value = result;
+        if (mainInput) mainInput.value = jsonToString(uiJSON, true);
     } else {
         await showInfo("Hauptseite nicht gefunden oder geschlossen.\n" +
             "Ergebnis:\n" +
             "\n---------------------------------\n" + 
-            result + 
+            jsonToString(uiJSON, false) + 
             "\n---------------------------------\n" +
             "\nKopiere den Text zwischen den Zeilen und füge diesen manuell ein.");
     }
