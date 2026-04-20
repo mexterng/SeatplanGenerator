@@ -16,7 +16,7 @@
 // IMPORTS
 // ============================================
 
-import { inputToUIjson, createSingle, createPair, createUIjson, jsonToString} from "./../data/names-json.js";
+import { inputToUIjson, createSingle, createPair, createUIjson, jsonToString} from "../data/seatplan-model.js";
 import { openModal } from './modal-manager.js';
 import { showInfo, showError } from "./modal-template.js";
 
