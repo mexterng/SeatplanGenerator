@@ -25,8 +25,9 @@ import { initPointerEvents } from './canvas/pointer-events.js';
 import { initializeAdvancedMode, initializeCheckboxes, initializeSidebarButtons } from './ui/sidebar.js';
 import { openExportPopup } from './data/export-pdf.js';
 import { loadData } from './data/localStorage.js';
-import { assignNames, clearSeats } from './data/names.js';
+import { assignNames } from './data/names-assignment.js';
 import { showVersionPopup } from "./ui/version-popup.js";
+import { clearSeats } from './canvas/elements/seat.js';
 
 // ============================================
 // FILE LOCAL CONSTANTS

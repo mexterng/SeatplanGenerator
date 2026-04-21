@@ -20,8 +20,9 @@
 // IMPORTS
 // ============================================
 
-import { SYMBOLS } from '../state.js';
-import { showError } from '../ui/modal-template.js';
+import { DOM } from '../dom.js';
+import { state, SYMBOLS } from '../state.js';
+import { showConfirm, showError } from '../ui/modal-template.js';
 
 
 // ============================================
@@ -139,6 +140,94 @@ export async function inputToUIjson(nameStr) {
     }
 }
 
+/**
+ * Builds SGjson model from UI state.
+ *
+ * Responsibilities:
+ * - Extract persons from UIjson
+ * - Extract constraints (pairs, locked seats)
+ * - Build seat list
+ * - Build adjacency matrix
+ * - Assign internal IDs for stable references
+ *
+ * @returns {Promise<Object>} SGjson model
+ */
+export async function buildSGModelFromUI() {
+    const uiJSON = await inputToUIjson(DOM.namesInput.value);
+
+    const persons = [];
+    const constraints = [];
+
+    let idCounter = 0;
+
+    for (const entry of uiJSON.entries) {
+        if (entry.type === "single") {
+            const allowedSeats = entry.lockedSeat ? [idCounter] : null;
+
+            persons.push({
+                id: idCounter,
+                firstname: entry.firstname,
+                lastname: entry.lastname,
+                allowedSeats
+            });
+
+            idCounter++;
+        }
+
+        if (entry.type === "pair") {
+            const id1 = idCounter++;
+            const id2 = idCounter++;
+
+            persons.push({
+                id: id1,
+                firstname: entry.members[0].firstname,
+                lastname: entry.members[0].lastname,
+            });
+
+            persons.push({
+                id: id2,
+                firstname: entry.members[1].firstname,
+                lastname: entry.members[1].lastname,
+            });
+
+            constraints.push({
+                type: "pair",
+                a: id1,
+                b: id2,
+                mustBeNeighbors: entry.mustBeNeighbors
+            });
+        }
+    }
+
+    const seats = state.seats;
+    const normSeatConnect = getNormalizedSeatConnectionSet(seats);
+    const adjacency = buildAdjacency(seats.length, normSeatConnect);
+    return createSGjson(persons, seats, adjacency, constraints);
+}
+
+/**
+ * Builds adjacency matrix from normalized seat connections.
+ *
+ * @param {number} numberOfSeats - Total number of seats
+ * @param {Array<Array<number>>} normSeatConnect - List of seat index pairs (1-based)
+ * @returns {Array<Array<boolean>>} Symmetric adjacency matrix
+ */
+export function buildAdjacency(numberOfSeats, normSeatConnect) {
+    const adjacency = Array.from({ length: numberOfSeats }, () =>
+        Array(numberOfSeats).fill(false)
+    );
+
+    normSeatConnect.forEach(conn => {
+        const a = conn[0] - 1;
+        const b = conn[1] - 1;
+
+        adjacency[a][b] = true;
+        adjacency[b][a] = true;
+    });
+
+    return adjacency;
+}
+
 // ============================================
 // VALIDATION
 // ============================================
@@ -166,15 +255,51 @@ function validateRoot(json) {
     }
 }
 
+/**
+ * Validates SeatGenerator JSON before solving.
+ *
+ * Checks:
+ * - Presence of persons and seats
+ * - Matching number of persons and seats
+ * - User confirmation if seats exceed persons
+ *
+ * @param {Object} sgJSON - SeatGenerator JSON object
+ * @returns {Promise<boolean>} True if valid and confirmed
+ */
+export async function validateSGjson(sgJSON) {
+    sgJSON = migrateSG(sgJSON);
+
+    if (!sgJSON.persons[0] || (sgJSON.persons[0].firstname === '' && sgJSON.persons[0].lastname === '') || sgJSON.seats.length === 0) {
+        await showError('Keine gültigen Namen oder Sitzplätze zum Zuordnen!');
+        return false;
+    }
+
+    if (sgJSON.persons.length < sgJSON.seats.length) {
+        const confirmed = await showConfirm(`Achtung: Es werden nicht alle Sitzplätze besetzt werden. Es gibt ${sgJSON.seats.length} Sitzplätze, aber nur ${sgJSON.persons.length} Personen. Fortfahren?`, "Zu viele Sitzplätze");    
+        if (!confirmed) return false;
+    }
+    if (sgJSON.persons.length > sgJSON.seats.length) {
+        const missingSeats = sgJSON.persons.length - sgJSON.seats.length;
+        if (missingSeats === 1){
+            await showError("Es fehlt 1 Sitzplatz.");
+        }
+        else {
+            await showError(`Es fehlen ${missingSeats} Sitzplätze.`);
+        }
+        return false;
+    }
+    return true;
+}
+
 // ============================================
 // VERSION MIGRATION
 // ============================================
 
 /**
- * Dispatch migration based on type
+ * Dispatches migration depending on JSON type.
  *
- * @param {Object} json
- * @returns {Object}
+ * @param {Object} json - Parsed JSON object
+ * @returns {Object} Migrated JSON object
  */
 function migrate(json) {
     switch (json.type) {
@@ -188,7 +313,10 @@ function migrate(json) {
 }
 
 /**
- * UIjson migration handler
+ * Migrates UIjson to latest supported version.
+ *
+ * @param {Object} json - UIjson object
+ * @returns {Object} Migrated UIjson
  */
 function migrateUI(json) {
     if (json.version === 1) return json;
@@ -197,7 +325,10 @@ function migrateUI(json) {
 }
 
 /**
- * SGjson migration handler
+ * Migrates SGjson to latest supported version.
+ *
+ * @param {Object} json - SGjson object
+ * @returns {Object} Migrated SGjson
  */
 function migrateSG(json) {
     if (json.version === 1) return json;
@@ -228,6 +359,26 @@ function normalizeToUI(json) {
     }
 
     throw new Error("Kann nicht in UIjson konvertieren");
+}
+
+/**
+ * Converts normalized seat connection set into adjacency input format.
+ *
+ * - Maps arbitrary seat IDs to sequential indices
+ * - Converts connection strings to numeric pairs
+ *
+ * @param {Array} seats - Seat objects from state
+ * @returns {Array<Array<number>>} Normalized seat connections
+ */
+function getNormalizedSeatConnectionSet(seats) {
+    const ids = seats.map(s => s.id);
+    const sortedIds = [...ids].sort((a, b) => Number(a) - Number(b));
+    const idMap = Object.fromEntries(sortedIds.map((id, i) => [id, (i + 1).toString()]));
+
+    return Array.from(state.seatConnectionSet).map(edge => {
+        const [a, b] = edge.split('-');
+        return [idMap[a], idMap[b]];
+    });
 }
 
 /**

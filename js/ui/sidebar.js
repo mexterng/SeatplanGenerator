@@ -15,8 +15,8 @@
 // IMPORTS
 // ============================================
 
-import { createSeats } from '../canvas/elements/seat.js';
-import { assignNames, clearSeats } from '../data/names.js';
+import { clearSeats, createSeats } from '../canvas/elements/seat.js';
+import { assignNames } from '../data/names-assignment.js';
 import { saveNames, saveSeats, deleteLocalStorage } from '../data/localStorage.js';
 import { importSeats, exportSeats, exportNames, importNames } from '../data/import-export.js';
 import { DOM } from '../dom.js';
@@ -150,6 +150,37 @@ function _initCountdownCheckbox() {
     cb.checked = localStorage.getItem('countdown') === 'true';
     cb.addEventListener('change', () => {
         localStorage.setItem('countdown', cb.checked);
+    });
+}
+
+// ============================================
+// PUBLIC HANDLER — COUNTDOWN
+// ============================================
+
+/**
+ * Displays a countdown overlay before assigning seats.
+ *
+ * @param {number} time - Countdown seconds
+ * @returns {Promise<void>} Resolves when countdown ends
+ */
+export function showCountdown(time) {
+    return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.id = 'countdown-overlay';
+        overlay.textContent = time;
+        document.body.appendChild(overlay);
+
+        let count = time;
+        const interval = setInterval(() => {
+            count--;
+            if (count > 0) {
+                overlay.textContent = count;
+            } else {
+                clearInterval(interval);
+                overlay.remove();
+                resolve();
+            }
+        }, 1000);
     });
 }
 
