@@ -32,7 +32,7 @@ import { showConfirm, showError } from '../ui/modal-template.js';
 const UI_JSON_VERSION = 1;
 const SG_JSON_VERSION = 1;
 
-export const JSON_PREFIX = "SitzplanGeneratorJSON";
+export const JSON_PREFIX = "SitzplangeneratorJSON";
 
 // ============================================
 // FACTORY FUNCTIONS (PUBLIC API)
@@ -86,8 +86,8 @@ export function createSGjson(persons = [], seats = [], adjacency = [], constrain
  */
 export function jsonToString(json, linebreak = true) {
     return linebreak
-        ? `${JSON_PREFIX} v${json.version}:\n${JSON.stringify(json, null, 2)}`
-        : `${JSON_PREFIX} v${json.version}: ${JSON.stringify(json)}`;
+        ? `${JSON_PREFIX} ...\n${JSON.stringify(json, null, 2)}`
+        : `${JSON_PREFIX} ... ${JSON.stringify(json)}`;
 }
 
 // ============================================
