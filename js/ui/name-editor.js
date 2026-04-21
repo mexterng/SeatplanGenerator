@@ -262,12 +262,12 @@ async function confirm() {
 
     if (window.opener && !window.opener.closed) {
         const mainInput = window.opener.document.getElementById('namesInput');
-        if (mainInput) mainInput.value = jsonToString(uiJSON, true);
+        if (mainInput) mainInput.value = jsonToString(uiJSON, true, true);
     } else {
         await showInfo("Hauptseite nicht gefunden oder geschlossen.\n" +
             "Ergebnis:\n" +
             "\n---------------------------------\n" + 
-            jsonToString(uiJSON, false) + 
+            jsonToString(uiJSON, false, true) + 
             "\n---------------------------------\n" +
             "\nKopiere den Text zwischen den Zeilen und füge diesen manuell ein.");
     }

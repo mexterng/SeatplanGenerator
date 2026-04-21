@@ -82,9 +82,31 @@ export function createSGjson(persons = [], seats = [], adjacency = [], constrain
  *
  * @param {Object} json
  * @param {boolean} linebreak
+ * @param {boolean} simplifyForUIoutput
  * @returns {string}
  */
-export function jsonToString(json, linebreak = true) {
+export function jsonToString(json, linebreak = true, simplifyForUIoutput = false) {
+    if (simplifyForUIoutput) {
+
+        const format = (f, l) =>
+            (!f || !l) ? `${f}${l}` : `${l}, ${f}`;
+
+        // UIjson without constraints (only singles)
+        if (json.type === "UIjson" && json.entries.every(e => e.type === "single" && e.lockedSeat === false)) {
+            return json.entries
+                .map(e => format(e.firstname, e.lastname))
+                .join("; ");
+        }
+
+        // SGjson without constraints
+        if (json.type === "SGjson" && json.constraints.length === 0) {
+            return json.persons
+                .map(p => format(p.firstname, p.lastname))
+                .join("; ");
+        }
+    }
+
+    // --- default JSON output ---
     return linebreak
         ? `${JSON_PREFIX} ...\n${JSON.stringify(json, null, 2)}`
         : `${JSON_PREFIX} ... ${JSON.stringify(json)}`;
