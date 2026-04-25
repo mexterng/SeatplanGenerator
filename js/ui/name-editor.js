@@ -139,10 +139,10 @@ function addRow(firstname = '', lastname = '', lockedSeat = false, neighborFirst
     const lockIcon = lockedSeat ? 'fa-lock': 'fa-lock-open';
 
     tr.innerHTML = `
-        <td class="delete-row"><i class="fa-solid fa-trash"></i></td>
-        <td class="draggable"><i class="fa-solid fa-arrows-up-down"></i></td>
-        <td class="rowCount">${rowCount}</td>
-        <td class="lock"><i class="fa-solid ${lockIcon}"></i></td>
+        <td class="delete-row" title="Zeile löschen"><i class="fa-solid fa-trash"></i></td>
+        <td class="draggable" title="Zeile verschieben"><i class="fa-solid fa-arrows-up-down"></i></td>
+        <td class="rowCount title="Laufende Nummer (ggf. Sitzplatznummer)">${rowCount}</td>
+        <td class="lock" title="Sitzplatznummer sperren (Person sitzt immer auf diesem Sitzplatz)"><i class="fa-solid ${lockIcon}"></i></td>
         <td><input type="text" class="firstName" placeholder="Vorname" value="${firstname}"></td>
         <td><input type="text" class="lastName" placeholder="Nachname" value="${lastname}"></td>
     `;
@@ -506,13 +506,13 @@ function createNeighborInputTds(tr, firstname = '', lastname = '', mustBeNeighbo
     const rowCountNeighborTd = document.createElement('td'); rowCountNeighborTd.classList.add('rowCount');
     const mustBeNeighborsTd = document.createElement('td'); mustBeNeighborsTd.classList.add('link');
     const linkIcon = mustBeNeighbors ? 'fa-link' : 'fa-link-slash';
-    mustBeNeighborsTd.innerHTML = `<i class="fa-solid ${linkIcon}"></i>`;
+    mustBeNeighborsTd.innerHTML = `<i class="fa-solid ${linkIcon}" title="Personen (NICHT) nebeneinander setzen"></i>`;
     const firstNameNeighborTd = document.createElement('td');
     firstNameNeighborTd.innerHTML = `<input type="text" class="firstName neighbor" placeholder="Vorname" value="${firstname}">`;
     const lastNameNeighborTd = document.createElement('td');
     lastNameNeighborTd.innerHTML = `<input type="text" class="lastName neighbor" placeholder="Nachname" value="${lastname}">`;
     const deleteNeighborTd = document.createElement('td'); deleteNeighborTd.classList.add('delete-neighbor');
-    deleteNeighborTd.innerHTML = '<i class="fa-solid fa-circle-minus"></i>';
+    deleteNeighborTd.innerHTML = '<i class="fa-solid fa-circle-minus" title="Sitznachbar löschen"></i>';
 
     addEventListenerNeighborInputs(tr, {mustBeNeighborsTd, rowCountNeighborTd, firstNameNeighborTd, lastNameNeighborTd, deleteNeighborTd}, deleteNeighborTd.querySelector('i'));
 
