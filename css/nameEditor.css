@@ -46,7 +46,7 @@ th.seat-neighbor {
     white-space: nowrap;
 }
 
-.lock i {
+.lock i, .link i {
     cursor: pointer;
 }
 

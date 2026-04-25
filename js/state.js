@@ -15,10 +15,14 @@
 // FILE LOCAL CONSTANTS
 // ============================================
 
-// Delimiters used for parsing names
-export const PERSON_DELIMITER = ";";
-export const NAME_DELIMITER   = ",";
-export const LOCKED_SEAT_TAG  = "#";
+// Symbols used for parsing names
+export const SYMBOLS = {
+    PERSON_DELIMITER : ";",
+    NAME_DELIMITER   : ",",
+    LOCKED_SEAT_TAG  : "#",
+    GROUP_START      : "[",
+    GROUP_END        : "]",
+}
 
 // Canvas / Layout
 export const GRID_SIZE      = 5;     // grid snapping for seats

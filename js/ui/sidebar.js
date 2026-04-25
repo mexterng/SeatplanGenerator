@@ -15,9 +15,9 @@
 // IMPORTS
 // ============================================
 
-import { createSeats } from '../canvas/elements/seat.js';
-import { assignNames, clearSeats } from '../data/names.js';
-import { saveNames, saveSeats, deleteLocalStorage } from '../data/localStorage.js';
+import { clearSeats, createSeats } from '../canvas/elements/seat.js';
+import { assignNames } from '../data/names-assignment.js';
+import { saveNames, saveSeats, deleteLocalStorage, setUISettings, getUISettings } from '../data/localStorage.js';
 import { importSeats, exportSeats, exportNames, importNames } from '../data/import-export.js';
 import { DOM } from '../dom.js';
 import { addFixedElement } from '../canvas/elements/fixed.js';
@@ -59,7 +59,7 @@ sidebarToggle.addEventListener('click', toggleSidebar);
  * Initializes advanced mode toggle from localStorage.
  */
 export async function initializeAdvancedMode() {
-    const saved = localStorage.getItem('advancedMode') === 'true';
+    const saved = getUISettings('advancedMode');
     advancedToggle.checked = saved;
     advancedControls.style.display = saved ? 'block' : 'none';
     updateAdvancedLabel(saved);
@@ -80,7 +80,7 @@ advancedToggle.addEventListener('change', () => {
     const on = advancedToggle.checked;
     advancedControls.style.display = on ? 'block' : 'none';
     updateAdvancedLabel(on);
-    localStorage.setItem('advancedMode', on);
+    setUISettings('advancedMode', on);
 });
 
 // ============================================
@@ -147,9 +147,40 @@ export function initializeCheckboxes() {
  */
 function _initCountdownCheckbox() {
     const cb = document.getElementById('countdown-checkbox');
-    cb.checked = localStorage.getItem('countdown') === 'true';
+    cb.checked = getUISettings('countdown');
     cb.addEventListener('change', () => {
-        localStorage.setItem('countdown', cb.checked);
+        setUISettings('countdown', cb.checked);
+    });
+}
+
+// ============================================
+// PUBLIC HANDLER — COUNTDOWN
+// ============================================
+
+/**
+ * Displays a countdown overlay before assigning seats.
+ *
+ * @param {number} time - Countdown seconds
+ * @returns {Promise<void>} Resolves when countdown ends
+ */
+export function showCountdown(time) {
+    return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.id = 'countdown-overlay';
+        overlay.textContent = time;
+        document.body.appendChild(overlay);
+
+        let count = time;
+        const interval = setInterval(() => {
+            count--;
+            if (count > 0) {
+                overlay.textContent = count;
+            } else {
+                clearInterval(interval);
+                overlay.remove();
+                resolve();
+            }
+        }, 1000);
     });
 }
 
@@ -160,12 +191,12 @@ function _initCountdownCheckbox() {
  */
 function _initSeatNumberCheckbox() {
     const cb = document.getElementById('seatNumber-checkbox');
-    cb.checked = localStorage.getItem('showSeatNumbers') === 'true';
+    cb.checked = getUISettings('seatNumbers');
 
     if (cb.checked) _setSeatNumbersVisible(true);
 
     cb.addEventListener('change', () => {
-        localStorage.setItem('showSeatNumbers', cb.checked);
+        localStorage.setItem('seatNumbers', cb.checked);
         _setSeatNumbersVisible(cb.checked);
     });
 }
@@ -188,12 +219,12 @@ function _setSeatNumbersVisible(visible) {
  */
 function _initSeatConnectorCheckbox() {
     const cb = document.getElementById('seatConnector-checkbox');
-    cb.checked = localStorage.getItem('showSeatConnectors') === 'true';
+    cb.checked = getUISettings('seatConnectors');
 
     if (cb.checked) _setSeatConnectorsVisible(true);
 
     cb.addEventListener('change', () => {
-        localStorage.setItem('showSeatConnectors', cb.checked);
+        setUISettings('seatConnectors', cb.checked);
         _setSeatConnectorsVisible(cb.checked);
     });
 }

@@ -288,3 +288,44 @@ export function updateSeatNumbers() {
         }
     });
 }
+
+/**
+ * Sets name of specific seat.
+ *
+ * @returns {void}
+ */
+export function setSeatName(seat, firstname, lastname) {
+    seat.element.querySelector('.seat-firstname').textContent = firstname;
+    seat.element.querySelector('.seat-lastname').textContent = lastname;
+}
+
+/**
+ * Clears all assigned names from seats.
+ *
+ * @returns {void}
+ */
+export function clearSeats() {
+    state.seats.forEach(s => {
+        s.element.querySelector('.seat-firstname').textContent = '';
+        s.element.querySelector('.seat-lastname').textContent = '';
+    });
+
+    toggleClearCreateSeatsButton(false);
+}
+
+/**
+ * Toggles visibility of clear and create seat buttons depending on assignment state.
+ *
+ * @param {boolean} namesAssigned - Whether names have been assigned
+ * @returns {void}
+ */
+export function toggleClearCreateSeatsButton(namesAssigned) {
+    const createBtn = document.getElementById('create-seats-btn');
+    const clearBtn = document.getElementById('clear-seats-btn');
+    const clearCanvasBtn = document.getElementById('clear-seats-canvas-btn');
+
+    clearBtn.style.display = namesAssigned ? 'flex' : 'none';
+    createBtn.style.display = namesAssigned ? 'none' : 'flex';
+
+    clearCanvasBtn.classList.toggle('hidden', !namesAssigned);
+}
