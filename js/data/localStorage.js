@@ -105,8 +105,8 @@ export async function saveSeats(alertMessage = true) {
  * @returns {void}
  */
 export function saveNames(alertMessage = true) {
-    const nameList = DOM.namesInput.value.split(SYMBOLS.PERSON_DELIMITER).map(n => n.trim());
-    localStorage.setItem('names', JSON.stringify(nameList));
+    const namesStr = DOM.namesInput.value;
+    localStorage.setItem('savedNamesStr', namesStr);
     if (alertMessage) showInfo('Namen gespeichert!');
 }
 
@@ -119,7 +119,7 @@ export function saveNames(alertMessage = true) {
 export function deleteLocalStorage(alertMessage = true) {
     localStorage.removeItem('seats');
     localStorage.removeItem('fixed');
-    localStorage.removeItem('names');
+    localStorage.removeItem('savedNamesStr');
     if (alertMessage) showInfo('Browser-Speicher gelöscht!');
 }
 
@@ -136,7 +136,12 @@ export async function loadData() {
     const seatData = JSON.parse(localStorage.getItem('seats'));
     const fixedData = JSON.parse(localStorage.getItem('fixed'));
     const connectionsData = JSON.parse(localStorage.getItem('connections'));
+    // TODO: Remove in future version
+    // Legacy migration: convert old 'names' array to new 'savedNamesStr' format.
     const nameList = JSON.parse(localStorage.getItem('names'));
+    localStorage.removeItem('names');
+    const savedNameStr = nameList ? nameList.join(SYMBOLS.PERSON_DELIMITER + ' ') : localStorage.getItem('savedNamesStr');
+    localStorage.setItem('savedNamesStr', savedNameStr);
 
     // Clear canvas and reset state
     DOM.canvas.innerHTML = '';
@@ -184,8 +189,8 @@ export async function loadData() {
     }
 
     // Restore names
-    if (nameList) {
-        DOM.namesInput.value = nameList.join(SYMBOLS.PERSON_DELIMITER + ' ');
+    if (savedNameStr) {
+        DOM.namesInput.value = savedNameStr;
     }
 
     setTimeout(fitView, 100); // Adjust view after load
