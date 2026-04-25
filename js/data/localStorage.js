@@ -81,6 +81,22 @@ export function getSeatConnectionsData() {
     return [...state.seatConnectionSet];
 }
 
+/**
+ * Retrieves UI settings from localStorage.
+ *
+ * @param {string} [key] - Optional key to retrieve a specific setting.
+ * @returns {Object|any} The full settings object or the value for the given key.
+ */
+export function getUISettings(key) {
+    const raw = localStorage.getItem('uiSettings');
+    const json = JSON.parse(raw);
+    if (key) {
+        return json[key];
+    } else {
+        return json;
+    }
+}
+
 // ============================================
 // PUBLIC HANDLER — SAVE
 // ============================================
@@ -121,6 +137,20 @@ export function deleteLocalStorage(alertMessage = true) {
     localStorage.removeItem('fixed');
     localStorage.removeItem('savedNamesStr');
     if (alertMessage) showInfo('Browser-Speicher gelöscht!');
+}
+
+
+/**
+ * Updates a specific UI setting and persists it to localStorage.
+ *
+ * @param {string} keyStr - The key of the setting to update.
+ * @param {any} value - The value to assign to the setting.
+ * @returns {void}
+ */
+export function setUISettings(keyStr, value) {
+    const uiSettings = getUISettings();
+    uiSettings[keyStr] = value;
+    localStorage.setItem('uiSettings', JSON.stringify(uiSettings));
 }
 
 // ============================================

@@ -71,6 +71,37 @@ function _initializeCanvasButtons() {
     pdfExportBtn.addEventListener('click', openExportPopup);
 }
 
+/**
+ * Legacy migration: convert old keys of localStorage to new 'uiSettings' key.
+ * 
+ * TODO: Remove in future version
+ */
+function _migrateUISettings() {
+    const legacyKeys = [
+        'advancedMode',
+        'countdown',
+        'showSeatConnectors',
+        'showSeatNumbers'
+    ];
+
+    const hasLegacy = legacyKeys.some(k => localStorage.getItem(k) !== null);
+    if (!hasLegacy) return;
+
+    const uiSettings = {
+        advancedMode: localStorage.getItem('advancedMode') === 'true',
+        countdown: localStorage.getItem('countdown') === 'true',
+        seatConnectors: localStorage.getItem('showSeatConnectors') === 'true',
+        seatNumbers: localStorage.getItem('showSeatNumbers') === 'true'
+    };
+
+    localStorage.setItem('uiSettings', JSON.stringify(uiSettings));
+
+    // cleanup
+    for (const key of legacyKeys) {
+        localStorage.removeItem(key);
+    }
+}
+
 // ============================================
 // APPLICATION INITIALIZATION
 // ============================================
@@ -86,6 +117,9 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // Initialize sidebar buttons and controls
     initializeSidebarButtons();
+
+    // Initialize UI settings in localStorage
+    _migrateUISettings();
 
     // Initialize advanced mode UI and state
     await initializeAdvancedMode();
