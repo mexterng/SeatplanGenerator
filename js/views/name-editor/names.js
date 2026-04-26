@@ -6,22 +6,22 @@ export function mountNameEditor(container) {
 
             <h1>Namen bearbeiten</h1>
 
-            <button id="start-csv-import-btn" class="btn-primary">
-                <i class="fa-solid fa-file-import"></i>Namen aus csv-Datei importieren
-            </button>
-
+            <div>
+                <button id="start-csv-import-btn" class="btn-primary">
+                    <i class="fa-solid fa-file-import"></i>Namen aus csv-Datei importieren
+                </button>
+            </div>
+            
             <input id="csvImportFile" class="hidden" type="file" accept=".csv">
 
             <table id="nameTable" class="border-collapse">
                 <thead>
                     <tr>
                         <th class="bg-slate-300"></th>
-                        <th class="bg-slate-300"></th>
                         <th class="bg-slate-300">#</th>
-                        <th class="bg-slate-300"><i class="fa-solid fa-anchor-lock"></i></th>
-                        <th class="bg-slate-300">Vorname</th>
-                        <th class="bg-slate-300">Nachname</th>
-                        <th colspan="4" class="border-none">Sitznachbar</th>
+                        <th class="bg-slate-300 align-left">Vorname</th>
+                        <th class="bg-slate-300 align-left">Nachname</th>
+                        <th class="bg-slate-300"></th>
                     </tr>
                 </thead>
                 <tbody>

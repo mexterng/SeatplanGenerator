@@ -1,11 +1,23 @@
 /* ===============================
    Table
    =============================== */
+table {
+    border: 2px solid #ccc;
+}
+
 th,
 td {
-    border: 1px solid #ccc;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    border-left: none;
+    border-right: none;
     padding: 6px 8px;
     text-align: center;
+}
+
+th.align-left,
+td.align-left {
+    text-align: left;
 }
 
 th.border-none,
@@ -19,14 +31,12 @@ td.delete-neighbor {
     color: red;
 }
 
-th:first-of-type,
-td:first-of-type {
+.no-border-r {
     border-right: none;
     padding-right: 4px;
 }
 
-th:nth-of-type(2),
-td:nth-of-type(2) {
+.no-border-l {
     border-left: none;
     padding-left: 4px;
 }
@@ -59,9 +69,11 @@ th.seat-neighbor {
 }
 
 .firstName {
-    width: 100px;
+    min-width: 100px;
+    width: 100%;
 }
 
 .lastName {
-    width: 120px;
+    min-width: 120px;
+    width: 100%;
 }
