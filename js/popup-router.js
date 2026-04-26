@@ -1,4 +1,4 @@
-import { mountNameEditor } from "./views/name-editor/names.js";
+import { mountNamesView } from "./views/name-editor/names.js";
 
 export function router() {
     const container = document.getElementById("app");
@@ -18,7 +18,7 @@ function routeNameEditor(container, view) {
     loadFeatureCSS("css/name-editor.css");
     switch (view) {
         default:
-            mountNameEditor(container);
+            mountNamesView(container);
     }
 }
 
