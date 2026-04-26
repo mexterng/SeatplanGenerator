@@ -121,7 +121,7 @@ export function initializeSidebarButtons() {
 document.getElementById('edit-icon').addEventListener('click', () => {
     localStorage.setItem('namesStr', DOM.namesInput.value);
     window.open(
-        'nameEditor.html', 
+        'popup.html?feature=name-editor', 
         'nameEditor', 
         'width=550,height=600,scrollbars=yes,resizable=yes'
     );

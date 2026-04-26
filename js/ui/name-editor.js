@@ -29,100 +29,95 @@ let fields = [];
 let draggedRow = null;
 
 // ============================================
-// PUBLIC HANDLER — INITIALIZATION
+// INIT
 // ============================================
 
-/**
- * Adjusts body width to fit the first 6 columns of the table.
- */
-function resizeBody() {
-    const table = document.getElementById('nameTable');
-    const firstRow = table.rows[0];
-    let width = 0;
-    
-    document.body.style.width = "0px";
-    for (let i = 0; i < 6; i++) {
-        width += firstRow.cells[i].offsetWidth;
-    }
-
-    document.body.style.width = width + "px";
+export function initNameEditor(root) {
+    legacyCleanUp();
+    bindEvents(root);
+    restoreOrInitRows(root);
+    resizeBody(root);
 }
 
-/**
- * Initializes the UI on DOM load.
- *
- * - Restores data from localStorage
- * - Parses input into UI JSON
- * - Builds initial table rows
- *
- * @returns {Promise<void>}
- */
-window.addEventListener('DOMContentLoaded', async () => {
+
+// ============================================
+// EVENT BINDING
+// ============================================
+
+function bindEvents(root) {
+    root.querySelector("#start-csv-import-btn")
+        .addEventListener("click", () => startCsvImport(root));
+
+    root.querySelector("#add-row-btn")
+        .addEventListener("click", () => addRow(root));
+
+    root.querySelector("#cancel-btn")
+        .addEventListener("click", cancel);
+
+    root.querySelector("#confirm-btn")
+        .addEventListener("click", () => confirm(root));
+}
+
+// ============================================
+// DATA INIT
+// ============================================
+
+function legacyCleanUp() {
+    // LEGACY CLEANUP: remove in a future release
+    // deletes obsolete "delimiter" entry from localStorage (no longer used)
+    const delimiterData = JSON.parse(localStorage.getItem('delimiter'));
+    if (delimiterData) {
+        localStorage.removeItem('delimiter');
+    }
+}
+
+async function restoreOrInitRows(root) {
+    const tbody = root.querySelector("#nameTable tbody");
+
     try {
-        // LEGACY CLEANUP: remove in a future release
-        // deletes obsolete "delimiter" entry from localStorage (no longer used)
-        const delimiterData = JSON.parse(localStorage.getItem('delimiter'));
-        if (delimiterData) {
-            localStorage.removeItem('delimiter');
-        }
+        const nameStr = localStorage.getItem("namesStr");
 
-        const nameStr = localStorage.getItem('namesStr');
         if (!nameStr) {
-            addRow();
-        } 
-        else {
-            const uiJSON = await inputToUIjson(nameStr);
-            if (!uiJSON.entries || !Array.isArray(uiJSON.entries)) {
-                throw new Error("Ungültige Datenstruktur");
-            }
-            await initRowsUIjson(uiJSON);
+            addRow(root);
+            return;
         }
+
+        const uiJSON = await inputToUIjson(nameStr);
+
+        if (!uiJSON.entries || !Array.isArray(uiJSON.entries)) {
+            throw new Error("Ungültige Datenstruktur");
+        }
+
+        tbody.innerHTML = "";
+
+        if (uiJSON.version == 1){
+            for (const entry of uiJSON.entries) {
+                if (entry.type == 'single') {
+                    addRow(root, entry.firstname, entry.lastname, entry.lockedSeat);
+                }
+                else if (entry.type == 'pair') {
+                    addRow(root, entry.members[0].firstname, entry.members[0].lastname, false, entry.members[1].firstname, entry.members[1].lastname, entry.mustBeNeighbors);
+                }
+                else {
+                    await showError(`Unbekannter Typ '${entry.type}' wurde ignoriert.`);
+                }
+            }
+        } else {
+            await showError("Diese JSON Version wird leider nicht mehr unterstützt!");
+            addRow(root);
+        }
+
     } catch (err) {
-        await showError("Fehler beim Laden: " + err.message);
-        addRow(); // fallback
+        console.error(err);
+        addRow(root);
     }
-    resizeBody();
-});
 
-/**
- * Binds all buttons to their respective actions.
- */
-document.getElementById('start-csv-import-btn').addEventListener('click', startCsvImport);
-document.getElementById('add-row-btn').addEventListener('click', () => {addRow();});
-document.getElementById('cancel-btn').addEventListener('click', cancel);
-document.getElementById('confirm-btn').addEventListener('click', confirm);
-
-/**
- * Initializes table rows from a UI JSON object.
- *
- * @param {Object} uiJSON - Parsed UI JSON containing entries
- * @returns {Promise<void>}
- */
-async function initRowsUIjson(uiJSON) {
-    const entries = uiJSON.entries;
-    if (uiJSON.version == 1){
-        for (const entry of entries) {
-            if (entry.type == 'single') {
-                addRow(entry.firstname, entry.lastname, entry.lockedSeat);
-            }
-            else if (entry.type == 'pair') {
-                addRow(entry.members[0].firstname, entry.members[0].lastname, false, entry.members[1].firstname, entry.members[1].lastname, entry.mustBeNeighbors);
-            }
-            else {
-                await showError(`Unbekannter Typ '${entry.type}' wurde ignoriert.`);
-            }
-        };
-    }
-    else {
-        await showError("Diese JSON Version wird leider nicht mehr unterstützt!");
-        addRow();
-    }
+    resizeBody(root);
 }
 
 // ============================================
-// PUBLIC HANDLER — TABLE ROW MANAGEMENT
+// ROW MANAGEMENT
 // ============================================
-
 /**
  * Adds a row to the name table with optional neighbor.
  *
@@ -132,34 +127,37 @@ async function initRowsUIjson(uiJSON) {
  * @param {string} neighborFirstname - Neighbor first name
  * @param {string} neighborLastname - Neighbor last name
  */
-function addRow(firstname = '', lastname = '', lockedSeat = false, neighborFirstname = '', neighborLastname = '', mustBeNeighbors = true) {
-    const tbody = document.querySelector('#nameTable tbody');
+function addRow(root, firstname = '', lastname = '', lockedSeat = false, neighborFirstname = '', neighborLastname = '', mustBeNeighbors = true) {
+    const tbody = root.querySelector('#nameTable tbody');
     const rowCount = tbody.rows.length + 1;
+
     const tr = document.createElement('tr');
-    const lockIcon = lockedSeat ? 'fa-lock': 'fa-lock-open';
+    const lockIcon = lockedSeat ? 'fa-lock' : 'fa-lock-open';
 
     tr.innerHTML = `
         <td class="delete-row" title="Zeile löschen"><i class="fa-solid fa-trash"></i></td>
         <td class="draggable" title="Zeile verschieben"><i class="fa-solid fa-arrows-up-down"></i></td>
-        <td class="rowCount title="Laufende Nummer (ggf. Sitzplatznummer)">${rowCount}</td>
+        <td class="rowCount" title="Laufende Nummer (ggf. Sitzplatznummer)">${rowCount}</td>
         <td class="lock" title="Sitzplatznummer sperren (Person sitzt immer auf diesem Sitzplatz)"><i class="fa-solid ${lockIcon}"></i></td>
         <td><input type="text" class="firstName" placeholder="Vorname" value="${firstname}"></td>
         <td><input type="text" class="lastName" placeholder="Nachname" value="${lastname}"></td>
     `;
 
     if (!neighborFirstname && !neighborLastname) {
-        addNeighborButtonTdToTr(tr);
+        addNeighborButtonTdToTr(root, tr);
     } else {
         window.resizeTo(800, window.outerHeight);
-        addNeighborInputTdsToTr(tr, neighborFirstname, neighborLastname, mustBeNeighbors);
+        addNeighborInputTdsToTr(root, tr, neighborFirstname, neighborLastname, mustBeNeighbors);
         tr.querySelector(".lock").classList.add('deactivate');
     }
 
     tbody.appendChild(tr);
+
     enableLockControls(tr);
-    enableRowControls(tbody, tr);
-    updateRowNumbers();
-    resizeBody();
+    enableRowControls(root, tbody, tr);
+
+    updateRowNumbers(root);
+    resizeBody(root);
 }
 
 /**
@@ -167,18 +165,19 @@ function addRow(firstname = '', lastname = '', lockedSeat = false, neighborFirst
  *
  * @param {HTMLElement} row - Row element to delete
  */
-function deleteRow(row) {
+function deleteRow(root, row) {
     row.remove();
-    updateRowNumbers();
-    resizeBody();
+    updateRowNumbers(root);
+    resizeBody(root);
 }
 
 /**
  * Updates numbering in the "#"-column for all rows.
  */
-function updateRowNumbers() {
+function updateRowNumbers(root) {
     let idx = 1;
-    document.querySelectorAll("#nameTable tbody tr").forEach(row => {
+
+    root.querySelectorAll("#nameTable tbody tr").forEach(row => {
         row.querySelectorAll(".rowCount").forEach(cell => {
             cell.textContent = idx++;
         });
@@ -186,7 +185,7 @@ function updateRowNumbers() {
 }
 
 // ============================================
-// PUBLIC HANDLER — CONFIRM / CANCEL / CLOSE
+// CONFIRM / CANCEL
 // ============================================
 
 /**
@@ -194,28 +193,35 @@ function updateRowNumbers() {
  *
  * @returns {Promise<void>}
  */
-async function confirm() {
-    const rows = document.querySelectorAll('#nameTable tbody tr');
+async function confirm(root) {
+    const rows = root.querySelectorAll('#nameTable tbody tr');
 
     // check all input fields
     let isValid = true;
+
     for (const [index, row] of rows.entries()) {
         const rowNumber = index + 1;
+
         row.classList.remove("error-row");
+
         const first = row.querySelector('.firstName').value.trim();
         const last = row.querySelector('.lastName').value.trim();
+
         if (first + last === '') {
             await showError(`Achtung: In Zeile ${rowNumber} wurde kein Name eingegeben. Bitte lösche die Zeilen ohne Eintrag. Beachte dabei, dass sich dadurch möglicherweise die verankerten Sitzplatznummern ändern können.`);
             isValid = false;
             row.classList.add("error-row");
             break;
         } 
+
         const pair = row.querySelector('.neighbor') !== null;
+
         if (pair) {
             const neighborFirst = row.querySelector('.firstName.neighbor').value.trim();
             const neighborLast = row.querySelector('.lastName.neighbor').value.trim();
+
             if (neighborFirst + neighborLast === '') {
-            await showError(`Achtung: In Zeile ${rowNumber} wurde ein Nachbar aktiviert, aber kein Name eingegeben. Bitte ergänze den Namen oder entferne den Nachbarn. Beachte dabei, dass sich dadurch möglicherweise die verankerten Sitzplatznummern ändern können.`);
+                await showError(`Achtung: In Zeile ${rowNumber} wurde ein Nachbar aktiviert, aber kein Name eingegeben. Bitte ergänze den Namen oder entferne den Nachbarn. Beachte dabei, dass sich dadurch möglicherweise die verankerten Sitzplatznummern ändern können.`);
                 isValid = false;
                 row.classList.add("error-row");
                 break;
@@ -231,11 +237,15 @@ async function confirm() {
         const firstname = row.querySelector('.firstName').value.trim();
         const lastname = row.querySelector('.lastName').value.trim();
         const lockedSeat = row.querySelector('.lock i').classList.contains('fa-lock');
+
         const pair = row.querySelector('.neighbor') !== null;
+        
         if (pair) {
             const mustBeNeighbors = row.querySelector('.link i').classList.contains('fa-link');
+
             const firstnameNeighbor = row.querySelector('.firstName.neighbor').value.trim();
             const lastnameNeighbor = row.querySelector('.lastName.neighbor').value.trim();
+
             entries.push(
                 createPair(
                     [
@@ -246,9 +256,7 @@ async function confirm() {
                 )
             );
         } else {
-            entries.push(
-                createSingle(firstname, lastname, lockedSeat)
-            );
+            entries.push(createSingle(firstname, lastname, lockedSeat));
         }
     });
 
@@ -294,19 +302,11 @@ function closeWindow() {
 // PUBLIC HANDLER — CSV IMPORT
 // ============================================
 
-/**
- * Starts CSV file import by opening file picker.
- */
-function startCsvImport() {
-    openCsvFilepicker();
-}
+function startCsvImport(root) {
+    const input = root.querySelector('#csvImportFile');
 
-/**
- * Opens file picker and reads CSV content.
- */
-async function openCsvFilepicker() {
-    const input = document.getElementById('csvImportFile');
     input.click();
+
     input.onchange = async () => {
         const file = input.files[0];
         if (!file) {
@@ -316,16 +316,16 @@ async function openCsvFilepicker() {
 
         try {
             csvFiletext = await file.text();
-            const headLine = csvFiletext.split('\n')[0].replace('\r', '');
-            fields = headLine.split(',');
-            await openCsvImportModal(fields);
+            fields = csvFiletext.split('\n')[0].replace('\r', '').split(',');
+
+            await openCsvImportModal(root, fields);
         } catch (err) {
             await showError('Fehler beim Import: ' + err.message);
         }
-    }
+    };
 }
 
-async function openCsvImportModal(fields) {
+async function openCsvImportModal(root, fields) {
     const allFields = ["---", ...fields];
 
     const content = `
@@ -383,7 +383,7 @@ async function openCsvImportModal(fields) {
     const firstnameIndex = fields.indexOf(result.firstnameCol);
     const lastnameIndex = fields.indexOf(result.lastnameCol);
 
-    const csvData = csvFiletext.split('\n').map(r => r.replace('\r', '').split(','));
+    const csvData = csvFiletext.split('\n').map(r => r.replace('\r', '').split(',').split(';'));
 
     csvData.slice(1).forEach(row => {
         const firstname = firstnameIndex >= 0 ? row[firstnameIndex] : '';
@@ -402,12 +402,12 @@ async function openCsvImportModal(fields) {
  * @param {HTMLElement} tbody - Table body
  * @param {HTMLElement} row - Row element
  */
-function enableRowControls(tbody, row) {
+function enableRowControls(root, tbody, row) {
     const tds = row.querySelectorAll("td");
 
     tds.forEach(td => {
         if (td.classList.contains("delete-row")) {
-            td.addEventListener("click", () => deleteRow(row));
+            td.addEventListener("click", () => deleteRow(root, row));
         }
 
         if (!td.classList.contains("draggable")) return;
@@ -425,7 +425,7 @@ function enableRowControls(tbody, row) {
         td.addEventListener("dragend", () => {
             row.classList.remove("dragging");
             draggedRow = null;
-            updateRowNumbers();
+            updateRowNumbers(root);
         });
 
         td.addEventListener("dragover", e => {
@@ -434,10 +434,12 @@ function enableRowControls(tbody, row) {
 
             const rect = row.getBoundingClientRect();
             const offset = e.clientY - rect.top;
-            const middle = rect.height / 2;
 
-            if (offset < middle) tbody.insertBefore(draggedRow, row);
-            else tbody.insertBefore(draggedRow, row.nextSibling);
+            if (offset < rect.height / 2) {
+                tbody.insertBefore(draggedRow, row);
+            } else {
+                tbody.insertBefore(draggedRow, row.nextSibling);
+            } 
         });
     });
 
@@ -454,14 +456,19 @@ function enableRowControls(tbody, row) {
  */
 function enableLockControls(tr) {
     const lock = tr.querySelector(".lock");
-    const lockIcon = lock.querySelector("i");
-    lockIcon.addEventListener('click', () => {
-        if (lock.classList.contains('deactivate')) return;
-        lockIcon.classList.toggle('fa-lock-open');
-        lockIcon.classList.toggle('fa-lock');
+    const icon = lock.querySelector("i");
+
+    icon.addEventListener("click", () => {
+        if (lock.classList.contains("deactivate")) return;
+
+        icon.classList.toggle("fa-lock");
+        icon.classList.toggle("fa-lock-open");
     });
 }
 
+// ============================================
+// NEIGHBOR
+// ============================================
 /**
  * Enables click event on link icon to toggle neighbor state.
  *
@@ -476,15 +483,12 @@ function enableNeighborControls(tr) {
     });
 }
 
-// ============================================
-// PUBLIC HANDLER — SEAT NEIGHBOR MANAGEMENT
-// ============================================
 
-function addNeighborButtonTdToTr(tr){
+function addNeighborButtonTdToTr(root, tr) {
     const neighborTd = createNeighborButtonTd();
     tr.appendChild(neighborTd);
     const neighborBtn = neighborTd.querySelector("button");
-    addEventListenerNeighborButton(tr, neighborBtn);
+    addEventListenerNeighborButton(root, tr, neighborBtn);
 }
 
 function createNeighborButtonTd() {
@@ -495,16 +499,18 @@ function createNeighborButtonTd() {
     return neighborTd;
 }
 
-function addNeighborInputTdsToTr(tr, firstname = '', lastname = '', mustBeNeighbors = true) {
-    const tds = createNeighborInputTds(tr, firstname, lastname, mustBeNeighbors);
+function addNeighborInputTdsToTr(root, tr, firstname = '', lastname = '', mustBeNeighbors = true) {
+    const tds = createNeighborInputTds(root, tr, firstname, lastname, mustBeNeighbors);
     tds.forEach(td => tr.appendChild(td));
     enableNeighborControls(tr);
-    updateRowNumbers();
+    updateRowNumbers(root);
 }
 
-function createNeighborInputTds(tr, firstname = '', lastname = '', mustBeNeighbors = true) {
-    const rowCountNeighborTd = document.createElement('td'); rowCountNeighborTd.classList.add('rowCount');
-    const mustBeNeighborsTd = document.createElement('td'); mustBeNeighborsTd.classList.add('link');
+function createNeighborInputTds(root, tr, firstname = '', lastname = '', mustBeNeighbors = true) {
+    const rowCountNeighborTd = document.createElement('td'); 
+    rowCountNeighborTd.classList.add('rowCount');
+    const mustBeNeighborsTd = document.createElement('td'); 
+    mustBeNeighborsTd.classList.add('link');
     const linkIcon = mustBeNeighbors ? 'fa-link' : 'fa-link-slash';
     mustBeNeighborsTd.innerHTML = `<i class="fa-solid ${linkIcon}" title="Personen (NICHT) nebeneinander setzen"></i>`;
     const firstNameNeighborTd = document.createElement('td');
@@ -514,21 +520,21 @@ function createNeighborInputTds(tr, firstname = '', lastname = '', mustBeNeighbo
     const deleteNeighborTd = document.createElement('td'); deleteNeighborTd.classList.add('delete-neighbor');
     deleteNeighborTd.innerHTML = '<i class="fa-solid fa-circle-minus" title="Sitznachbar löschen"></i>';
 
-    addEventListenerNeighborInputs(tr, {mustBeNeighborsTd, rowCountNeighborTd, firstNameNeighborTd, lastNameNeighborTd, deleteNeighborTd}, deleteNeighborTd.querySelector('i'));
+    addEventListenerNeighborInputs(root, tr, {mustBeNeighborsTd, rowCountNeighborTd, firstNameNeighborTd, lastNameNeighborTd, deleteNeighborTd}, deleteNeighborTd.querySelector('i'));
 
     return [mustBeNeighborsTd, rowCountNeighborTd, firstNameNeighborTd, lastNameNeighborTd, deleteNeighborTd];
 }
 
-function addEventListenerNeighborInputs(tr, newTds, elem) {
+function addEventListenerNeighborInputs(root, tr, newTds, elem) {
     elem.addEventListener('click', () => {
         Object.values(newTds).forEach(td => td.remove());
-        updateRowNumbers();
-        addNeighborButtonTdToTr(tr);
+        updateRowNumbers(root);
+        addNeighborButtonTdToTr(root, tr);
         tr.querySelector(".lock").classList.remove('deactivate');
     });
 }
 
-function addEventListenerNeighborButton(tr, elem) {
+function addEventListenerNeighborButton(root, tr, elem) {
     const seatNeighbor = tr.querySelector(".seat-neighbor");
     const lock = tr.querySelector(".lock");
     const lockIcon = lock.querySelector("i");
@@ -542,6 +548,26 @@ function addEventListenerNeighborButton(tr, elem) {
         seatNeighbor.remove();
 
         window.resizeTo(800, window.outerHeight);
-        addNeighborInputTdsToTr(tr);
+        addNeighborInputTdsToTr(root, tr);
     });
+}
+
+// ============================================
+// LAYOUT
+// ============================================
+/**
+ * Adjusts body width to fit the first 6 columns of the table.
+ */
+function resizeBody(root) {
+    const table = root.querySelector('#nameTable');
+    if (!table || !table.rows[0]) return;
+
+    let width = 0;
+
+    document.body.style.width = "0px";
+    for (let i = 0; i < 6; i++) {
+        width += table.rows[0].cells[i].offsetWidth;
+    }
+
+    document.body.style.width = width + "px";
 }
