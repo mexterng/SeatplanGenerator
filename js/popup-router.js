@@ -1,3 +1,4 @@
+import { mountConstraintsView } from "./views/name-editor/constraints.js";
 import { mountNamesView } from "./views/name-editor/names.js";
 
 export function router() {
@@ -17,6 +18,9 @@ export function router() {
 function routeNameEditor(container, view) {
     loadFeatureCSS("css/name-editor.css");
     switch (view) {
+        case "constraints":
+            mountConstraintsView(container);
+            break;
         default:
             mountNamesView(container);
     }
