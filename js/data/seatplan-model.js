@@ -339,7 +339,7 @@ function migrateUI(uiJSON) {
  * @returns {Object} Migrated SGjson
  */
 function migrateSG(sgJson) {
-    if (uiJSON.version == 1) {
+    if (sgJson.version == 1) {
         const uiJSONold = createUIjson(sgJson.persons, sgJson.constraints);
         const uiJSONnew = migrateUI(uiJSONold);
         const sgJSONnew = sgJson;
@@ -348,7 +348,7 @@ function migrateSG(sgJson) {
         sgJSONnew.constraints = uiJSONnew.constraints;
         
         return sgJSONnew;
-    } else if (uiJSON.version == 2) {
+    } else if (sgJson.version == 2) {
         return sgJson;
     }
 
