@@ -1,3 +1,11 @@
+import { createUIjson, jsonToString } from "../../data/seatplan-model.js";
+import { showError } from "../../ui/modal-template.js";
+import { closeNameEditorWindow } from "./names.js";
+
+const lockedTableID = "lockedTable";
+const pairsTableID = "pairsTable";
+const noPairsTableID = "noPairsTable";
+
 export function mountConstraintsView(container) {
     container.innerHTML = `
         <div class="text-slate-900 flex flex-col gap-8">
@@ -8,7 +16,7 @@ export function mountConstraintsView(container) {
                 <h3><i class="fa-solid fa-lock"></i>Feste Sitzplätze</h3>
 
                 <div class="flex flex-col gap-2">
-                    <table id="lockedSeats">
+                    <table id="${lockedTableID}">
                         <thead>
                             <tr>
                                 <th class="bg-slate-300">Name</th>
@@ -17,11 +25,6 @@ export function mountConstraintsView(container) {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>Vorname Name</td>
-                                <td>2, 5, 6, 7</td>
-                                <td class="delete-row" title="Zeile löschen"><i class="fa-solid fa-trash"></i></td>
-                            </tr>
                         </tbody>
                     </table>
                     <button id="add-locked-seat-btn" class="btn-primary">
@@ -34,14 +37,8 @@ export function mountConstraintsView(container) {
                 <h3><i class="fa-solid fa-user-group"></i>Sitznachbarn</h3>
 
                 <div class="flex flex-col gap-2">
-                    <table id="seatNeighbors">
+                    <table id="${pairsTableID}">
                         <tbody>
-                            <tr>
-                                <td>Vorname Name</td>
-                                <td><i class="fa-solid fa-link"></i></td>
-                                <td>Vorname Name</td>
-                                <td class="delete-row" title="Zeile löschen"><i class="fa-solid fa-trash"></i></td>
-                            </tr>
                         </tbody>
                     </table>
                     <button id="add-neighbors-btn" class="btn-primary">
@@ -54,14 +51,8 @@ export function mountConstraintsView(container) {
                 <h3><i class="fa-solid fa-user-slash"></i>Keine Sitznachbarn</h3>
 
                 <div class="flex flex-col gap-2">
-                    <table id="seatNoNeighbors">
+                    <table id="${noPairsTableID}">
                         <tbody>
-                            <tr>
-                                <td>Vorname Name</td>
-                                <td><i class="fa-solid fa-link-slash"></i></td>
-                                <td>Vorname Name</td>
-                                <td class="delete-row" title="Zeile löschen"><i class="fa-solid fa-trash"></i></td>
-                            </tr>
                         </tbody>
                     </table>
                     <button id="add-no-neighbors-btn" class="btn-primary">
@@ -72,18 +63,304 @@ export function mountConstraintsView(container) {
             
             <div class="flex justify-between">
                 <button id="back-btn" class="btn-secondary">Zurück</button>
-                <button id="open-constraints-btn" class="btn-important"><i class="fa-solid fa-check"></i> Bestätigen</button>
+                <button id="confirm-btn" class="btn-important"><i class="fa-solid fa-check"></i> Bestätigen</button>
             </div>
         </div>
     `;
 
-    document.getElementById("back-btn").addEventListener("click", () => {
-        window.location.href = "popup.html?feature=name-editor";
-    });
-
-    initConstraints();
+    initConstraints(container);
 }
 
+// ============================================
+// INIT
+// ============================================
 export function initConstraints(root) {
-    console.log(JSON.parse(localStorage.getItem("nameEditorData")));
+    bindEvents(root);
+
+    const data = JSON.parse(localStorage.getItem("nameEditorData"));
+    const persons = data?.persons ?? [];
+    const constraints = data?.constraints ?? [];
+
+    setupTable({
+        tableId: lockedTableID,
+        buttonId: "add-locked-seat-btn",
+        type: "locked",
+        persons
+    });
+
+    setupTable({
+        tableId: pairsTableID,
+        buttonId: "add-neighbors-btn",
+        type: "pair",
+        persons
+    });
+
+    setupTable({
+        tableId: noPairsTableID,
+        buttonId: "add-no-neighbors-btn",
+        type: "noPair",
+        persons
+    });
+
+    initFromConstraints(persons, constraints);
+}
+
+
+// ============================================
+// EVENT BINDING
+// ============================================
+
+function bindEvents(root) {
+    root.querySelector("#back-btn")
+        .addEventListener("click", () => {
+            window.location.href = "popup.html?feature=name-editor";
+        });
+
+    root.querySelector("#confirm-btn")
+        .addEventListener("click", async () => {confirm(root)});
+}
+
+
+
+
+function getPersons() {
+    const data = JSON.parse(localStorage.getItem("nameEditorData"));
+    console.log(data?.persons);
+    return data?.persons ?? [];
+}
+
+function createPersonSelect(persons, selectedId = "") {
+    const select = document.createElement("select");
+
+    // Empty option
+    const emptyOption = document.createElement("option");
+    emptyOption.value = "";
+    emptyOption.textContent = "-- auswählen --";
+    select.appendChild(emptyOption);
+
+    persons.forEach(p => {
+        const option = document.createElement("option");
+        option.value = p.id;
+        option.textContent = `${p.firstname} ${p.lastname}`.trim();
+
+        if (String(p.id) === String(selectedId)) {
+            option.selected = true;
+        }
+
+        select.appendChild(option);
+    });
+
+    return select;
+}
+
+function createRow({ type, persons, data = {} }) {
+    const tr = document.createElement("tr");
+
+    if (type === "locked") {
+        const td1 = document.createElement("td");
+        td1.appendChild(createPersonSelect(persons, data.id));
+
+        const td2 = document.createElement("td");
+        const input = document.createElement("input");
+        input.value = data.seats ?? "";
+        td2.appendChild(input);
+
+        tr.append(td1, td2);
+    }
+
+    if (type === "pair" || type === "noPair") {
+        const td1 = document.createElement("td");
+        td1.appendChild(createPersonSelect(persons, data.a));
+
+        const td2 = document.createElement("td");
+        td2.innerHTML = type === "pair"
+            ? `<i class="fa-solid fa-link"></i>`
+            : `<i class="fa-solid fa-link-slash"></i>`;
+
+        const td3 = document.createElement("td");
+        td3.appendChild(createPersonSelect(persons, data.b));
+
+        tr.append(td1, td2, td3);
+    }
+
+    const tdDelete = document.createElement("td");
+    tdDelete.classList.add("delete-row");
+    tdDelete.innerHTML = `<i class="fa-solid fa-trash"></i>`;
+    tdDelete.onclick = () => tr.remove();
+
+    tr.appendChild(tdDelete);
+
+    return tr;
+}
+
+function setupTable({ tableId, buttonId, type, persons }) {
+    const tableBody = document.querySelector(`#${tableId} tbody`);
+    const button = document.getElementById(buttonId);
+
+    button.addEventListener("click", () => {
+        const row = createRow({ type, persons });
+        tableBody.appendChild(row);
+    });
+}
+
+function initFromConstraints(persons, constraints) {
+    const lockedTableBody = document.querySelector(`#${lockedTableID} tbody`);
+    const pairsTableBody = document.querySelector(`#${pairsTableID} tbody`);
+    const noPairsTableBody = document.querySelector(`#${noPairsTableID} tbody`);
+
+    constraints.forEach(c => {
+        if (c.type === "pair" || c.type === "noPair") {
+            const row = createRow({
+                type: c.type,
+                persons,
+                data: {
+                    a: c.a,
+                    b: c.b
+                }
+            });
+
+            (c.type === "pair" ? pairsTableBody : noPairsTableBody)
+                .appendChild(row);
+        } else if (c.type === "locked") {
+            const row = createRow({
+                type: c.type,
+                persons,
+                data: {
+                    id: c.id,
+                    seats: c.seats
+                }
+            });
+
+            lockedTableBody.appendChild(row);
+
+        }
+    });
+}
+
+function parseSeatInput(value) {
+    if (!value) return null;
+
+    const numbers = value
+        .split(",")
+        .map(v => v.trim())
+        .filter(v => v !== "")
+        .map(v => Number(v));
+
+    // check if all are valid numbers
+    if (numbers.length === 0 || numbers.some(n => Number.isNaN(n))) {
+        return null;
+    }
+
+    return numbers;
+}
+
+async function readLockedSeats(root, tableID, type) {
+    const rows = root.querySelectorAll(`#${tableID} tbody tr`);
+    const result = [];
+
+    for (const [index, row] of rows.entries()) {
+        row.classList.remove("error-row");
+
+        const select = row.querySelector("select");
+        const input = row.querySelector("input");
+
+        const id = select.value;
+        const seats = parseSeatInput(input.value);
+
+        if (!id) {
+            row.classList.add("error-row");
+            await showError(`Fehler in Zeile ${index + 1}: Kein Name ausgewählt.`);
+            return null;
+        }
+
+        if (!seats) {
+            row.classList.add("error-row");
+            await showError(`Fehler in Zeile ${index + 1}: Ungültige Sitzplatznummern.`);
+            return null;
+        }
+
+        result.push({
+            type,
+            id,
+            seats
+        });
+    }
+
+    return result;
+}
+
+async function readPairs(root, tableID, type) {
+    const rows = root.querySelectorAll(`#${tableID} tbody tr`);
+    const result = [];
+
+    for (const [index, row] of rows.entries()) {
+        row.classList.remove("error-row");
+
+        const selects = row.querySelectorAll("select");
+        const a = selects[0].value;
+        const b = selects[1].value;
+
+        if (!a || !b) {
+            row.classList.add("error-row");
+            await showError(`Fehler in Zeile ${index + 1}: Beide Namen müssen ausgewählt sein.`);
+            return null;
+        }
+
+        if (a === b) {
+            row.classList.add("error-row");
+            await showError(`Fehler in Zeile ${index + 1}: Eine Person kann nicht sich selbst zugeordnet werden.`);
+            return null;
+        }
+
+        result.push({
+            type: type,
+            a,
+            b,
+        });
+    }
+
+    return result;
+}
+
+async function confirm(root) {
+    const locked = await readLockedSeats(root, lockedTableID, "locked");
+    if (!locked) return;
+
+    const neighbors = await readPairs(root, pairsTableID, "pair");
+    if (!neighbors) return;
+
+    const noNeighbors = await readPairs(root, noPairsTableID, "noPair");
+    if (!noNeighbors) return;
+
+    const allConstraints = [
+        ...locked,
+        ...neighbors,
+        ...noNeighbors,
+    ];
+
+    // bestehende Daten laden
+    const data = JSON.parse(localStorage.getItem("nameEditorData")) ?? {};
+
+    const newData = {
+        ...data,
+        constraints: allConstraints
+    };
+
+    const uiJSON = createUIjson(newData.persons, newData.constraints);
+
+    localStorage.removeItem("nameEditorData");
+
+    if (window.opener && !window.opener.closed) {
+        const mainInput = window.opener.document.getElementById('namesInput');
+        if (mainInput) mainInput.value = jsonToString(uiJSON, true, true);
+    } else {
+        await showInfo("Hauptseite nicht gefunden oder geschlossen.\n" +
+            "Ergebnis:\n" +
+            "\n---------------------------------\n" + 
+            jsonToString(uiJSON, false, true) + 
+            "\n---------------------------------\n" +
+            "\nKopiere den Text zwischen den Zeilen und füge diesen manuell ein.");
+    }
+
+    closeNameEditorWindow();
 }

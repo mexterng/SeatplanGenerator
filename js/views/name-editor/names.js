@@ -10,7 +10,7 @@
 // IMPORTS
 // ============================================
 
-import { inputToUIjson, createSingle, createPair, createUIjson, jsonToString, buildSGModelFromUI} from "../../data/seatplan-model.js";
+import { inputToUIjson, createSingle, createUIjson, jsonToString, buildSGModelFromUI} from "../../data/seatplan-model.js";
 import { openModal } from '../../ui/modal-manager.js';
 import { showInfo, showError } from "../../ui/modal-template.js";
 import { initConstraints } from "./constraints.js";
@@ -22,7 +22,7 @@ import { initConstraints } from "./constraints.js";
 let csvFiletext = "";
 let fields = [];
 let draggedRow = null;
-let lastNameID = -1;
+let lastNameID = 0;
 
 // ============================================
 // MOUNTED HTML
@@ -110,7 +110,7 @@ async function initLocalStorage() {
         if(localStorage.getItem("nameEditorData")) return;
         const sgJSON = JSON.parse(localStorage.getItem("sgJSON"));
 
-        if (sgJSON.version == 1){
+        if (sgJSON.version == 1 || sgJSON.version == 2){
             localStorage.setItem("nameEditorData", JSON.stringify({
                 persons: sgJSON.persons,
                 constraints: sgJSON.constraints,
@@ -236,13 +236,13 @@ async function goToConstraints(root, table) {
  */
 function cancel() {
     localStorage.removeItem("nameEditorData");
-    closeWindow();
+    closeNameEditorWindow();
 }
 
 /**
  * Closes the popup window and clears local storage.
  */
-function closeWindow() {
+export function closeNameEditorWindow() {
     localStorage.removeItem('sgJSON');
     window.close();
 }

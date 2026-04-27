@@ -29,8 +29,8 @@ import { showConfirm, showError } from '../ui/modal-template.js';
 // CONSTANTS
 // ============================================
 
-const UI_JSON_VERSION = 1;
-const SG_JSON_VERSION = 1;
+const UI_JSON_VERSION = 2;
+const SG_JSON_VERSION = 2;
 
 export const JSON_PREFIX = "SitzplangeneratorJSON";
 
@@ -41,12 +41,14 @@ export const JSON_PREFIX = "SitzplangeneratorJSON";
 /**
  * Create UI JSON root object
  *
- * @param {Array} entries - UI entries (single | pair)
+ * @param {Array} persons - UI persons {id, firstname, lastname}
+ * @param {Array} constraints - UI constraints {type (locked|pair|noPair), seatNumber|a,b}
  * @returns {Object}
  */
-export function createUIjson(entries) {
+export function createUIjson(persons, constraints) {
     return {
-        entries,
+        persons,
+        constraints,
         type: "UIjson",
         version: UI_JSON_VERSION,
     };
@@ -91,15 +93,8 @@ export function jsonToString(json, linebreak = true, simplifyForUIoutput = false
         const format = (f, l) =>
             (!f || !l) ? `${f}${l}` : `${l}, ${f}`;
 
-        // UIjson without constraints (only singles)
-        if (json.type === "UIjson" && json.entries.every(e => e.type === "single" && e.lockedSeat === false)) {
-            return json.entries
-                .map(e => format(e.firstname, e.lastname))
-                .join("; ");
-        }
-
-        // SGjson without constraints
-        if (json.type === "SGjson" && json.constraints.length === 0) {
+        // json without constraints
+        if (json.constraints.length === 0) {
             return json.persons
                 .map(p => format(p.firstname, p.lastname))
                 .join("; ");
@@ -142,7 +137,7 @@ export async function inputToUIjson(nameStr) {
             jsonStr = nameStr;
         }
         else {
-            return namesInputToUIjson(nameStr);
+            jsonStr = JSON.stringify(namesInputToUIjsonV1(nameStr));
         }
 
         // 2. parse json
@@ -157,6 +152,7 @@ export async function inputToUIjson(nameStr) {
         // 5. normalize to UIjson output
         return normalizeToUI(migrated);
     } catch (err) {
+        console.log(err);
         await showError("Fehler beim Auslesen des Namen-Feldes: " + err.message);
         return createUIjson([]); // safe fallback
     }
@@ -177,54 +173,10 @@ export async function inputToUIjson(nameStr) {
 export async function buildSGModelFromUI() {
     const uiJSON = await inputToUIjson(DOM.namesInput.value);
 
-    const persons = [];
-    const constraints = [];
-
-    let idCounter = 0;
-
-    for (const entry of uiJSON.entries) {
-        if (entry.type === "single") {
-            const allowedSeats = entry.lockedSeat ? [idCounter] : null;
-
-            persons.push({
-                id: idCounter,
-                firstname: entry.firstname,
-                lastname: entry.lastname,
-                allowedSeats
-            });
-
-            idCounter++;
-        }
-
-        if (entry.type === "pair") {
-            const id1 = idCounter++;
-            const id2 = idCounter++;
-
-            persons.push({
-                id: id1,
-                firstname: entry.members[0].firstname,
-                lastname: entry.members[0].lastname,
-            });
-
-            persons.push({
-                id: id2,
-                firstname: entry.members[1].firstname,
-                lastname: entry.members[1].lastname,
-            });
-
-            constraints.push({
-                type: "pair",
-                a: id1,
-                b: id2,
-                mustBeNeighbors: entry.mustBeNeighbors
-            });
-        }
-    }
-
     const seats = state.seats;
     const normSeatConnect = getNormalizedSeatConnectionSet(seats);
     const adjacency = buildAdjacency(seats.length, normSeatConnect);
-    return createSGjson(persons, seats, adjacency, constraints);
+    return createSGjson(uiJSON.persons, seats, adjacency, uiJSON.constraints);
 }
 
 /**
@@ -337,11 +289,45 @@ function migrate(json) {
 /**
  * Migrates UIjson to latest supported version.
  *
- * @param {Object} json - UIjson object
+ * @param {Object} uiJSON - UIjson object
  * @returns {Object} Migrated UIjson
  */
-function migrateUI(json) {
-    if (json.version === 1) return json;
+function migrateUI(uiJSON) {
+    if (uiJSON.version == 1) {
+        const persons = [];
+        const constraints = [];
+
+        let idCounter = 0;
+        for (const entry of uiJSON.entries) {
+            if (entry.type === "single") {
+                idCounter++;
+
+                const allowedSeats = entry.lockedSeat ? [idCounter] : null;
+
+                persons.push(createPerson(idCounter, entry.firstname, entry.lastname));
+
+                if (entry.lockedSeat) {
+                    constraints.push(createLockedSeat(idCounter, [idCounter]));
+                }
+
+            }
+
+            if (entry.type === "pair") {
+                const id0 = ++idCounter;
+                const id1 = ++idCounter;
+
+                persons.push(createPerson(id0, entry.members[0].firstname, entry.members[0].lastname));
+                persons.push(createPerson(id1, entry.members[1].firstname, entry.members[1].lastname));
+
+                constraints.push(createPair(id0, id1, entry.mustBeNeighbors));
+            }
+        }
+
+        return createUIjson(persons, constraints);
+
+    } else if (uiJSON.version == 2) {
+        return uiJSON;
+    }
 
     throw new Error("UIjson Version nicht unterstützt");
 }
@@ -349,11 +335,22 @@ function migrateUI(json) {
 /**
  * Migrates SGjson to latest supported version.
  *
- * @param {Object} json - SGjson object
+ * @param {Object} sgJson - SGjson object
  * @returns {Object} Migrated SGjson
  */
-function migrateSG(json) {
-    if (json.version === 1) return json;
+function migrateSG(sgJson) {
+    if (uiJSON.version == 1) {
+        const uiJSONold = createUIjson(sgJson.persons, sgJson.constraints);
+        const uiJSONnew = migrateUI(uiJSONold);
+        const sgJSONnew = sgJson;
+        
+        sgJSONnew.persons = uiJSONnew.persons;
+        sgJSONnew.constraints = uiJSONnew.constraints;
+        
+        return sgJSONnew;
+    } else if (uiJSON.version == 2) {
+        return sgJson;
+    }
 
     throw new Error("SGjson Version nicht unterstützt");
 }
@@ -436,7 +433,7 @@ function convertSGtoUI(sg) {
  * @param {string} namesInput - Raw legacy input string
  * @returns {Object} UIjson object
  */
-function namesInputToUIjson(namesInput) {
+function namesInputToUIjsonV1(namesInput) {
     const entries = [];
     let buffer = '';
     let inGroup = false;
@@ -452,7 +449,7 @@ function namesInputToUIjson(namesInput) {
                 .filter(n => n.length > 0)
                 .map(n => getNames(n));
             entries.push(
-                createPair(
+                createPairV1(
                     [
                         createSingle(groupEntries[0].firstname, groupEntries[0].lastname, groupEntries[0].lockedSeat),
                         createSingle(groupEntries[1].firstname, groupEntries[1].lastname, groupEntries[1].lockedSeat)
@@ -555,10 +552,50 @@ export function createSingle(firstname, lastname, seatNrs) {
  * @param {boolean} mustBeNeighbors - Whether members must sit adjacent
  * @returns {Object} Pair entry object
  */
-export function createPair(members, mustBeNeighbors) {
+export function createPairV1(members, mustBeNeighbors) {
     return {
         type: "pair",
         members,
         mustBeNeighbors
     };
+}
+
+/**
+ * Creates a single person entry.
+ *
+ * @param {number} id
+ * @param {string} firstname
+ * @param {string} lastname
+ * @returns {{id: number, firstname: string, lastname: string}}
+ */
+export function createPerson(id, firstname, lastname) {
+    return {
+        id,
+        firstname,
+        lastname,
+    };
+}
+/**
+ * Creates a single person entry.
+ *
+ * @param {number} id0 :  id of first person
+ * @param {number} id1: id of second person
+ * @param {boolean} pair (is pair or noPair)
+ * @returns {{type: "pair|noPair", a: number, b: number}}
+ */
+function createPair(id0, id1, pair) {
+    const type = pair ? "pair" : "noPair";
+    return {
+        type,
+        a: id0,
+        b: id1,
+    }
+}
+
+function createLockedSeat(id, seatNumbersArr) {
+    return {
+        type: "locked",
+        id,
+        seats: seatNumbersArr,
+    }
 }
