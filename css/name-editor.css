@@ -50,24 +50,6 @@ tr.error-row {
     outline: 1px solid red;
 }
 
-td.seat-neighbor,
-th.seat-neighbor {
-    border: none;
-    white-space: nowrap;
-}
-
-.lock i, .link i {
-    cursor: pointer;
-}
-
-.lock.deactivate {
-    color: #aaa;
-}
-
-.lock.deactivate i {
-    cursor: default;
-}
-
 .firstName {
     min-width: 100px;
     width: 100%;
