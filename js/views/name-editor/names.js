@@ -221,8 +221,10 @@ async function goToConstraints(root, table) {
     rows.forEach(row => {
         const firstname = row.querySelector('.firstName').value.trim();
         const lastname = row.querySelector('.lastName').value.trim();
-        const id = row.id;
-        names.push({id, firstname, lastname});
+        if (firstname + lastname !== "") {
+            const id = row.id;
+            names.push({id, firstname, lastname});
+        }
     });
     const nameEditorData = JSON.parse(localStorage.getItem("nameEditorData"));
     nameEditorData.persons = names;
