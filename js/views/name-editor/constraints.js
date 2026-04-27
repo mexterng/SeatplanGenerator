@@ -74,8 +74,8 @@ export function mountConstraintsView(container) {
 // ============================================
 // INIT
 // ============================================
-export function initConstraints(root) {
-    bindEvents(root);
+export async function initConstraints(root) {
+    await bindEvents(root);
 
     const data = JSON.parse(localStorage.getItem("nameEditorData"));
     const persons = data?.persons ?? [];
@@ -110,7 +110,7 @@ export function initConstraints(root) {
 // EVENT BINDING
 // ============================================
 
-function bindEvents(root) {
+async function bindEvents(root) {
     root.querySelector("#back-btn")
         .addEventListener("click", () => {
             window.location.href = "popup.html?feature=name-editor";

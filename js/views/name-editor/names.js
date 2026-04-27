@@ -230,7 +230,6 @@ async function goToConstraints(root, table) {
     nameEditorData.persons = names;
     localStorage.setItem("nameEditorData", JSON.stringify(nameEditorData));
     window.location.href = "popup.html?feature=name-editor&view=constraints";
-    initConstraints(root);
 }
 
 /**
