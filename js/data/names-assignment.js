@@ -132,13 +132,6 @@ function buildInitialDomains(sg) {
         domains.set(p.id, Array.from({ length: n }, (_, i) => i));
     }
 
-    // locked constraints
-    for (const c of sg.constraints) {
-        if (c.type !== "locked") continue;
-
-        domains.set(c.id, [...c.seats]);
-    }
-
     return domains;
 }
 
@@ -155,19 +148,25 @@ function buildInitialDomains(sg) {
 function applyFixedSeats(sg, assignment, personToSeat, domains) {
     for (const c of sg.constraints) {
         if (c.type !== "locked") continue;
-        if (c.seats?.length === 1) {
-            const seat = c.seats[0] - 1;
-            const personId = c.id;
+        
+        const personId = c.id;
+
+        // id (1-based) -> idxArray (0-based)
+        const seats = c.seats.map(s => s - 1);
+
+        // set domain
+        if (domains.has(personId)) {
+            domains.set(personId, seats);
+        }
+
+        // assign if only one possible seat
+        if (seats.length === 1) {
+            const seat = seats[0];
 
             if (assignment[seat] !== null) return false;
 
             assignment[seat] = personId;
             personToSeat.set(personId, seat);
-
-            // Domain einschränken
-            if (domains.has(personId)) {
-                domains.set(personId, [seat]);
-            }
         }
     }
     return true;
