@@ -1,6 +1,10 @@
 /* Progressbar */
-.progressbar h2 {
-    margin: 0;
+.progressbar .font-label-caps {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-slate-400);
 }
 
 .progressbar .progress-container {

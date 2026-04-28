@@ -30,7 +30,7 @@ let lastNameID = 0;
 // ============================================
 export async function mountNamesView(container) {
     container.innerHTML = `
-        <div class="text-slate-900 flex flex-col gap-4">
+        <div id="name-editor" class="text-slate-900 flex flex-col gap-4">
 
             <header></header>
 

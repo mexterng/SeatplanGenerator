@@ -9,22 +9,16 @@ const noPairsTableID = "noPairsTable";
 
 export async function mountConstraintsView(container) {
     container.innerHTML = `
-        <div class="text-slate-900 flex flex-col gap-8">
+        <div id="name-editor" class="text-slate-900 flex flex-col gap-8">
 
             <header></header>
             
             <section class="space-y-4">
-                <h3><i class="fa-solid fa-lock"></i>Feste Sitzplätze</h3>
+                <h2><i class="fa-solid fa-lock"></i> Feste Sitzplätze</h2>
+                <p class="about">Einer Person können eine oder mehrere mögliche Sitzplatznummern zugewiesen werden.</p>
 
                 <div class="flex flex-col gap-2">
                     <table id="${lockedTableID}">
-                        <thead>
-                            <tr>
-                                <th class="bg-slate-300">Name</th>
-                                <th class="bg-slate-300">Sitzplatznummer</th>
-                                <th class="bg-slate-300"></th>
-                            </tr>
-                        </thead>
                         <tbody>
                         </tbody>
                     </table>
@@ -35,7 +29,8 @@ export async function mountConstraintsView(container) {
             </section>
 
             <section class="space-y-4">
-                <h3><i class="fa-solid fa-user-group"></i>Sitznachbarn</h3>
+                <h2><i class="fa-solid fa-user-group"></i> Sitznachbarn</h2>
+                <p class="about">Folgende Personen sollen immer nebeneinander sitzen.</p>
 
                 <div class="flex flex-col gap-2">
                     <table id="${pairsTableID}">
@@ -49,7 +44,8 @@ export async function mountConstraintsView(container) {
             </section>
 
             <section class="space-y-4">
-                <h3><i class="fa-solid fa-user-slash"></i>Keine Sitznachbarn</h3>
+                <h2><i class="fa-solid fa-user-slash"></i> Keine Sitznachbarn</h2>
+                <p class="about">Folgende Personen dürfen nicht nebeneinander sitzen.</p>
 
                 <div class="flex flex-col gap-2">
                     <table id="${noPairsTableID}">
@@ -134,6 +130,7 @@ function getPersons() {
 
 function createPersonSelect(persons, selectedId = "") {
     const select = document.createElement("select");
+    select.classList.add("name");
 
     // Empty option
     const emptyOption = document.createElement("option");
@@ -165,6 +162,8 @@ function createRow({ type, persons, data = {} }) {
 
         const td2 = document.createElement("td");
         const input = document.createElement("input");
+        input.classList.add("seatNumbers");
+        input.placeholder = "z. B. 1,3,7";
         input.value = data.seats ?? "";
         td2.appendChild(input);
 
