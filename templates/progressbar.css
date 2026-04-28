@@ -1,0 +1,19 @@
+/* Progressbar */
+.progressbar h2 {
+    margin: 0;
+}
+
+.progressbar .progress-container {
+    background-color: var(--color-secondary);
+}
+
+.progressbar .progress-bar {
+    background-color: var(--color-primary);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+/* Text */
+.progressbar .progress-title {
+    color: var(--color-font-black);
+}

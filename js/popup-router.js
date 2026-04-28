@@ -1,13 +1,13 @@
 import { mountConstraintsView } from "./views/name-editor/constraints.js";
 import { mountNamesView } from "./views/name-editor/names.js";
 
-export function router() {
+export async function router() {
     const container = document.getElementById("app");
     const { feature, view } = getRoute();
 
     switch (feature) {
         case "name-editor":
-            routeNameEditor(container, view);
+            await routeNameEditor(container, view);
             break;
 
         default:
@@ -15,14 +15,14 @@ export function router() {
     }
 }
 
-function routeNameEditor(container, view) {
+async function routeNameEditor(container, view) {
     loadFeatureCSS("css/name-editor.css");
     switch (view) {
         case "constraints":
-            mountConstraintsView(container);
+            await mountConstraintsView(container);
             break;
         default:
-            mountNamesView(container);
+            await mountNamesView(container);
     }
 }
 

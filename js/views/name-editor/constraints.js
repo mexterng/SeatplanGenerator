@@ -1,3 +1,4 @@
+import { loadProgressBarTemplate, renderProgressBar } from "../../../templates/progressbar.js";
 import { createUIjson, jsonToString } from "../../data/seatplan-model.js";
 import { showError } from "../../ui/modal-template.js";
 import { closeNameEditorWindow } from "./names.js";
@@ -6,11 +7,11 @@ const lockedTableID = "lockedTable";
 const pairsTableID = "pairsTable";
 const noPairsTableID = "noPairsTable";
 
-export function mountConstraintsView(container) {
+export async function mountConstraintsView(container) {
     container.innerHTML = `
         <div class="text-slate-900 flex flex-col gap-8">
 
-            <h1>Regeln definieren (Schritt 2/2)</h1>
+            <header></header>
             
             <section class="space-y-4">
                 <h3><i class="fa-solid fa-lock"></i>Feste Sitzplätze</h3>
@@ -69,6 +70,8 @@ export function mountConstraintsView(container) {
     `;
 
     initConstraints(container);
+    await loadProgressBarTemplate();
+    container.querySelector("header").appendChild(renderProgressBar("Regeln definieren", 2, 2));
 }
 
 // ============================================

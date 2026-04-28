@@ -10,6 +10,7 @@
 // IMPORTS
 // ============================================
 
+import { loadProgressBarTemplate, renderProgressBar } from "../../../templates/progressbar.js";
 import { inputToUIjson, createSingle, createUIjson, jsonToString, buildSGModelFromUI} from "../../data/seatplan-model.js";
 import { openModal } from '../../ui/modal-manager.js';
 import { showInfo, showError } from "../../ui/modal-template.js";
@@ -27,11 +28,11 @@ let lastNameID = 0;
 // ============================================
 // MOUNTED HTML
 // ============================================
-export function mountNamesView(container) {
+export async function mountNamesView(container) {
     container.innerHTML = `
         <div class="text-slate-900 flex flex-col gap-4">
 
-            <h1>Namen eingeben (Schritt 1/2)</h1>
+            <header></header>
 
             <p>Erfasse alle Personen, die am Sitzplan teilnehmen sollen.</p>
 
@@ -69,6 +70,8 @@ export function mountNamesView(container) {
         </div>
     `;
 
+    await loadProgressBarTemplate();
+    container.querySelector("header").appendChild(renderProgressBar("Namen eingeben", 1, 2));
     initNameEditor(container);
 }
 
