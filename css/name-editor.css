@@ -6,6 +6,7 @@
     font-size: x-large;
     font-weight: 700;
 }
+
 #name-editor h2 {
     font-size: large;
     font-weight: 600;
@@ -14,6 +15,11 @@
     color: var(--color-slate-800);
     margin: 0;
 }
+
+h2 i {
+    font-size: medium;
+}
+
 #name-editor .about {
     font-size: small;
     color: var(--color-slate-400);
