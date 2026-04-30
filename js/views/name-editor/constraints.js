@@ -111,9 +111,7 @@ export async function initConstraints(root) {
 
 async function bindEvents(root) {
     root.querySelector("#back-btn")
-        .addEventListener("click", () => {
-            window.location.href = "popup.html?feature=name-editor";
-        });
+        .addEventListener("click", () => {back(root)});
 
     root.querySelector("#confirm-btn")
         .addEventListener("click", async () => {confirm(root)});
@@ -256,7 +254,7 @@ function parseSeatInput(value) {
     return numbers;
 }
 
-async function readLockedSeats(root, tableID, type) {
+async function readLockedSeats(root, tableID, type, verify = true) {
     const rows = root.querySelectorAll(`#${tableID} tbody tr`);
     const result = [];
 
@@ -269,13 +267,13 @@ async function readLockedSeats(root, tableID, type) {
         const id = select.value;
         const seats = parseSeatInput(input.value);
 
-        if (!id) {
+        if (verify && !id) {
             row.classList.add("error-row");
             await showError(`Fehler in Zeile ${index + 1}: Kein Name ausgewählt.`);
             return null;
         }
 
-        if (!seats) {
+        if (verify && !seats) {
             row.classList.add("error-row");
             await showError(`Fehler in Zeile ${index + 1}: Ungültige Sitzplatznummern.`);
             return null;
@@ -291,7 +289,7 @@ async function readLockedSeats(root, tableID, type) {
     return result;
 }
 
-async function readPairs(root, tableID, type) {
+async function readPairs(root, tableID, type, verify = true) {
     const rows = root.querySelectorAll(`#${tableID} tbody tr`);
     const result = [];
 
@@ -302,13 +300,13 @@ async function readPairs(root, tableID, type) {
         const a = selects[0].value;
         const b = selects[1].value;
 
-        if (!a || !b) {
+        if (verify && (!a || !b)) {
             row.classList.add("error-row");
             await showError(`Fehler in Zeile ${index + 1}: Beide Namen müssen ausgewählt sein.`);
             return null;
         }
 
-        if (a === b) {
+        if (verify && a === b) {
             row.classList.add("error-row");
             await showError(`Fehler in Zeile ${index + 1}: Eine Person kann nicht sich selbst zugeordnet werden.`);
             return null;
@@ -322,6 +320,30 @@ async function readPairs(root, tableID, type) {
     }
 
     return result;
+}
+
+async function back(root) {
+    const locked = await readLockedSeats(root, lockedTableID, "locked", false);
+    const neighbors = await readPairs(root, pairsTableID, "pair", false);
+    const noNeighbors = await readPairs(root, noPairsTableID, "noPair", false);
+
+    const allConstraints = [
+        ...locked,
+        ...neighbors,
+        ...noNeighbors,
+    ];
+
+    // bestehende Daten laden
+    const data = JSON.parse(localStorage.getItem("nameEditorData")) ?? {};
+
+    const newData = {
+        ...data,
+        constraints: allConstraints
+    };
+
+    localStorage.setItem("nameEditorData", JSON.stringify(newData));
+
+    window.location.href = "popup.html?feature=name-editor";
 }
 
 async function confirm(root) {
