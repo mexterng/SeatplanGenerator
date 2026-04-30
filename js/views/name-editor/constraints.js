@@ -258,7 +258,7 @@ async function readLockedSeats(root, tableID, type, verify = true) {
     const rows = root.querySelectorAll(`#${tableID} tbody tr`);
     const result = [];
 
-    for (const [row] of rows.entries()) {
+    for (const [index, row] of rows.entries()) {
         row.classList.remove("error-row");
 
         const select = row.querySelector("select");
@@ -293,7 +293,7 @@ async function readPairs(root, tableID, type, verify = true) {
     const rows = root.querySelectorAll(`#${tableID} tbody tr`);
     const result = [];
 
-    for (const [row] of rows.entries()) {
+    for (const [index, row] of rows.entries()) {
         row.classList.remove("error-row");
 
         const selects = row.querySelectorAll("select");
