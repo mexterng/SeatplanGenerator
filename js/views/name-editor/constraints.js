@@ -258,7 +258,7 @@ async function readLockedSeats(root, tableID, type, verify = true) {
     const rows = root.querySelectorAll(`#${tableID} tbody tr`);
     const result = [];
 
-    for (const [index, row] of rows.entries()) {
+    for (const [row] of rows.entries()) {
         row.classList.remove("error-row");
 
         const select = row.querySelector("select");
@@ -269,13 +269,13 @@ async function readLockedSeats(root, tableID, type, verify = true) {
 
         if (verify && !id) {
             row.classList.add("error-row");
-            await showError(`Fehler in Zeile ${index + 1}: Kein Name ausgewählt.`);
+            await showError(`Kein Name ausgewählt.`);
             return null;
         }
 
         if (verify && !seats) {
             row.classList.add("error-row");
-            await showError(`Fehler in Zeile ${index + 1}: Ungültige Sitzplatznummern.`);
+            await showError(`Ungültige Sitzplatznummern.`);
             return null;
         }
 
@@ -293,7 +293,7 @@ async function readPairs(root, tableID, type, verify = true) {
     const rows = root.querySelectorAll(`#${tableID} tbody tr`);
     const result = [];
 
-    for (const [index, row] of rows.entries()) {
+    for (const [row] of rows.entries()) {
         row.classList.remove("error-row");
 
         const selects = row.querySelectorAll("select");
@@ -302,13 +302,13 @@ async function readPairs(root, tableID, type, verify = true) {
 
         if (verify && (!a || !b)) {
             row.classList.add("error-row");
-            await showError(`Fehler in Zeile ${index + 1}: Beide Namen müssen ausgewählt sein.`);
+            await showError(`Beide Namen müssen ausgewählt sein.`);
             return null;
         }
 
         if (verify && a === b) {
             row.classList.add("error-row");
-            await showError(`Fehler in Zeile ${index + 1}: Eine Person kann nicht sich selbst zugeordnet werden.`);
+            await showError(`Eine Person kann nicht sich selbst zugeordnet werden.`);
             return null;
         }
 
