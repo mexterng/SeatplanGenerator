@@ -25,6 +25,8 @@ let fields = [];
 let draggedRow = null;
 let lastNameID = 0;
 
+let isInternalNavigation = false;
+
 // ============================================
 // MOUNTED HTML
 // ============================================
@@ -84,6 +86,8 @@ async function initNameEditor(root) {
     await initLocalStorage();
     bindEvents(root, nameTable);
     restoreOrInitRows(nameTable);
+
+    registerUnloadHandler();
 }
 
 
@@ -232,6 +236,7 @@ async function goToConstraints(root, table) {
     const nameEditorData = JSON.parse(localStorage.getItem("nameEditorData"));
     nameEditorData.persons = names;
     localStorage.setItem("nameEditorData", JSON.stringify(nameEditorData));
+    markInternalNavigation();
     window.location.href = "popup.html?feature=name-editor&view=constraints";
 }
 
@@ -239,14 +244,38 @@ async function goToConstraints(root, table) {
  * Cancels the table and closes window.
  */
 function cancel() {
+    markInternalNavigation();
+
     localStorage.removeItem("nameEditorData");
     closeNameEditorWindow();
+}
+
+// call this before any redirect / window.close()
+export function markInternalNavigation() {
+    isInternalNavigation = true;
+}
+
+// register once on init
+export function registerUnloadHandler() {
+    window.addEventListener("beforeunload", (e) => {
+        if (isInternalNavigation) return;
+
+        // trigger confirm dialog
+        e.preventDefault();
+        e.returnValue = "";
+
+        // cleanup NUR wenn kein interner Wechsel
+        localStorage.removeItem("nameEditorData");
+        localStorage.removeItem("sgJSON");
+    });
 }
 
 /**
  * Closes the popup window and clears local storage.
  */
 export function closeNameEditorWindow() {
+    markInternalNavigation();
+
     localStorage.removeItem('sgJSON');
     window.close();
 }

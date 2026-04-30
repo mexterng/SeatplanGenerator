@@ -1,7 +1,7 @@
 import { loadProgressBarTemplate, renderProgressBar } from "../../../templates/progressbar.js";
 import { createUIjson, jsonToString } from "../../data/seatplan-model.js";
 import { showError } from "../../ui/modal-template.js";
-import { closeNameEditorWindow } from "./names.js";
+import { closeNameEditorWindow, markInternalNavigation, registerUnloadHandler } from "./names.js";
 
 const lockedTableID = "lockedTable";
 const pairsTableID = "pairsTable";
@@ -102,6 +102,8 @@ export async function initConstraints(root) {
     });
 
     initFromConstraints(persons, constraints);
+
+    registerUnloadHandler();
 }
 
 
@@ -342,7 +344,9 @@ async function back(root) {
     };
 
     localStorage.setItem("nameEditorData", JSON.stringify(newData));
-
+    
+    markInternalNavigation();
+    
     window.location.href = "popup.html?feature=name-editor";
 }
 
@@ -372,6 +376,8 @@ async function confirm(root) {
 
     const uiJSON = createUIjson(newData.persons, newData.constraints);
 
+    markInternalNavigation();
+    
     localStorage.removeItem("nameEditorData");
 
     if (window.opener && !window.opener.closed) {
