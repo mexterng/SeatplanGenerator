@@ -91,3 +91,7 @@ tr.error-row {
     min-width: 120px;
     width: 100%;
 }
+
+#name-editor select {
+    cursor: pointer;
+}
