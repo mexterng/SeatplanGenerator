@@ -113,6 +113,8 @@ function _migrateUISettings() {
  * pointer events, and loads saved data.
  */
 window.addEventListener('DOMContentLoaded', async () => {
+    _legacyCleanUp();
+
     _initializeCanvasSize();
 
     // Initialize sidebar buttons and controls
@@ -139,3 +141,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Show version popup
     showVersionPopup();
 });
+
+function _legacyCleanUp() {
+    // LEGACY CLEANUP: remove in a future release
+    // deletes obsolete "delimiter" entry from localStorage (no longer used)
+    localStorage.removeItem('delimiter');
+}

@@ -48,9 +48,15 @@ export async function assignNames(doShuffle = false) {
                     await showCountdown(5);
                 }
 
+                // id (1-based) -> idxArray (0-based)
+                const personById = new Map();
+                for (const p of sgJSON.persons) {
+                    personById.set(p.id, p);
+                }
+
                 state.seats.forEach((seat, idx) => {
                     const id = solvedNames[idx];
-                    const person = sgJSON.persons[id] || { firstname: "", lastname: "" };
+                    const person = personById.get(id) || { firstname: "", lastname: "" };
                     setSeatName(seat, person.firstname, person.lastname);
                 });
 
@@ -121,12 +127,9 @@ function buildInitialDomains(sg) {
     const n = sg.seats.length;
     const domains = new Map();
 
+    // default: alle seats
     for (const p of sg.persons) {
-        if (p.allowedSeats && p.allowedSeats.length > 0) {
-            domains.set(p.id, [...p.allowedSeats]);
-        } else {
-            domains.set(p.id, Array.from({ length: n }, (_, i) => i));
-        }
+        domains.set(p.id, Array.from({ length: n }, (_, i) => i));
     }
 
     return domains;
@@ -143,14 +146,27 @@ function buildInitialDomains(sg) {
  */
 
 function applyFixedSeats(sg, assignment, personToSeat, domains) {
-    for (const p of sg.persons) {
-        if (p.allowedSeats?.length === 1) {
-            const seat = p.allowedSeats[0];
+    for (const c of sg.constraints) {
+        if (c.type !== "locked") continue;
+        
+        const personId = c.id;
+
+        // id (1-based) -> idxArray (0-based)
+        const seats = c.seats.map(s => s - 1);
+
+        // set domain
+        if (domains.has(personId)) {
+            domains.set(personId, seats);
+        }
+
+        // assign if only one possible seat
+        if (seats.length === 1) {
+            const seat = seats[0];
 
             if (assignment[seat] !== null) return false;
 
-            assignment[seat] = p.id;
-            personToSeat.set(p.id, seat);
+            assignment[seat] = personId;
+            personToSeat.set(personId, seat);
         }
     }
     return true;
@@ -196,7 +212,7 @@ function backtrack(sg, assignment, personToSeat, domains) {
         const snapshot = saveDomains(domains);
 
         // forward checking
-        if (forwardCheck(sg, personId, seat, domains, assignment)) {
+        if (forwardCheck(sg, personId, seat, domains, assignment, personToSeat)) {
             if (backtrack(sg, assignment, personToSeat, domains)) {
                 return true;
             }
@@ -252,7 +268,7 @@ function isValid(sg, personId, seat, assignment, personToSeat) {
 
     for (const c of sg.constraints) {
 
-        if (c.type === "pair") {
+        if (c.type === "pair" || c.type === "noPair") {
 
             const other = (c.a === personId) ? c.b :
                 (c.b === personId) ? c.a : null;
@@ -265,8 +281,8 @@ function isValid(sg, personId, seat, assignment, personToSeat) {
 
             const isNeighbor = sg.adjacency[seat][otherSeat];
 
-            if (c.mustBeNeighbors && !isNeighbor) return false;
-            if (!c.mustBeNeighbors && isNeighbor) return false;
+            if (c.type === "pair" && !isNeighbor) return false;
+            if (c.type === "noPair" && isNeighbor) return false;
         }
     }
 
@@ -283,7 +299,7 @@ function isValid(sg, personId, seat, assignment, personToSeat) {
  * @param {Array} assignment
  * @returns {boolean} False if domain wipeout occurs
  */
-function forwardCheck(sg, personId, seat, domains, assignment) {
+function forwardCheck(sg, personId, seat, domains, assignment, personToSeat) {
 
     for (const [pid, domain] of domains.entries()) {
 
@@ -291,7 +307,7 @@ function forwardCheck(sg, personId, seat, domains, assignment) {
 
         const newDomain = domain.filter(s => {
             if (assignment[s] !== null) return false;
-            return isValid(sg, pid, s, assignment, new Map());
+            return isValid(sg, pid, s, assignment, personToSeat);
         });
 
         if (newDomain.length === 0) return false;
