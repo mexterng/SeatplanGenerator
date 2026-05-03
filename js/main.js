@@ -18,15 +18,16 @@
 // ============================================
 
 import { DOM } from './dom.js';
-import { MAX_CANVAS, PERSON_DELIMITER, NAME_DELIMITER, LOCKED_SEAT_TAG } from './state.js';
+import { MAX_CANVAS } from './state.js';
 import { zoomIn, zoomOut, fitView } from './canvas/zoom.js';
 import { clearCanvas } from './canvas/utils.js';
 import { initPointerEvents } from './canvas/pointer-events.js';
 import { initializeAdvancedMode, initializeCheckboxes, initializeSidebarButtons } from './ui/sidebar.js';
 import { openExportPopup } from './data/export-pdf.js';
 import { loadData } from './data/localStorage.js';
-import { assignNames, clearSeats } from './data/names.js';
+import { assignNames } from './data/names-assignment.js';
 import { showVersionPopup } from "./ui/version-popup.js";
+import { clearSeats } from './canvas/elements/seat.js';
 
 // ============================================
 // FILE LOCAL CONSTANTS
@@ -58,19 +59,6 @@ function _initializeCanvasSize() {
 }
 
 /**
- * Store delimiter configuration in localStorage for name parsing.
- */
-function _initializeDelimiters() {
-    const delimiterConfig = {
-        person: PERSON_DELIMITER,
-        name: NAME_DELIMITER,
-        lockedSeat: LOCKED_SEAT_TAG
-    };
-
-    localStorage.setItem('delimiter', JSON.stringify(delimiterConfig));
-}
-
-/**
  * Bind event listeners for canvas control buttons.
  */
 function _initializeCanvasButtons() {
@@ -81,6 +69,37 @@ function _initializeCanvasButtons() {
     assignNamesBtn.addEventListener('click', () => assignNames(true));
     clearSeatsBtn.addEventListener('click', clearSeats)
     pdfExportBtn.addEventListener('click', openExportPopup);
+}
+
+/**
+ * Legacy migration: convert old keys of localStorage to new 'uiSettings' key.
+ * 
+ * TODO: Remove in future version
+ */
+function _migrateUISettings() {
+    const legacyKeys = [
+        'advancedMode',
+        'countdown',
+        'showSeatConnectors',
+        'showSeatNumbers'
+    ];
+
+    const hasLegacy = legacyKeys.some(k => localStorage.getItem(k) !== null);
+    if (!hasLegacy) return;
+
+    const uiSettings = {
+        advancedMode: localStorage.getItem('advancedMode') === 'true',
+        countdown: localStorage.getItem('countdown') === 'true',
+        seatConnectors: localStorage.getItem('showSeatConnectors') === 'true',
+        seatNumbers: localStorage.getItem('showSeatNumbers') === 'true'
+    };
+
+    localStorage.setItem('uiSettings', JSON.stringify(uiSettings));
+
+    // cleanup
+    for (const key of legacyKeys) {
+        localStorage.removeItem(key);
+    }
 }
 
 // ============================================
@@ -95,10 +114,12 @@ function _initializeCanvasButtons() {
  */
 window.addEventListener('DOMContentLoaded', async () => {
     _initializeCanvasSize();
-    _initializeDelimiters();
 
     // Initialize sidebar buttons and controls
     initializeSidebarButtons();
+
+    // Initialize UI settings in localStorage
+    _migrateUISettings();
 
     // Initialize advanced mode UI and state
     await initializeAdvancedMode();

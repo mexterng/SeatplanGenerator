@@ -68,7 +68,7 @@ function createButton(config) {
  * @returns {Promise<any>} - Resolves with the button value or onSubmit return value
  */
 export async function openModal(options) {
-    const modal = await loadTemplate('./templates/modal-base.html');
+    const modal = await loadTemplate('../../templates/modal-base.html');
 
     const titleEl   = modal.querySelector('.modal-title');
     const contentEl = modal.querySelector('.modal-content');

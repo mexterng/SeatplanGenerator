@@ -3,29 +3,26 @@
 // ============================================
 
 /**
- * Handles UI for name table, including:
- * - Adding, deleting and reordering rows
- * - Lock/unlock seat controls
- * - Neighbor inputs and buttons
- * - CSV import for names
- * - Persisting data to main page
+ * UI logic for name table
+ *
+ * Responsibilities:
+ * - Row management (add, delete, reorder)
+ * - Locking and pairing (neighbors)
+ * - CSV import
+ * - Export to main window (JSON format)
  */
 
 // ============================================
 // IMPORTS
 // ============================================
 
-import { parseNames } from "./../data/names.js";
+import { inputToUIjson, createSingle, createPair, createUIjson, jsonToString} from "../data/seatplan-model.js";
 import { openModal } from './modal-manager.js';
 import { showInfo, showError } from "./modal-template.js";
 
 // ============================================
 // FILE-LOCAL CONSTANTS
 // ============================================
-
-let personDelimiter = ";";
-let nameDelimiter = ",";
-let lockedSeatTag = "#";
 
 let csvFiletext = "";
 let fields = [];
@@ -51,21 +48,38 @@ function resizeBody() {
     document.body.style.width = width + "px";
 }
 
-// Initialize table on DOMContentLoaded
-window.addEventListener('DOMContentLoaded', () => {
-    const delimiterData = JSON.parse(localStorage.getItem('delimiter'));
-    if (delimiterData) {
-        const { person, name, lockedSeat} = delimiterData;
-        personDelimiter = person;
-        nameDelimiter = name;
-        lockedSeatTag = lockedSeat;
-    }
+/**
+ * Initializes the UI on DOM load.
+ *
+ * - Restores data from localStorage
+ * - Parses input into UI JSON
+ * - Builds initial table rows
+ *
+ * @returns {Promise<void>}
+ */
+window.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // LEGACY CLEANUP: remove in a future release
+        // deletes obsolete "delimiter" entry from localStorage (no longer used)
+        const delimiterData = JSON.parse(localStorage.getItem('delimiter'));
+        if (delimiterData) {
+            localStorage.removeItem('delimiter');
+        }
 
-    const nameStr = localStorage.getItem('namesStr');
-    if (!nameStr) {
-        addRow();
-    } else {
-        initRows(nameStr);
+        const nameStr = localStorage.getItem('namesStr');
+        if (!nameStr) {
+            addRow();
+        } 
+        else {
+            const uiJSON = await inputToUIjson(nameStr);
+            if (!uiJSON.entries || !Array.isArray(uiJSON.entries)) {
+                throw new Error("Ungültige Datenstruktur");
+            }
+            await initRowsUIjson(uiJSON);
+        }
+    } catch (err) {
+        await showError("Fehler beim Laden: " + err.message);
+        addRow(); // fallback
     }
     resizeBody();
 });
@@ -79,19 +93,30 @@ document.getElementById('cancel-btn').addEventListener('click', cancel);
 document.getElementById('confirm-btn').addEventListener('click', confirm);
 
 /**
- * Initializes table rows from a names string.
+ * Initializes table rows from a UI JSON object.
  *
- * @param {string} names - Raw names input string
+ * @param {Object} uiJSON - Parsed UI JSON containing entries
+ * @returns {Promise<void>}
  */
-function initRows(names) {
-    const nameList = parseNames(names, personDelimiter, nameDelimiter, lockedSeatTag);
-    nameList.forEach((p) => {
-        if (Array.isArray(p)) {
-            addRow(p[0].firstname, p[0].lastname, false, p[1].firstname, p[1].lastname);
-        } else {
-            addRow(p.firstname, p.lastname, p.lockedSeat);
-        }
-    });
+async function initRowsUIjson(uiJSON) {
+    const entries = uiJSON.entries;
+    if (uiJSON.version == 1){
+        for (const entry of entries) {
+            if (entry.type == 'single') {
+                addRow(entry.firstname, entry.lastname, entry.lockedSeat);
+            }
+            else if (entry.type == 'pair') {
+                addRow(entry.members[0].firstname, entry.members[0].lastname, false, entry.members[1].firstname, entry.members[1].lastname, entry.mustBeNeighbors);
+            }
+            else {
+                await showError(`Unbekannter Typ '${entry.type}' wurde ignoriert.`);
+            }
+        };
+    }
+    else {
+        await showError("Diese JSON Version wird leider nicht mehr unterstützt!");
+        addRow();
+    }
 }
 
 // ============================================
@@ -107,17 +132,17 @@ function initRows(names) {
  * @param {string} neighborFirstname - Neighbor first name
  * @param {string} neighborLastname - Neighbor last name
  */
-function addRow(firstname = '', lastname = '', lockedSeat = false, neighborFirstname = '', neighborLastname = '') {
+function addRow(firstname = '', lastname = '', lockedSeat = false, neighborFirstname = '', neighborLastname = '', mustBeNeighbors = true) {
     const tbody = document.querySelector('#nameTable tbody');
     const rowCount = tbody.rows.length + 1;
     const tr = document.createElement('tr');
     const lockIcon = lockedSeat ? 'fa-lock': 'fa-lock-open';
 
     tr.innerHTML = `
-        <td class="delete-row"><i class="fa-solid fa-trash"></i></td>
-        <td class="draggable"><i class="fa-solid fa-arrows-up-down"></i></td>
-        <td class="rowCount">${rowCount}</td>
-        <td class="lock"><i class="fa-solid ${lockIcon}"></i></td>
+        <td class="delete-row" title="Zeile löschen"><i class="fa-solid fa-trash"></i></td>
+        <td class="draggable" title="Zeile verschieben"><i class="fa-solid fa-arrows-up-down"></i></td>
+        <td class="rowCount title="Laufende Nummer (ggf. Sitzplatznummer)">${rowCount}</td>
+        <td class="lock" title="Sitzplatznummer sperren (Person sitzt immer auf diesem Sitzplatz)"><i class="fa-solid ${lockIcon}"></i></td>
         <td><input type="text" class="firstName" placeholder="Vorname" value="${firstname}"></td>
         <td><input type="text" class="lastName" placeholder="Nachname" value="${lastname}"></td>
     `;
@@ -125,8 +150,8 @@ function addRow(firstname = '', lastname = '', lockedSeat = false, neighborFirst
     if (!neighborFirstname && !neighborLastname) {
         addNeighborButtonTdToTr(tr);
     } else {
-        window.resizeTo(760, window.outerHeight);
-        addNeighborInputTdsToTr(tr, neighborFirstname, neighborLastname);
+        window.resizeTo(800, window.outerHeight);
+        addNeighborInputTdsToTr(tr, neighborFirstname, neighborLastname, mustBeNeighbors);
         tr.querySelector(".lock").classList.add('deactivate');
     }
 
@@ -165,49 +190,84 @@ function updateRowNumbers() {
 // ============================================
 
 /**
- * Confirms table data and sends it to main window input.
+ * Validates input, converts table data to UI JSON and exports it.
+ *
+ * @returns {Promise<void>}
  */
 async function confirm() {
     const rows = document.querySelectorAll('#nameTable tbody tr');
-    const values = [];
 
-    function generateNameString(first, last, lockedStr) {
-        if (first && last == '') return `${first} ${lockedStr}`.trim();
-        if (first || last) return `${last}${nameDelimiter} ${first} ${lockedStr}`.trim();
-        return '';
-    }
-    
-    rows.forEach(row => {
+    // check all input fields
+    let isValid = true;
+    for (const [index, row] of rows.entries()) {
+        const rowNumber = index + 1;
+        row.classList.remove("error-row");
         const first = row.querySelector('.firstName').value.trim();
         const last = row.querySelector('.lastName').value.trim();
-        const locked = row.querySelector('.lock i').classList.contains('fa-lock');
-        const lockedStr = locked ? '#' : '';
-        const neighbor = row.querySelector('.neighbor') !== null;
-        const neighborFirst = neighbor ? row.querySelector('.firstName.neighbor').value.trim() : '';
-        const neighborLast = neighbor ? row.querySelector('.lastName.neighbor').value.trim() : '';
+        if (first + last === '') {
+            await showError(`Achtung: In Zeile ${rowNumber} wurde kein Name eingegeben. Bitte lösche die Zeilen ohne Eintrag. Beachte dabei, dass sich dadurch möglicherweise die verankerten Sitzplatznummern ändern können.`);
+            isValid = false;
+            row.classList.add("error-row");
+            break;
+        } 
+        const pair = row.querySelector('.neighbor') !== null;
+        if (pair) {
+            const neighborFirst = row.querySelector('.firstName.neighbor').value.trim();
+            const neighborLast = row.querySelector('.lastName.neighbor').value.trim();
+            if (neighborFirst + neighborLast === '') {
+            await showError(`Achtung: In Zeile ${rowNumber} wurde ein Nachbar aktiviert, aber kein Name eingegeben. Bitte ergänze den Namen oder entferne den Nachbarn. Beachte dabei, dass sich dadurch möglicherweise die verankerten Sitzplatznummern ändern können.`);
+                isValid = false;
+                row.classList.add("error-row");
+                break;
+            }
+        }
+    }
 
-        if (neighbor) {
-            values.push("[" + generateNameString(first, last, ''));
-            values.push(generateNameString(neighborFirst, neighborLast, '') + "]");
+    if (!isValid) return;
+
+    const entries = [];
+    
+    rows.forEach(row => {
+        const firstname = row.querySelector('.firstName').value.trim();
+        const lastname = row.querySelector('.lastName').value.trim();
+        const lockedSeat = row.querySelector('.lock i').classList.contains('fa-lock');
+        const pair = row.querySelector('.neighbor') !== null;
+        if (pair) {
+            const mustBeNeighbors = row.querySelector('.link i').classList.contains('fa-link');
+            const firstnameNeighbor = row.querySelector('.firstName.neighbor').value.trim();
+            const lastnameNeighbor = row.querySelector('.lastName.neighbor').value.trim();
+            entries.push(
+                createPair(
+                    [
+                        createSingle(firstname, lastname, false),
+                        createSingle(firstnameNeighbor, lastnameNeighbor, false)
+                    ],
+                    mustBeNeighbors
+                )
+            );
         } else {
-            values.push(generateNameString(first, last, lockedStr));        
+            entries.push(
+                createSingle(firstname, lastname, lockedSeat)
+            );
         }
     });
 
-    while (values.length > 0 && (values[values.length - 1] === "" || values[values.length - 1] == null)) {
-        values.pop();
+    const uiJSON = createUIjson(entries);
+    
+    // defensive validation before export
+    if (!uiJSON.entries || !Array.isArray(uiJSON.entries)) {
+        await showError("Interner Fehler: Ungültige Daten");
+        return;
     }
-
-    const result = values.join(personDelimiter + ' ');
 
     if (window.opener && !window.opener.closed) {
         const mainInput = window.opener.document.getElementById('namesInput');
-        if (mainInput) mainInput.value = result;
+        if (mainInput) mainInput.value = jsonToString(uiJSON, true, true);
     } else {
         await showInfo("Hauptseite nicht gefunden oder geschlossen.\n" +
             "Ergebnis:\n" +
             "\n---------------------------------\n" + 
-            result + 
+            jsonToString(uiJSON, false, true) + 
             "\n---------------------------------\n" +
             "\nKopiere den Text zwischen den Zeilen und füge diesen manuell ein.");
     }
@@ -402,6 +462,20 @@ function enableLockControls(tr) {
     });
 }
 
+/**
+ * Enables click event on link icon to toggle neighbor state.
+ *
+ * @param {HTMLElement} tr - Table row element
+ */
+function enableNeighborControls(tr) {
+    const link = tr.querySelector(".link");
+    const linkIcon = link.querySelector("i");
+    linkIcon.addEventListener('click', () => {
+        linkIcon.classList.toggle('fa-link');
+        linkIcon.classList.toggle('fa-link-slash');
+    });
+}
+
 // ============================================
 // PUBLIC HANDLER — SEAT NEIGHBOR MANAGEMENT
 // ============================================
@@ -416,29 +490,33 @@ function addNeighborButtonTdToTr(tr){
 function createNeighborButtonTd() {
     const neighborTd = document.createElement('td');
     neighborTd.classList.add("seat-neighbor");
-    neighborTd.colSpan ="3";
+    neighborTd.colSpan ="4";
     neighborTd.innerHTML = '<button class="btn-secondary"><i class="fa-solid fa-plus"></i> Sitznachbar</button>';
     return neighborTd;
 }
 
-function addNeighborInputTdsToTr(tr, firstname = '', lastname = '') {
-    const tds = createNeighborInputTds(tr, firstname, lastname);
+function addNeighborInputTdsToTr(tr, firstname = '', lastname = '', mustBeNeighbors = true) {
+    const tds = createNeighborInputTds(tr, firstname, lastname, mustBeNeighbors);
     tds.forEach(td => tr.appendChild(td));
+    enableNeighborControls(tr);
     updateRowNumbers();
 }
 
-function createNeighborInputTds(tr, firstname = '', lastname = '') {
+function createNeighborInputTds(tr, firstname = '', lastname = '', mustBeNeighbors = true) {
     const rowCountNeighborTd = document.createElement('td'); rowCountNeighborTd.classList.add('rowCount');
+    const mustBeNeighborsTd = document.createElement('td'); mustBeNeighborsTd.classList.add('link');
+    const linkIcon = mustBeNeighbors ? 'fa-link' : 'fa-link-slash';
+    mustBeNeighborsTd.innerHTML = `<i class="fa-solid ${linkIcon}" title="Personen (NICHT) nebeneinander setzen"></i>`;
     const firstNameNeighborTd = document.createElement('td');
     firstNameNeighborTd.innerHTML = `<input type="text" class="firstName neighbor" placeholder="Vorname" value="${firstname}">`;
     const lastNameNeighborTd = document.createElement('td');
     lastNameNeighborTd.innerHTML = `<input type="text" class="lastName neighbor" placeholder="Nachname" value="${lastname}">`;
     const deleteNeighborTd = document.createElement('td'); deleteNeighborTd.classList.add('delete-neighbor');
-    deleteNeighborTd.innerHTML = '<i class="fa-solid fa-circle-minus"></i>';
+    deleteNeighborTd.innerHTML = '<i class="fa-solid fa-circle-minus" title="Sitznachbar löschen"></i>';
 
-    addEventListenerNeighborInputs(tr, {rowCountNeighborTd, firstNameNeighborTd, lastNameNeighborTd, deleteNeighborTd}, deleteNeighborTd.querySelector('i'));
+    addEventListenerNeighborInputs(tr, {mustBeNeighborsTd, rowCountNeighborTd, firstNameNeighborTd, lastNameNeighborTd, deleteNeighborTd}, deleteNeighborTd.querySelector('i'));
 
-    return [rowCountNeighborTd, firstNameNeighborTd, lastNameNeighborTd, deleteNeighborTd];
+    return [mustBeNeighborsTd, rowCountNeighborTd, firstNameNeighborTd, lastNameNeighborTd, deleteNeighborTd];
 }
 
 function addEventListenerNeighborInputs(tr, newTds, elem) {
@@ -463,7 +541,7 @@ function addEventListenerNeighborButton(tr, elem) {
         elem.remove();
         seatNeighbor.remove();
 
-        window.resizeTo(760, window.outerHeight);
+        window.resizeTo(800, window.outerHeight);
         addNeighborInputTdsToTr(tr);
     });
 }

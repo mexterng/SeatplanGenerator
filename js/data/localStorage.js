@@ -17,7 +17,7 @@
 // ============================================
 
 import { DOM } from '../dom.js';
-import { state, PERSON_DELIMITER } from '../state.js';
+import { state, SYMBOLS } from '../state.js';
 import { createSeatElement } from '../canvas/elements/seat.js';
 import { createFixedElement } from '../canvas/elements/fixed.js';
 import { connectSeats, splitPairString } from '../canvas/elements/connection.js';
@@ -81,6 +81,22 @@ export function getSeatConnectionsData() {
     return [...state.seatConnectionSet];
 }
 
+/**
+ * Retrieves UI settings from localStorage.
+ *
+ * @param {string} [key] - Optional key to retrieve a specific setting.
+ * @returns {Object|any} The full settings object or the value for the given key.
+ */
+export function getUISettings(key) {
+    const raw = localStorage.getItem('uiSettings');
+    const json = JSON.parse(raw);
+    if (key) {
+        return json[key];
+    } else {
+        return json;
+    }
+}
+
 // ============================================
 // PUBLIC HANDLER — SAVE
 // ============================================
@@ -105,8 +121,8 @@ export async function saveSeats(alertMessage = true) {
  * @returns {void}
  */
 export function saveNames(alertMessage = true) {
-    const nameList = DOM.namesInput.value.split(PERSON_DELIMITER).map(n => n.trim());
-    localStorage.setItem('names', JSON.stringify(nameList));
+    const namesStr = DOM.namesInput.value;
+    localStorage.setItem('savedNamesStr', namesStr);
     if (alertMessage) showInfo('Namen gespeichert!');
 }
 
@@ -119,8 +135,22 @@ export function saveNames(alertMessage = true) {
 export function deleteLocalStorage(alertMessage = true) {
     localStorage.removeItem('seats');
     localStorage.removeItem('fixed');
-    localStorage.removeItem('names');
+    localStorage.removeItem('savedNamesStr');
     if (alertMessage) showInfo('Browser-Speicher gelöscht!');
+}
+
+
+/**
+ * Updates a specific UI setting and persists it to localStorage.
+ *
+ * @param {string} keyStr - The key of the setting to update.
+ * @param {any} value - The value to assign to the setting.
+ * @returns {void}
+ */
+export function setUISettings(keyStr, value) {
+    const uiSettings = getUISettings();
+    uiSettings[keyStr] = value;
+    localStorage.setItem('uiSettings', JSON.stringify(uiSettings));
 }
 
 // ============================================
@@ -136,7 +166,12 @@ export async function loadData() {
     const seatData = JSON.parse(localStorage.getItem('seats'));
     const fixedData = JSON.parse(localStorage.getItem('fixed'));
     const connectionsData = JSON.parse(localStorage.getItem('connections'));
+    // TODO: Remove in future version
+    // Legacy migration: convert old 'names' array to new 'savedNamesStr' format.
     const nameList = JSON.parse(localStorage.getItem('names'));
+    localStorage.removeItem('names');
+    const savedNameStr = nameList ? nameList.join(SYMBOLS.PERSON_DELIMITER + ' ') : localStorage.getItem('savedNamesStr');
+    localStorage.setItem('savedNamesStr', savedNameStr);
 
     // Clear canvas and reset state
     DOM.canvas.innerHTML = '';
@@ -184,8 +219,8 @@ export async function loadData() {
     }
 
     // Restore names
-    if (nameList) {
-        DOM.namesInput.value = nameList.join(PERSON_DELIMITER + ' ');
+    if (savedNameStr) {
+        DOM.namesInput.value = savedNameStr;
     }
 
     setTimeout(fitView, 100); // Adjust view after load

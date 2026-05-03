@@ -36,13 +36,17 @@ tr.dragging {
     background: #aaa;
 }
 
+tr.error-row {
+    outline: 1px solid red;
+}
+
 td.seat-neighbor,
 th.seat-neighbor {
     border: none;
     white-space: nowrap;
 }
 
-.lock i {
+.lock i, .link i {
     cursor: pointer;
 }
 
