@@ -137,7 +137,10 @@ export async function inputToUIjson(nameStr) {
             jsonStr = nameStr;
         }
         else {
-            jsonStr = JSON.stringify(namesInputToUIjsonV1(nameStr));
+            const uiJSONV1 = namesInputToUIjsonV1(nameStr);
+            uiJSONV1.entries = uiJSONV1.persons;
+            uiJSONV1.version = 1;
+            jsonStr = JSON.stringify(uiJSONV1);
         }
 
         // 2. parse json

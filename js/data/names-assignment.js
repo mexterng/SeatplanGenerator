@@ -40,7 +40,7 @@ import { buildSGModelFromUI, validateSGjson } from './seatplan-model.js';
 export async function assignNames(doShuffle = false) {
     try {
         const sgJSON = await buildSGModelFromUI();
-        if (validateSGjson(sgJSON)) {
+        if (await validateSGjson(sgJSON)) {
             const solvedNames = await solveSG(sgJSON, doShuffle);
 
             if (solvedNames) {
@@ -102,13 +102,8 @@ export async function solveSG(sg, doShuffle) {
     let success
     if (doShuffle) {
         shuffleDomains(domains);
-        success = backtrack(sg, assignment, personToSeat, domains);
-    } else {
-        for (let i = 0; i < n; i++) {
-            assignment[i] = i;
-        }
-        success = true;
     }
+    success = backtrack(sg, assignment, personToSeat, domains);
 
     return success ? assignment : null;
 }
@@ -196,32 +191,34 @@ function backtrack(sg, assignment, personToSeat, domains) {
     const personId = selectNextPerson(domains, personToSeat);
 
     const possibleSeats = domains.get(personId);
+    if (possibleSeats) {
 
-    for (const seat of possibleSeats) {
+        for (const seat of possibleSeats) {
+            
+            if (assignment[seat] !== null) continue;
 
-        if (assignment[seat] !== null) continue;
-
-        if (!isValid(sg, personId, seat, assignment, personToSeat)) {
-            continue;
-        }
-
-        // assign
-        assignment[seat] = personId;
-        personToSeat.set(personId, seat);
-
-        const snapshot = saveDomains(domains);
-
-        // forward checking
-        if (forwardCheck(sg, personId, seat, domains, assignment, personToSeat)) {
-            if (backtrack(sg, assignment, personToSeat, domains)) {
-                return true;
+            if (!isValid(sg, personId, seat, assignment, personToSeat)) {
+                continue;
             }
-        }
 
-        // undo
-        restoreDomains(domains, snapshot);
-        assignment[seat] = null;
-        personToSeat.delete(personId);
+            // assign
+            assignment[seat] = personId;
+            personToSeat.set(personId, seat);
+
+            const snapshot = saveDomains(domains);
+
+            // forward checking
+            if (forwardCheck(sg, personId, seat, domains, assignment, personToSeat)) {
+                if (backtrack(sg, assignment, personToSeat, domains)) {
+                    return true;
+                }
+            }
+
+            // undo
+            restoreDomains(domains, snapshot);
+            assignment[seat] = null;
+            personToSeat.delete(personId);
+        }
     }
 
     return false;
@@ -303,7 +300,11 @@ function forwardCheck(sg, personId, seat, domains, assignment, personToSeat) {
 
     for (const [pid, domain] of domains.entries()) {
 
-        if (assignment.includes(pid)) continue;
+        // skip already assigned persons
+        if (personToSeat.has(pid)) continue;
+
+        // skip current person (already assigned in this step)
+        if (pid === personId) continue;
 
         const newDomain = domain.filter(s => {
             if (assignment[s] !== null) return false;
