@@ -298,7 +298,7 @@ function startCsvImport(root) {
 
         try {
             csvFiletext = await file.text();
-            fields = csvFiletext.split('\n')[0].replace('\r', '').split(',');
+            fields = csvFiletext.split('\n')[0].replace('\r', '').split(';');
             const nameTable = root.querySelector("#nameTable");
             await openCsvImportModal(nameTable, fields);
         } catch (err) {
@@ -365,7 +365,7 @@ async function openCsvImportModal(table, fields) {
     const firstnameIndex = fields.indexOf(result.firstnameCol);
     const lastnameIndex = fields.indexOf(result.lastnameCol);
 
-    const csvData = csvFiletext.split('\n').map(r => r.replace('\r', '').split(',').split(';'));
+    const csvData = csvFiletext.split('\n').map(r => r.replace('\r', '').split(';'));
 
     csvData.slice(1).forEach(row => {
         const firstname = firstnameIndex >= 0 ? row[firstnameIndex] : '';
