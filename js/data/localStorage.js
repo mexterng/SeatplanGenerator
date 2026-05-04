@@ -48,7 +48,8 @@ export function initDefaultLocalStorage() {
             countdown: false,
             seatConnectors: false,
             seatNumbers: false
-        }
+        },
+        savedNamesStr: ""
     };
 
     for (const [key, defaultValue] of Object.entries(localStorageKeys)) {
