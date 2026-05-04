@@ -102,13 +102,8 @@ export async function solveSG(sg, doShuffle) {
     let success
     if (doShuffle) {
         shuffleDomains(domains);
-        success = backtrack(sg, assignment, personToSeat, domains);
-    } else {
-        for (let i = 0; i < n; i++) {
-            assignment[i] = i;
-        }
-        success = true;
     }
+    success = backtrack(sg, assignment, personToSeat, domains);
 
     return success ? assignment : null;
 }
