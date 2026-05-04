@@ -36,6 +36,35 @@ import { showInfo } from '../ui/modal-template.js';
 // ============================================
 
 /**
+ * Initialize LocalStorage
+ */
+export function initDefaultLocalStorage() {
+    const localStorageKeys = {
+        connections: [],
+        fixed: [],
+        seats: [],
+        uiSettings: {
+            advancedMode: false,
+            countdown: false,
+            seatConnectors: false,
+            seatNumbers: false
+        }
+    };
+
+    for (const [key, defaultValue] of Object.entries(localStorageKeys)) {
+        const value = localStorage.getItem(key);
+        
+        if (value === null) {
+            const storedValue = typeof defaultValue === "string"
+                ? defaultValue
+                : JSON.stringify(defaultValue);
+
+            localStorage.setItem(key, storedValue);
+        }
+    }
+}
+
+/**
  * Retrieves seat position and rotation data from current state.
  *
  * @returns {Array<Object>} Array of seat objects with id, x, y, and rotate.
