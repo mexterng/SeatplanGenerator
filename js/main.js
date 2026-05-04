@@ -81,7 +81,8 @@ function _migrateUISettings() {
         'advancedMode',
         'countdown',
         'showSeatConnectors',
-        'showSeatNumbers'
+        'showSeatNumbers',
+        'seatNumbers'
     ];
 
     const hasLegacy = legacyKeys.some(k => localStorage.getItem(k) !== null);

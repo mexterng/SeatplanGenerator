@@ -198,7 +198,7 @@ function _initSeatNumberCheckbox() {
     if (cb.checked) _setSeatNumbersVisible(true);
 
     cb.addEventListener('change', () => {
-        localStorage.setItem('seatNumbers', cb.checked);
+        setUISettings('seatNumbers', cb.checked);
         _setSeatNumbersVisible(cb.checked);
     });
 }
