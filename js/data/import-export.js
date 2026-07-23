@@ -23,6 +23,7 @@ import { createSeatElement } from '../canvas/elements/seat.js';
 import { createFixedElement } from '../canvas/elements/fixed.js';
 import { connectSeats, splitPairString } from '../canvas/elements/connection.js';
 import { showError, showInfo } from '../ui/modal-template.js';
+import { clearCanvas } from '../canvas/utils.js';
 
 // ============================================
 // FILE-LOCAL CONSTANTS
@@ -129,6 +130,12 @@ export async function importSeats() {
         if (!file) {
             await showError('Keine Datei ausgewählt (Import abgebrochen).'); 
             return; 
+        }
+
+        const cleared = await clearCanvas();
+        if(!cleared) {
+            await showError('Import durch Nutzer abgebrochen!'); 
+            return;
         }
 
         try {
