@@ -145,8 +145,8 @@ export async function importSeats() {
             // Clear canvas and reset state
             DOM.canvas.innerHTML = '';
             state.seats.length = 0;
-            fixedConnections.length = 0;
-            seatConnectionSet.clear();
+            state.fixedConnections.length = 0;
+            state.seatConnectionSet.clear();
 
             // Recreate fixed elements
             for (const t of fixedData) {
