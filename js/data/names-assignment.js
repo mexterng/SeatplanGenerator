@@ -40,6 +40,9 @@ import { buildSGModelFromUI, validateSGjson } from './seatplan-model.js';
 export async function assignNames(doShuffle = false) {
     try {
         const sgJSON = await buildSGModelFromUI();
+        if(!doShuffle) {
+            sgJSON.constraints = [];
+        }
         if (await validateSGjson(sgJSON)) {
             const solvedNames = await solveSG(sgJSON, doShuffle);
 
