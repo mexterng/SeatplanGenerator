@@ -21,6 +21,7 @@ import { saveNames, saveSeats, deleteLocalStorage, setUISettings, getUISettings 
 import { importSeats, exportSeats, exportNames, importNames } from '../data/import-export.js';
 import { DOM } from '../dom.js';
 import { addFixedElement } from '../canvas/elements/fixed.js';
+import { buildSGModelFromUI } from '../data/seatplan-model.js';
 
 // ============================================
 // FILE-LOCAL CONSTANTS
@@ -118,12 +119,13 @@ export function initializeSidebarButtons() {
 /**
  * Opens the name editor window and passes current names input.
  */
-document.getElementById('edit-icon').addEventListener('click', () => {
-    localStorage.setItem('namesStr', DOM.namesInput.value);
+document.getElementById('edit-icon').addEventListener('click', async () => {
+    const sgJSON = await buildSGModelFromUI();
+    localStorage.setItem('sgJSON', await JSON.stringify(sgJSON));
     window.open(
-        'nameEditor.html', 
+        'popup.html?feature=name-editor', 
         'nameEditor', 
-        'width=550,height=600,scrollbars=yes,resizable=yes'
+        'width=600,height=600,scrollbars=yes,resizable=yes'
     );
 });
 
@@ -196,7 +198,7 @@ function _initSeatNumberCheckbox() {
     if (cb.checked) _setSeatNumbersVisible(true);
 
     cb.addEventListener('change', () => {
-        localStorage.setItem('seatNumbers', cb.checked);
+        setUISettings('seatNumbers', cb.checked);
         _setSeatNumbersVisible(cb.checked);
     });
 }

@@ -23,6 +23,7 @@ import { createSeatElement } from '../canvas/elements/seat.js';
 import { createFixedElement } from '../canvas/elements/fixed.js';
 import { connectSeats, splitPairString } from '../canvas/elements/connection.js';
 import { showError, showInfo } from '../ui/modal-template.js';
+import { clearCanvas } from '../canvas/utils.js';
 
 // ============================================
 // FILE-LOCAL CONSTANTS
@@ -131,6 +132,12 @@ export async function importSeats() {
             return; 
         }
 
+        const cleared = await clearCanvas();
+        if(!cleared) {
+            await showError('Import durch Nutzer abgebrochen!'); 
+            return;
+        }
+
         try {
             const allData = JSON.parse(await file.text());
             const seatData = allData.seats;
@@ -145,8 +152,8 @@ export async function importSeats() {
             // Clear canvas and reset state
             DOM.canvas.innerHTML = '';
             state.seats.length = 0;
-            fixedConnections.length = 0;
-            seatConnectionSet.clear();
+            state.fixedConnections.length = 0;
+            state.seatConnectionSet.clear();
 
             // Recreate fixed elements
             for (const t of fixedData) {

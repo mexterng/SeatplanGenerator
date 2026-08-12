@@ -24,7 +24,7 @@ import { clearCanvas } from './canvas/utils.js';
 import { initPointerEvents } from './canvas/pointer-events.js';
 import { initializeAdvancedMode, initializeCheckboxes, initializeSidebarButtons } from './ui/sidebar.js';
 import { openExportPopup } from './data/export-pdf.js';
-import { loadData } from './data/localStorage.js';
+import { initDefaultLocalStorage, loadData } from './data/localStorage.js';
 import { assignNames } from './data/names-assignment.js';
 import { showVersionPopup } from "./ui/version-popup.js";
 import { clearSeats } from './canvas/elements/seat.js';
@@ -81,7 +81,8 @@ function _migrateUISettings() {
         'advancedMode',
         'countdown',
         'showSeatConnectors',
-        'showSeatNumbers'
+        'showSeatNumbers',
+        'seatNumbers'
     ];
 
     const hasLegacy = legacyKeys.some(k => localStorage.getItem(k) !== null);
@@ -113,6 +114,10 @@ function _migrateUISettings() {
  * pointer events, and loads saved data.
  */
 window.addEventListener('DOMContentLoaded', async () => {
+    _legacyCleanUp();
+
+    initDefaultLocalStorage();
+
     _initializeCanvasSize();
 
     // Initialize sidebar buttons and controls
@@ -139,3 +144,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Show version popup
     showVersionPopup();
 });
+
+function _legacyCleanUp() {
+    // LEGACY CLEANUP: remove in a future release
+    // deletes obsolete "delimiter" entry from localStorage (no longer used)
+    localStorage.removeItem('delimiter');
+}

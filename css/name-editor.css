@@ -1,0 +1,97 @@
+/* ===============================
+   Header
+   =============================== */
+#name-editor h1 {
+    color: var(--color-slate-800);
+    font-size: x-large;
+    font-weight: 700;
+}
+
+#name-editor h2 {
+    font-size: large;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--color-slate-800);
+    margin: 0;
+}
+
+h2 i {
+    font-size: medium;
+}
+
+#name-editor .about {
+    font-size: small;
+    color: var(--color-slate-400);
+}
+/* ===============================
+   Table
+   =============================== */
+th,
+td {
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    border-left: none;
+    border-right: none;
+    padding: 6px 8px;
+    text-align: center;
+}
+
+th.align-left,
+td.align-left {
+    text-align: left;
+}
+
+th.border-none,
+td.border-none {
+    border: none;
+}
+
+td.delete-row,
+td.delete-neighbor {
+    cursor: pointer;
+    color: red;
+}
+
+.no-border-r {
+    border-right: none;
+    padding-right: 4px;
+}
+
+.no-border-l {
+    border-left: none;
+    padding-left: 4px;
+}
+
+tr.dragging {
+    opacity: 0.5;
+    background: #aaa;
+}
+
+tr.error-row {
+    outline: 1px solid red;
+}
+
+.firstName {
+    min-width: 100px;
+    width: 100%;
+}
+
+.lastName {
+    min-width: 120px;
+    width: 100%;
+}
+
+.name {
+    min-width: 120px;
+    width: 100%;
+}
+
+.seatNumbers {
+    min-width: 120px;
+    width: 100%;
+}
+
+#name-editor select {
+    cursor: pointer;
+}

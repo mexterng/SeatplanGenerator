@@ -38,7 +38,7 @@ export async function clearCanvas() {
         'Elemente löschen'
     );
 
-    if (!confirmed) return;
+    if (!confirmed) return false;
 
     // Reset seat counter input
     DOM.seatCount.value = 0;
@@ -57,6 +57,7 @@ export async function clearCanvas() {
 
     // Refit viewport after clearing
     fitView();
+    return true;
 }
 
 // ============================================
