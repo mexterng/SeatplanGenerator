@@ -298,16 +298,24 @@ function startCsvImport(root) {
 
         try {
             csvFiletext = await file.text();
-            fields = csvFiletext.split('\n')[0].replace('\r', '').split(';');
+            const delimiter = detectDelimiter(csvFiletext);
+
+            const csvData = csvFiletext
+                .split(/\r?\n/)
+                .filter(row => row.trim())
+                .map(row => row.split(delimiter));
+
+            const fields = csvData[0];
+
             const nameTable = root.querySelector("#nameTable");
-            await openCsvImportModal(nameTable, fields);
+            await openCsvImportModal(nameTable, fields, csvData);
         } catch (err) {
             await showError('Fehler beim Import: ' + err.message);
         }
     };
 }
 
-async function openCsvImportModal(table, fields) {
+async function openCsvImportModal(table, fields, csvData) {
     const allFields = ["---", ...fields];
 
     const content = `
@@ -365,13 +373,49 @@ async function openCsvImportModal(table, fields) {
     const firstnameIndex = fields.indexOf(result.firstnameCol);
     const lastnameIndex = fields.indexOf(result.lastnameCol);
 
-    const csvData = csvFiletext.split('\n').map(r => r.replace('\r', '').split(';'));
-
     csvData.slice(1).forEach(row => {
         const firstname = firstnameIndex >= 0 ? row[firstnameIndex] : '';
         const lastname  = lastnameIndex  >= 0 ? row[lastnameIndex]  : '';
         if (firstname || lastname) addRow(table, firstname, lastname);
     });
+}
+
+function detectDelimiter(text) {
+    const firstLines = text
+        .split(/\r?\n/)
+        .filter(line => line.trim())
+        .slice(0, 5);
+
+    const candidates = [
+        ";",
+        ",",
+        "\t",
+        "|",
+        ":",
+        "#",
+        "~",
+        "^"
+    ];
+
+    let bestDelimiter = ";";
+    let bestScore = 0;
+
+    for (const delimiter of candidates) {
+        const counts = firstLines.map(line => line.split(delimiter).length);
+
+        const min = Math.min(...counts);
+        const max = Math.max(...counts);
+
+        // Prefer delimiters with multiple columns and stable counts
+        const score = min > 1 ? min - (max - min) : 0;
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestDelimiter = delimiter;
+        }
+    }
+
+    return bestDelimiter;
 }
 
 // ============================================
