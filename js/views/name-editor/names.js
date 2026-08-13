@@ -300,19 +300,22 @@ function startCsvImport(root) {
             csvFiletext = await file.text();
             const delimiter = detectDelimiter(csvFiletext);
 
-            fields = csvFiletext
-                .split(/\r?\n/)[0]
-                .split(delimiter);
-                
+            const csvData = csvFiletext
+                .split(/\r?\n/)
+                .filter(row => row.trim())
+                .map(row => row.split(delimiter));
+
+            const fields = csvData[0];
+
             const nameTable = root.querySelector("#nameTable");
-            await openCsvImportModal(nameTable, fields, delimiter);
+            await openCsvImportModal(nameTable, fields, csvData);
         } catch (err) {
             await showError('Fehler beim Import: ' + err.message);
         }
     };
 }
 
-async function openCsvImportModal(table, fields, delimiter) {
+async function openCsvImportModal(table, fields, csvData) {
     const allFields = ["---", ...fields];
 
     const content = `
@@ -369,11 +372,6 @@ async function openCsvImportModal(table, fields, delimiter) {
 
     const firstnameIndex = fields.indexOf(result.firstnameCol);
     const lastnameIndex = fields.indexOf(result.lastnameCol);
-
-    const csvData = csvFiletext
-        .split(/\r?\n/)
-        .filter(row => row.trim())
-        .map(row => row.split(delimiter));
 
     csvData.slice(1).forEach(row => {
         const firstname = firstnameIndex >= 0 ? row[firstnameIndex] : '';
