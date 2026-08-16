@@ -75,13 +75,17 @@ export async function exportSeatsVectorPDF(className, dateFrom, dateTo, teacherN
     const bbox = getSeatsBoundingBox(state.seats);
     if (!bbox) return;
 
-    const scaleX = (pdfWidth - PDF_MARGIN_LEFT - PDF_MARGIN_RIGHT) / bbox.width;
-    const scaleY = (pdfHeight - yOffset - PDF_MARGIN_BOTTOM) / bbox.height;
+    const availableWidth = pdfWidth - PDF_MARGIN_LEFT - PDF_MARGIN_RIGHT;
+    const availableHeight = pdfHeight - yOffset - PDF_MARGIN_BOTTOM;
+
+    const scaleX = availableWidth / bbox.width;
+    const scaleY = availableHeight / bbox.height;
 
     const scale = Math.min(scaleX, scaleY);
+    const xOffset = PDF_MARGIN_LEFT + (availableWidth - bbox.width * scale) / 2;
 
-    drawSeatsToPDF(pdf, bbox, scale, yOffset);
-    drawFixedElementsToPDF(pdf, bbox, scale, yOffset);
+    drawSeatsToPDF(pdf, bbox, scale, yOffset, xOffset);
+    drawFixedElementsToPDF(pdf, bbox, scale, yOffset, xOffset);
 
     // ===== Footer =====
     pdf.setFontSize(6);
@@ -172,11 +176,11 @@ export async function openExportPopup() {
  * @param {number} yOffset - Vertical offset.
  * @returns {void}
  */
-function drawSeatsToPDF(pdf, bbox, scale, yOffset) {
+function drawSeatsToPDF(pdf, bbox, scale, yOffset, xOffset = PDF_MARGIN_LEFT) {
     state.seats.forEach(s => {
         const el = s.element;
 
-        const seatX = (parseFloat(el.style.left) - bbox.minX) * scale + PDF_MARGIN_LEFT;
+        const seatX = (parseFloat(el.style.left) - bbox.minX) * scale + xOffset;
 
         const seatY = (parseFloat(el.style.top) - bbox.minY) * scale + yOffset;
 
@@ -202,11 +206,11 @@ function drawSeatsToPDF(pdf, bbox, scale, yOffset) {
  * @param {number} yOffset - Vertical offset.
  * @returns {void}
  */
-function drawFixedElementsToPDF(pdf, bbox, scale, yOffset) {
+function drawFixedElementsToPDF(pdf, bbox, scale, yOffset, xOffset = PDF_MARGIN_LEFT) {
     document
         .querySelectorAll('#canvas .fixed-element')
         .forEach(el => {
-            const ex = (parseFloat(el.style.left) - bbox.minX) * scale + PDF_MARGIN_LEFT;
+            const ex = (parseFloat(el.style.left) - bbox.minX) * scale + xOffset;
 
             const ey = (parseFloat(el.style.top) - bbox.minY) * scale + yOffset;
 
